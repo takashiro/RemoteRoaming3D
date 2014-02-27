@@ -5,3 +5,5 @@ bin/
 *.vcxproj.user
 Debug/
 Release/
+*.opensdf
+ipch/
