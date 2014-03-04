@@ -1,14 +1,14 @@
-#ifndef _CLIENT_H_
-#define _CLIENT_H_
+#ifndef _SERVERUSER_H_
+#define _SERVERUSER_H_
 
 #include <WinSock.h>
 
 class Server;
 
-class Client{
+class ServerUser{
 public:
-	Client(Server *server, SOCKET socket);
-	~Client();
+	ServerUser(Server *server, SOCKET socket);
+	~ServerUser();
 
 	inline bool isValid() const{return _receive_thread != NULL;}
 

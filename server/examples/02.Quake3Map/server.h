@@ -8,7 +8,7 @@
 
 #include <IrrlichtDevice.h>
 
-class Client;
+class ServerUser;
 
 class Server{
 public:
@@ -28,7 +28,7 @@ public:
 
 	inline bool isListening() const{return _is_listening;}
 
-	void disconnect(Client *client);
+	void disconnect(ServerUser *client);
 
 protected:
 	SOCKET _server_socket;
@@ -42,7 +42,7 @@ private:
 	static DWORD WINAPI _ServerThread(LPVOID lpParam);
 
 	HANDLE _server_thread;
-	std::list<Client *> _clients;
+	std::list<ServerUser *> _clients;
 };
 
 #endif

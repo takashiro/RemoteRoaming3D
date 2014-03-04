@@ -18,6 +18,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import org.apache.http.util.EncodingUtils;
+import org.json.JSONException;
 
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.Renderer;
@@ -72,7 +73,7 @@ public class MainActivity extends Activity {
 	private float deltaY;
 	private float oldDistance;
 	private float newDistance;
-	private Queue<NetData> sendQueue = new LinkedList<NetData>();
+	private Queue<Packet> sendQueue = new LinkedList<Packet>();
 	private int recvLength = 0;
 	private byte[] recv = new byte[BUFFER_SIZE];
 	private byte[] recvAll = new byte[BITMAP_SIZE];
@@ -156,47 +157,55 @@ StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
-		// int historySize = event.getHistorySize();
-		int pointCount = event.getPointerCount();
-		if(pointCount > 2)
-			pointCount = 2;
-		float x = event.getX();
-		float y = event.getY();
-		switch (event.getAction() & MotionEvent.ACTION_MASK) {
-		case MotionEvent.ACTION_DOWN:
-			x0 = x;
-			y0 = y;
-			deltaX = deltaY = 0;
-			Log.i(TAG, "Down " + x + "---" + y);
-			break;
-		case MotionEvent.ACTION_POINTER_DOWN:
-			oldDistance = (event.getX(0) - event.getX(1)) * (event.getX(0) - event.getX(1)) + (event.getY(0) - event.getY(1)) * (event.getY(0) - event.getY(1));
-			break;
-		case MotionEvent.ACTION_CANCEL:
-		case MotionEvent.ACTION_UP:
-			Log.i(TAG, "UP " + x + "---" + y);
-			break;
-		case MotionEvent.ACTION_MOVE:
-			if(pointCount == 1){
-				deltaX = x - x0;
-				deltaY = y - y0;
+		try{
+			// TODO Auto-generated method stub
+			// int historySize = event.getHistorySize();
+			int pointCount = event.getPointerCount();
+			if(pointCount > 2)
+				pointCount = 2;
+			float x = event.getX();
+			float y = event.getY();
+			switch (event.getAction() & MotionEvent.ACTION_MASK) {
+			case MotionEvent.ACTION_DOWN:
 				x0 = x;
 				y0 = y;
-				if(deltaX < 2 && deltaX > -2)deltaX = 0;
-				if(deltaY < 2 && deltaY > -2)deltaY = 0;
-				sendQueue.offer(new NetData(FLAG_MOVE, deltaX, deltaY));
-//				sendQueue.offer(new NetData(x, y));
-				Log.i(TAG, "MOVE " + deltaX + "---" + deltaY);
-			}else if(pointCount == 2){
-				newDistance = (event.getX(0) - event.getX(1)) * (event.getX(0) - event.getX(1)) + (event.getY(0) - event.getY(1)) * (event.getY(0) - event.getY(1));
-				if(newDistance - oldDistance > MOVE_DIS)
-					sendQueue.offer(new NetData(FLAG_SCALE, -2, 0));
-				else if(newDistance - oldDistance < (-1) * MOVE_DIS)
-					sendQueue.offer(new NetData(FLAG_SCALE, -1, 0));
-				oldDistance = newDistance;
+				deltaX = deltaY = 0;
+				Log.i(TAG, "Down " + x + "---" + y);
+				break;
+			case MotionEvent.ACTION_POINTER_DOWN:
+				oldDistance = (event.getX(0) - event.getX(1)) * (event.getX(0) - event.getX(1)) + (event.getY(0) - event.getY(1)) * (event.getY(0) - event.getY(1));
+				break;
+			case MotionEvent.ACTION_CANCEL:
+			case MotionEvent.ACTION_UP:
+				Log.i(TAG, "UP " + x + "---" + y);
+				break;
+			case MotionEvent.ACTION_MOVE:
+				if(pointCount == 1){
+					deltaX = x - x0;
+					deltaY = y - y0;
+					x0 = x;
+					y0 = y;
+					if(deltaX < 2 && deltaX > -2)deltaX = 0;
+					if(deltaY < 2 && deltaY > -2)deltaY = 0;
+					
+					Packet packet = new Packet(Packet.Command.MOVE);
+					packet.args.put(deltaX);
+					packet.args.put(deltaY);
+					sendQueue.offer(packet);
+	//				sendQueue.offer(new NetData(x, y));
+					Log.i(TAG, "MOVE " + deltaX + "---" + deltaY);
+				}else if(pointCount == 2){
+					newDistance = (event.getX(0) - event.getX(1)) * (event.getX(0) - event.getX(1)) + (event.getY(0) - event.getY(1)) * (event.getY(0) - event.getY(1));
+					Packet packet = new Packet(Packet.Command.SCALE);
+					packet.args.put(newDistance - oldDistance);
+					sendQueue.offer(packet);
+					oldDistance = newDistance;
+				}
+				break;
 			}
-			break;
+		}catch(JSONException e){
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		return super.onTouchEvent(event);
@@ -242,14 +251,11 @@ StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
 				while (true) {
 					if (sendQueue.isEmpty())
 						continue;
-					NetData nd = sendQueue.poll();
-					StringBuilder sendString = new StringBuilder(nd.getF() + "," + nd.getX().toString() + "," + nd.getY()
-							.toString());
-					while(sendString.length() < SEND_SIZE)
-						sendString.append('E');
+					Packet packet = sendQueue.poll();
+					StringBuilder sendString = new StringBuilder(packet.toString());
+					sendString.append('\n');
 					dos.write(sendString.toString().getBytes());
 					dos.flush();
-					Log.i(TAG, "run " + nd.getF() + "," + nd.getX() + "," + nd.getY());
 				}
 //				dos.close();
 			} catch (UnknownHostException e) {

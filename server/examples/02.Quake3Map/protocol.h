@@ -15,13 +15,8 @@ namespace R3D{
 			//Client to Server
 			SetResolution,
 
-			GoLeft,
-			GoRight,
-			GoUp,
-			GoDown,
-			GoForward,
-			GoBackward,
-			Rotate
+			Move,
+			Scale
 		};
 		Command command;
 		

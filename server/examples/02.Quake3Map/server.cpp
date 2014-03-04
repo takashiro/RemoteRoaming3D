@@ -1,5 +1,5 @@
 #include "server.h"
-#include "client.h"
+#include "serveruser.h"
 
 Server::Server(irr::IrrlichtDevice *device)
 {
@@ -17,7 +17,7 @@ Server::~Server()
 		CloseHandle(_server_thread);
 	}
 
-	for(std::list<Client *>::iterator i = _clients.begin(); i != _clients.end(); i++){
+	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++){
 		delete *i;
 	}
 }
@@ -88,7 +88,7 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 
 		//@to-do:refuse new connections if the server reaches the maximum client number
 
-		Client *client = new Client(server, client_socket);
+		ServerUser *client = new ServerUser(server, client_socket);
 		if(client->isValid()){
 			server->_clients.push_back(client);
 		}else{
@@ -99,8 +99,8 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 	return 0;
 }
 
-void Server::disconnect(Client *client){
-	for(std::list<Client *>::iterator i = _clients.begin(); i != _clients.end(); i++){
+void Server::disconnect(ServerUser *client){
+	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++){
 		if(*i == client){
 			delete client;
 			_clients.remove(client);
