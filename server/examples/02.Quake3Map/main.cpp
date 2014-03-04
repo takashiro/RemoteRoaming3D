@@ -38,6 +38,8 @@ easy, we use a pragma comment lib:
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
+#pragma comment(lib, "Json.lib")
+
 enum
 {
 	// I use this ISceneNode ID to indicate a scene node that is
@@ -94,7 +96,7 @@ int main()
 
 	//create device and exit if creation failed
 
-	IrrlichtDevice *device = createDevice(driverType, core::dimension2d<u32>(640, 480));
+	IrrlichtDevice *device = createDevice(driverType, core::dimension2d<u32>(960, 540));
 
 	if (device == 0)
 		return 1; // could not create selected driver.

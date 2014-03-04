@@ -25,6 +25,8 @@ DWORD WINAPI Client::_ReceiveThread(LPVOID pParam){
 	Client *client = (Client *) pParam;
 	SOCKET socket = client->_socket;
 
+	client->sendScreenshot();
+
 	int result = 0;
 	const int length = 1024;
 	char buffer[length];
@@ -182,6 +184,7 @@ void Client::handleCommand(const char *cmd)
 			}
 		}
 
+		sendScreenshot();
 		Sleep(10);
 	}
 }

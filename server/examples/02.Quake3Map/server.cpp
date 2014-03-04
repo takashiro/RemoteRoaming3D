@@ -6,7 +6,7 @@ Server::Server(irr::IrrlichtDevice *device)
 	_device = device;
 	
 	_server_port = 6666;
-	_maximum_client_num = 10;
+	_maximum_client_num = 1;
 	_is_listening = false;
 }
 
@@ -85,6 +85,8 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 		{
 			continue;
 		}
+
+		//@to-do:refuse new connections if the server reaches the maximum client number
 
 		Client *client = new Client(server, client_socket);
 		if(client->isValid()){
