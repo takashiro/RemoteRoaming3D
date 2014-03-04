@@ -15,6 +15,8 @@ console.
 #include <irrlicht.h>
 #include <iostream>
 
+#include "server.h"
+
 /*
 As already written in the HelloWorld example, in the Irrlicht Engine everything
 can be found in the namespace 'irr'. To get rid of the irr:: in front of the
@@ -36,13 +38,6 @@ easy, we use a pragma comment lib:
 #pragma comment(lib, "Irrlicht.lib")
 #endif
 
-/*
-Ok, lets start. Again, we use the main() method as start, not the WinMain().
-*/
-
-#define USE_BNG_ADD
-
-#ifdef USE_BNG_ADD
 enum
 {
 	// I use this ISceneNode ID to indicate a scene node that is
@@ -52,16 +47,14 @@ enum
 	// I use this flag in ISceneNode IDs to indicate that the
 	// scene node can be picked by ray selection.
 	IDFlag_IsPickable = 1 << 0,
-
+	
 	// I use this flag in ISceneNode IDs to indicate that the
 	// scene node can be highlighted.  In this example, the
 	// homonids can be highlighted, but the level mesh can't.
 	IDFlag_IsHighlightable = 1 << 1
 };
 
-#include "socket.h"
-
-#endif
+/* Ok, lets start. Again, we use the main() method as start, not the WinMain(). */
 
 int main()
 {
@@ -99,13 +92,16 @@ int main()
 		default: return 1;
 	}
 
-	// create device and exit if creation failed
+	//create device and exit if creation failed
 
-	IrrlichtDevice *device =
-		createDevice(driverType, core::dimension2d<u32>(640, 480));
+	IrrlichtDevice *device = createDevice(driverType, core::dimension2d<u32>(640, 480));
 
 	if (device == 0)
 		return 1; // could not create selected driver.
+
+	//create a server
+	Server server(device);
+	server.listenTo(6666);
 
 	/*
 	Get a pointer to the video driver and the SceneManager so that
@@ -122,19 +118,9 @@ int main()
 	we are able to read from the files in that archive as if they are
 	directly stored on the disk.
 	*/
-#ifndef USE_BNG_ADD
 
-		device->getFileSystem()->addFileArchive("../../media/map-20kdm2.pk3");
-#else
-		device->getFileSystem()->addFileArchive("../../media/158.zip");
-	//	device->getFileSystem()->addFileArchive("../../bngAdded/sunflower/sunflower.zip");
-	//  device->getFileSystem()->addFileArchive("../../bngAdded/Ferrari_f430/Ferrari_f430.zip");
-#endif // BNG_ADD
+	device->getFileSystem()->addFileArchive("../../media/158.zip");
 	
-
-
-
-
 	/*
 	Now we can load the mesh by calling
 	irr::scene::ISceneManager::getMesh(). We get a pointer returned to an
@@ -155,24 +141,11 @@ int main()
 	optimization with the Octree is only useful when drawing huge meshes
 	consisting of lots of geometry.
 	*/
-#ifdef USE_BNG_ADD
-
 	scene::IAnimatedMesh* mesh = smgr->getMesh("MG158_52.obj");
-	//	scene::IAnimatedMesh* mesh = smgr->getMesh("SunFlower.obj");
-	//	scene::IAnimatedMesh* mesh = smgr->getMesh("f430.obj");
-#else
-	scene::IAnimatedMesh* mesh = smgr->getMesh("20kdm2.bsp");
-#endif
-
-
-#ifdef USE_BNG_ADD
 	scene::IMeshSceneNode* node = 0;
-#else
-	scene::ISceneNode* node = 0;
-#endif
+
 	if (mesh)
 		node = smgr->addOctreeSceneNode(mesh->getMesh(0), 0, -1, 1024);
-//		node = smgr->addMeshSceneNode(mesh->getMesh(0));
 
 	/*
 	Because the level was not modelled around the origin (0,0,0), we
@@ -182,7 +155,7 @@ int main()
 	irr::scene::ISceneNode::setRotation(), and
 	irr::scene::ISceneNode::setScale().
 	*/
-#ifdef USE_BNG_ADD
+
 	scene::ITriangleSelector* selector = 0;
 	irr::scene::IBillboardSceneNode * bill = 0;
 	irr::scene::ILightSceneNode *light = 0;
@@ -211,15 +184,7 @@ int main()
 			node->getMesh(), node, 128);
 		node->setTriangleSelector(selector);
 		// We're not done with this selector yet, so don't drop it.
-
-
 	}
-
-#else
-	if (node)
-		node->setPosition(core::vector3df(-1300,-144,-1249));
-		
-#endif
 
 	/*
 	Now we only need a camera to look at the Quake 3 map.
@@ -233,7 +198,7 @@ int main()
 	first person shooter games (FPS) and hence use
 	irr::scene::ISceneManager::addCameraSceneNodeFPS().
 	*/
-#ifdef USE_BNG_ADD
+
 	// Set a jump speed of 3 units per second, which gives a fairly realistic jump
 	// when used with the gravity of (0, -10, 0) in the collision response animator.
 	scene::ICameraSceneNode* camera =
@@ -251,9 +216,6 @@ int main()
 		camera->addAnimator(anim);
 		anim->drop();  // And likewise, drop the animator when we're done referring to it.
 	}
-#else
-	smgr->addCameraSceneNodeFPS(0,10,0.2);
-#endif
 
 	/*
 	The mouse cursor needs not be visible, so we hide it via the
@@ -270,25 +232,15 @@ int main()
 	irr::IrrlichtDevice::yield() will avoid the busy loop to eat up all CPU
 	cycles when the window is not active.
 	*/
-#ifdef USE_BNG_ADD
+
 	video::SMaterial material;
 	material.setTexture(0,0);
 	material.Lighting = false;
 	material.Wireframe = true;
 	scene::ISceneNode* highlightedSceneNode = 0;
 	scene::ISceneCollisionManager* collMan = smgr->getSceneCollisionManager();
-#endif
 
 	int lastFPS = -1;
-
-	//zqf_added
-	//@to-do: implement this using OOP
-	CreateSocket();
-
-	/*int w = driver->getScreenSize().Width;
-	int h = driver->getScreenSize().Height;
-	const int LENGTH = w*h*4;
-	GLvoid* buffer = new unsigned char[LENGTH];*/
 
 	while(device->run())
 	{
@@ -297,7 +249,6 @@ int main()
 			driver->beginScene(true, true, video::SColor(255,200,200,200));
 			smgr->drawAll();
 
-#ifdef USE_BNG_ADD
 		// All intersections in this example are done with a ray cast out from the camera to
 		// a distance of 1000.  You can easily modify this to check (e.g.) a bullet
 		// trajectory or a sword's position, or create a ray from a mouse click position using
@@ -338,62 +289,9 @@ int main()
 			driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
 		}
 
-
-#endif
 		driver->endScene();
-		printf("write image to file\n");
-		video::IImage* image = device->getVideoDriver()->createScreenShot();
-		if (image)
-		{
-			device->getVideoDriver()->writeImageToFile(image, "screenshot.jpg");
-			image->drop();
-		}
-		printf("image write to file done\n");
 
-		const int SIZE = 1024 * 8;
-		FILE* fp;
-		int send_count;
-		int length;
-
-		SOCKET serConn = sock_client;
-
-		printf("open image from file\n");
-		if((fp=fopen("screenshot.jpg","rb"))==NULL)
-		{
-			printf("从服务器端返回文件未打开\n");
-		}
-		printf("start sending\n");
-		fseek(fp,0L,SEEK_END);
-		length=ftell(fp);
-		printf("待传送文件大小： %d\n",length);
-
-		send(serConn, (char *)&length + 3, 1, 0);
-		send(serConn, (char *)&length + 2, 1, 0);
-		send(serConn, (char *)&length + 1, 1, 0);
-		send(serConn, (char *)&length + 0, 1, 0);
-		fseek(fp,0L,SEEK_SET);
-		//传送文件
-		long int y=0;
-		char trans[SIZE];
-		while(!feof(fp))
-		{
-
-			fread(trans,1,SIZE,fp);
-			y=y+SIZE;
-			if(y<length)
-			{
-				send_count=send(serConn,trans,SIZE,0);
-				printf("图片字节数：%d\n",send_count); 
-			}
-			else
-			{
-				send(serConn,trans,length+SIZE-y,0);
-			}
-		}
-		fclose(fp);
-		printf("文件发送完毕\n");
-
-			int fps = driver->getFPS();
+		int fps = driver->getFPS();
 
 			if (lastFPS != fps)
 			{
