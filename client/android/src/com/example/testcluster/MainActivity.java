@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.Socket;
@@ -21,11 +22,13 @@ import org.apache.http.util.EncodingUtils;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.Renderer;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -43,14 +46,14 @@ public class MainActivity extends Activity {
 
 	private static final String TAG = "com.example.testcluster";
 	private static final String IP_FILE = "/mnt/sdcard/TestCluster/TestCluster.txt";
-	private static String IP = "10.214.58.21";
+	private static String IP = "192.168.137.1";
 	private static final int PORT = 6666;
 //	private static final int RECV_PORT = 6667;
 //	private static final int DOWN = -1;
 //	private static final int UP = -2;
 	private static final int SEND_SIZE = 15;
 	private static final int BUFFER_SIZE = 1024 * 8;
-	private static final int BITMAP_SIZE = 640 * 380 * 4;
+	private static final int BITMAP_SIZE = 960 * 540 * 4;
 	
 	private final int FLAG_MOVE = 1;
 	private final int FLAG_SCALE = 0;
