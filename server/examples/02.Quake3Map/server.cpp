@@ -101,6 +101,7 @@ void Server::disconnect(Client *client){
 	for(std::list<Client *>::iterator i = _clients.begin(); i != _clients.end(); i++){
 		if(*i == client){
 			delete client;
+			_clients.remove(client);
 			break;
 		}
 	}
