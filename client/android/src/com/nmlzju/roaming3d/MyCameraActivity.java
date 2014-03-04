@@ -1,4 +1,4 @@
-package com.example.testcluster;
+package com.nmlzju.roaming3d;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+
+import com.nmlzju.roaming3d.R;
 
 import android.app.Activity;
 import android.content.Context;

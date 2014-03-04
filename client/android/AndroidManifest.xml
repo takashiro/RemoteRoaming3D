@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.testcluster"
+    package="com.nmlzju.roaming3d"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -14,7 +14,7 @@
 
         
                 <activity
-            android:name=".MainActivity"
+            android:name="com.nmlzju.roaming3d.MainActivity"
             android:label="@string/title_activity_main" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

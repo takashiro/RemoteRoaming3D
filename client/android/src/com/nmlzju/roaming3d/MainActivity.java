@@ -1,4 +1,4 @@
-package com.example.testcluster;
+package com.nmlzju.roaming3d;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,6 +19,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 import org.apache.http.util.EncodingUtils;
 import org.json.JSONException;
+
+import com.nmlzju.roaming3d.R;
 
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.Renderer;
