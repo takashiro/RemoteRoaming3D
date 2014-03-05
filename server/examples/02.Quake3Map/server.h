@@ -4,15 +4,12 @@
 #include <list>
 
 #include <WinSock.h>
-#pragma comment(lib,"ws2_32.lib")
-
-#include <IrrlichtDevice.h>
 
 class ServerUser;
 
 class Server{
 public:
-	Server(irr::IrrlichtDevice *device);
+	Server();
 	~Server();
 
 	void listenTo(short port = 6666);
@@ -24,19 +21,21 @@ public:
 	inline void setMaximumClientNum(int num){_maximum_client_num = num;}
 	inline int getMaximumClientNum() const{return _maximum_client_num;}
 
-	inline irr::IrrlichtDevice *getIrrlichtDevice(){return _device;}
-
 	inline bool isListening() const{return _is_listening;}
 
 	void disconnect(ServerUser *client);
 
+	inline HANDLE getServerThread(){return _server_thread;}
+	inline void setIndependentThreadEnabled(bool enabled){_is_independent_thread_enabled = enabled;}
+	inline bool isIndependentThreadEnabled() const{return _is_independent_thread_enabled;}
+
 protected:
 	SOCKET _server_socket;
-	irr::IrrlichtDevice *_device;
 
 	bool _is_listening;
 	short _server_port;
 	int _maximum_client_num;
+	bool _is_independent_thread_enabled;
 
 private:
 	static DWORD WINAPI _ServerThread(LPVOID lpParam);

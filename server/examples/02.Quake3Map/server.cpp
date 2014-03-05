@@ -1,13 +1,9 @@
 #include "server.h"
 #include "serveruser.h"
 
-Server::Server(irr::IrrlichtDevice *device)
+Server::Server()
+	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(false)
 {
-	_device = device;
-	
-	_server_port = 6666;
-	_maximum_client_num = 1;
-	_is_listening = false;
 }
 
 Server::~Server()
@@ -66,7 +62,11 @@ void Server::listenTo(short port)
 
 	_server_socket = sock_sev;
 
-	_server_thread = CreateThread(NULL, 0, _ServerThread, (LPVOID) this, 0, NULL);
+	if(isIndependentThreadEnabled()){
+		_server_thread = CreateThread(NULL, 0, _ServerThread, (LPVOID) this, 0, NULL);
+	}else{
+		_ServerThread((LPVOID) this);
+	}
 }
 
 DWORD WINAPI Server::_ServerThread(LPVOID pParam)
