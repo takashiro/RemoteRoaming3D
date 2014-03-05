@@ -23,17 +23,15 @@ enum
 
 using namespace irr;
 
-ServerUser::ServerUser(Server *server, SOCKET socket){
+ServerUser::ServerUser(Server *server, SOCKET socket)
+	:_server(server), _socket(socket), _device_thread(NULL)
+{
 	if(_callbacks.empty()){
 		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
 		_callbacks[R3D::Move] = &ServerUser::_moveCamera;
 		_callbacks[R3D::Scale] = &ServerUser::_scaleCamera;
 	}
 
-	_server = server;
-	_socket = socket;
-
-	_device_thread = CreateThread(NULL, 0, _DeviceThread, (LPVOID) this, 0, NULL);
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
 }
 
@@ -144,6 +142,9 @@ void ServerUser::handleCommand(const char *cmd)
 }
 
 void ServerUser::_createDevice(const Json::Value &args){
+	_screen_width = args[0].asInt();
+	_screen_height = args[1].asInt();
+	_device_thread = CreateThread(NULL, 0, _DeviceThread, (LPVOID) this, 0, NULL);
 }
 
 void ServerUser::_moveCamera(const Json::Value &args){
@@ -183,7 +184,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	ServerUser *client = (ServerUser *) lpParam;
 	
 	//create device and exit if creation failed
-	IrrlichtDevice *device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(960, 540));
+	IrrlichtDevice *device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(client->_screen_width, client->_screen_height));
 	if (device == NULL)
 		return 1; // could not create selected driver.
 

@@ -29,6 +29,9 @@ protected:
 	void _moveCamera(const Json::Value &args);
 	void _scaleCamera(const Json::Value &args);
 
+	int _screen_width;
+	int _screen_height;
+
 	Server *_server;
 	SOCKET _socket;
 	irr::IrrlichtDevice *_device;
