@@ -143,6 +143,9 @@ StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
 
 		try {
 			socket = new Socket(IP, PORT);
+			new sendThread().start();
+			rThread = new recvThread();
+			rThread.start();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -150,9 +153,7 @@ StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		new sendThread().start();
-		rThread = new recvThread();
-		rThread.start();
+		
 		//setContentView(mGLView);
 		
 	}
