@@ -21,14 +21,17 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 
 @SuppressLint({ "NewApi", "NewApi", "NewApi" })
 public class MainActivity extends Activity {
 
-	private static final String TAG = "com.example.testcluster";
+	private static final String TAG = "com.nlmzju.roaming3d";
 	private static String IP = "192.168.137.1";
 	private static final int PORT = 6666;
 	private static final int BUFFER_SIZE = 1024 * 8;
@@ -79,7 +82,7 @@ public class MainActivity extends Activity {
 			.build()
 		);
 		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedSqlLiteObjects().detectLeakedClosableObjects().penaltyLog().penaltyDeath().build());
-
+		
 		try {
 			socket = new Socket(IP, PORT);
 
