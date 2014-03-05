@@ -1,6 +1,10 @@
 #include "server.h"
 #include "serveruser.h"
 
+inline void printip(const sockaddr_in &ip){
+	printf("%d.%d.%d.%d", ip.sin_addr.S_un.S_un_b.s_b1, ip.sin_addr.S_un.S_un_b.s_b2, ip.sin_addr.S_un.S_un_b.s_b3, ip.sin_addr.S_un.S_un_b.s_b4);
+}
+
 Server::Server()
 	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(false)
 {
@@ -91,6 +95,9 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 		ServerUser *client = new ServerUser(server, client_socket);
 		if(client->isValid()){
 			server->_clients.push_back(client);
+			printf("new client:");
+			printip(addr_client);
+			printf("\n");
 		}else{
 			delete client;
 		}
@@ -102,8 +109,10 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 void Server::disconnect(ServerUser *client){
 	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++){
 		if(*i == client){
-			delete client;
 			_clients.remove(client);
+			printf("client disconnected:");
+			printip(client->getIp());
+			printf("\n");
 			break;
 		}
 	}

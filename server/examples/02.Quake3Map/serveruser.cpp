@@ -63,7 +63,8 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 		if (result == 0 || result == SOCKET_ERROR) 
 		{
 			//disconnect the client
-			client->_server->disconnect(client);
+			client->disconnect();
+			delete client;
 			break;
 		}
 
@@ -71,6 +72,12 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	}
 
 	return 0;
+}
+
+void ServerUser::disconnect(){
+	_device->closeDevice();
+	WaitForSingleObject(_device_thread, INFINITE);
+	_server->disconnect(this);
 }
 
 void ServerUser::sendScreenshot(){
@@ -124,6 +131,13 @@ void ServerUser::sendScreenshot(){
 	fclose(fp);
 }
 
+sockaddr_in ServerUser::getIp(){
+	sockaddr_in ip;
+	int length = sizeof(ip);
+	getpeername(_socket, (sockaddr *) &ip, &length);
+	return ip;
+}
+
 void ServerUser::handleCommand(const char *cmd)
 {
 	IrrlichtDevice *&device = _device;
@@ -148,8 +162,6 @@ void ServerUser::_createDevice(const Json::Value &args){
 }
 
 void ServerUser::_moveCamera(const Json::Value &args){
-	HWND HWnd = GetFocus();//@to-do:It was the HWND inside IrrlichtDevice
-
 	irr::gui::ICursorControl *cursor = _device->getCursorControl();
 	irr::core::vector2d<irr::s32> pos = cursor->getPosition();
 	pos.X -= args[0].asInt() * 10;
@@ -160,11 +172,10 @@ void ServerUser::_moveCamera(const Json::Value &args){
 }
 
 void ServerUser::_scaleCamera(const Json::Value &args){
-	HWND HWnd = GetFocus();//@to-do:It was the HWND inside IrrlichtDevice
+	HWND HWnd = (HWND) _device->getVideoDriver()->getExposedVideoData().D3D9.HWnd;
 
 	int x1 = args[0].asInt();
-
-	if(x1 < 0)
+	if(x1 >= 0)
 	{
 		PostMessage(HWnd,WM_KEYDOWN, VK_UP, 0);
 		Sleep(100);
@@ -183,12 +194,12 @@ void ServerUser::_scaleCamera(const Json::Value &args){
 DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	ServerUser *client = (ServerUser *) lpParam;
 	
+	IrrlichtDevice *&device = client->_device;
+
 	//create device and exit if creation failed
-	IrrlichtDevice *device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(client->_screen_width, client->_screen_height));
+	device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(client->_screen_width, client->_screen_height));
 	if (device == NULL)
 		return 1; // could not create selected driver.
-
-	client->_device = device;
 
 	/*
 	Get a pointer to the video driver and the SceneManager so that

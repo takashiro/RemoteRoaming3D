@@ -17,6 +17,9 @@ public:
 
 	inline bool isValid() const{return _receive_thread != NULL;}
 	inline irr::IrrlichtDevice *getDevice(){return _device;}
+	sockaddr_in getIp();
+
+	void disconnect();
 
 protected:
 	void sendScreenshot();
