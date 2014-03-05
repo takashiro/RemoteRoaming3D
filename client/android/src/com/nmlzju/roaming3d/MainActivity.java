@@ -158,6 +158,20 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
+	public void onDestroy() {
+		if(socket != null){
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		super.onDestroy();
+	}
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
