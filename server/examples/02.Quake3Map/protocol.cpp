@@ -16,10 +16,10 @@ Packet Packet::FromString(const char *str){
 	Json::Reader reader;
 	Json::Value value;
 	if(!reader.parse(str, value)){
-		packet.command = Packet::Invalid;
+		packet.command = Invalid;
 		packet.args = Json::nullValue;
 	}else{
-		packet.command = (Packet::Command) value[0].asInt();
+		packet.command = (Command) value[0].asInt();
 		packet.args = value[1];
 	}
 	

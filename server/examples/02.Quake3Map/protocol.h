@@ -4,20 +4,21 @@
 #include <json/value.h>
 
 namespace R3D{
-	struct Packet{
-		enum Command{
-			Invalid,
+	enum Command{
+		Invalid,
 
-			//Server to Client
-			UpdateVideoFrame,
+		//Server to Client
+		UpdateVideoFrame,
 		
 
-			//Client to Server
-			SetResolution,
+		//Client to Server
+		SetResolution,
 
-			Move,
-			Scale
-		};
+		Move,
+		Scale
+	};
+
+	struct Packet{
 		Command command;
 		
 		Json::Value args;

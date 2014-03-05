@@ -1,10 +1,9 @@
 #include "server.h"
 #include "serveruser.h"
-#include "protocol.h"
 
 #include <memory.h>
 #include <iostream>
-#include <irrlicht.h>
+
 
 enum
 {
@@ -25,6 +24,12 @@ enum
 using namespace irr;
 
 ServerUser::ServerUser(Server *server, SOCKET socket){
+	if(_callbacks.empty()){
+		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
+		_callbacks[R3D::Move] = &ServerUser::_moveCamera;
+		_callbacks[R3D::Scale] = &ServerUser::_scaleCamera;
+	}
+
 	_server = server;
 	_socket = socket;
 
@@ -129,34 +134,46 @@ void ServerUser::handleCommand(const char *cmd)
 	}
 
 	R3D::Packet packet = R3D::Packet::FromString(cmd);
+	std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
+	if(iter != _callbacks.end()){
+		Callback func = iter->second;
+		if(func != NULL){
+			(this->*func)(packet.args);
+		}
+	}
+}
 
+void ServerUser::_createDevice(const Json::Value &args){
+}
+
+void ServerUser::_moveCamera(const Json::Value &args){
 	HWND HWnd = GetFocus();//@to-do:It was the HWND inside IrrlichtDevice
 
-	int x1 = packet.args[0].asInt();
-	int y1 = packet.args[1].asInt();
-	
-	if(packet.command == R3D::Packet::Move)
-	{
-		int x = device->getCursorControl()->getPosition().X - x1 * 10;
-		int y = device->getCursorControl()->getPosition().Y - y1 * 10;
-		device->getCursorControl()->setPosition(x,y);
+	irr::gui::ICursorControl *cursor = _device->getCursorControl();
+	irr::core::vector2d<irr::s32> pos = cursor->getPosition();
+	pos.X -= args[0].asInt() * 10;
+	pos.Y -= args[1].asInt() * 10;
+	cursor->setPosition(pos);
 
-		PostMessage(HWnd, WM_MOUSEMOVE, 0, MAKELONG(x,y));
+	sendScreenshot();
+}
+
+void ServerUser::_scaleCamera(const Json::Value &args){
+	HWND HWnd = GetFocus();//@to-do:It was the HWND inside IrrlichtDevice
+
+	int x1 = args[0].asInt();
+
+	if(x1 < 0)
+	{
+		PostMessage(HWnd,WM_KEYDOWN, VK_UP, 0);
+		Sleep(100);
+		PostMessage(HWnd,WM_KEYUP, VK_UP, 0);
 	}
 	else
 	{
-		if(x1 < 0)
-		{
-			PostMessage(HWnd,WM_KEYDOWN, VK_UP, 0);
-			Sleep(100);
-			PostMessage(HWnd,WM_KEYUP, VK_UP, 0);
-		}
-		else
-		{
-			PostMessage(HWnd,WM_KEYDOWN, VK_DOWN, 0);
-			Sleep(100);
-			PostMessage(HWnd,WM_KEYUP, VK_DOWN, 0);
-		}
+		PostMessage(HWnd,WM_KEYDOWN, VK_DOWN, 0);
+		Sleep(100);
+		PostMessage(HWnd,WM_KEYUP, VK_DOWN, 0);
 	}
 
 	sendScreenshot();
