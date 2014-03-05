@@ -13,7 +13,6 @@ public:
 	~Server();
 
 	void listenTo(short port = 6666);
-	void pendingNewConnection();
 
 	inline void setServerPort(short port){_server_port = port;}
 	inline short getServerPort() const{return _server_port;}
