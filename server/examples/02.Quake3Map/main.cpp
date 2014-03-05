@@ -15,7 +15,7 @@ console.
 
 #include <iostream>
 
-#include "server.h"
+#include "Server.h"
 
 /*
 As already written in the HelloWorld example, in the Irrlicht Engine everything
