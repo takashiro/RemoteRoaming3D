@@ -178,11 +178,8 @@ public class MainActivity extends Activity {
 	}
 
 	public class sendThread extends Thread {
-
 		@Override
 		public void run() {
-			super.run();
-
 			DataOutputStream dos = null;
 			try {
 				dos = new DataOutputStream(socket.getOutputStream());
@@ -204,7 +201,6 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 		}
-
 	}
 
 	private Handler handler = new Handler() {
@@ -228,7 +224,7 @@ public class MainActivity extends Activity {
 				dis = new DataInputStream(socket.getInputStream());
 				while (true) {
 					allInt = dis.readInt();
-					Log.i(TAG, "allInt " + allInt);
+					//Log.i(TAG, "allInt " + allInt);
 					allLength = 0;
 					while (allLength < allInt) {
 						if (allLength + BUFFER_SIZE <= allInt) {
@@ -241,7 +237,7 @@ public class MainActivity extends Activity {
 						System.arraycopy(recv, 0, recvAll, allLength, recvLength);
 						allLength += recvLength;
 					}
-					Log.i(TAG, "allLength " + allLength);
+					//Log.i(TAG, "allLength " + allLength);
 
 					recvBitmap = BitmapFactory.decodeByteArray(recvAll, 0, allLength);
 
