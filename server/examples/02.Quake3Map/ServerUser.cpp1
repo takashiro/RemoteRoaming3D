@@ -1,9 +1,9 @@
-#include "server.h"
-#include "serveruser.h"
+#include "Server.h"
+#include "ServerUser.h"
 
 #include <memory.h>
 #include <iostream>
-
+#include <IImageWriter.h>
 
 enum
 {
@@ -92,6 +92,8 @@ void ServerUser::sendScreenshot(){
 		device->getVideoDriver()->writeImageToFile(image, "screenshot.jpg");
 		image->drop();
 	}
+
+
 
 	const int SIZE = 1024 * 8;
 	FILE* fp;
