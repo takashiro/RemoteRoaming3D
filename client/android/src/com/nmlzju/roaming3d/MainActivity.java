@@ -241,7 +241,7 @@ public class MainActivity extends Activity {
 
 					recvBitmap = BitmapFactory.decodeByteArray(recvAll, 0, allLength);
 
-					handler.obtainMessage(0, recvBitmap).sendToTarget(); // 不能用handler.handleMessage(),
+					handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
 				}
 				// dis.close();
 				// } catch(Exception e){

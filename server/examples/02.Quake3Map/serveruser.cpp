@@ -172,21 +172,22 @@ void ServerUser::_moveCamera(const Json::Value &args){
 }
 
 void ServerUser::_scaleCamera(const Json::Value &args){
-	HWND HWnd = (HWND) _device->getVideoDriver()->getExposedVideoData().D3D9.HWnd;
+	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
+	core::vector3df look_at = camera->getTarget();
+	look_at.normalize();
+	core::vector3df position = camera->getPosition();
+		
+	float delta = args[0].asFloat();
+	if(delta > 0)
+	{
+		position += look_at;
+	}
+	else if(delta < 0)
+	{
+		position -= look_at;
+	}
 
-	int x1 = args[0].asInt();
-	if(x1 >= 0)
-	{
-		PostMessage(HWnd,WM_KEYDOWN, VK_UP, 0);
-		Sleep(100);
-		PostMessage(HWnd,WM_KEYUP, VK_UP, 0);
-	}
-	else
-	{
-		PostMessage(HWnd,WM_KEYDOWN, VK_DOWN, 0);
-		Sleep(100);
-		PostMessage(HWnd,WM_KEYUP, VK_DOWN, 0);
-	}
+	camera->setPosition(position);
 
 	sendScreenshot();
 }
