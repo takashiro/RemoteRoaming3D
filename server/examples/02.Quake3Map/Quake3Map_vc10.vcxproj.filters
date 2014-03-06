@@ -3,12 +3,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="protocol.cpp" />
-    <ClCompile Include="server.cpp" />
-    <ClCompile Include="serveruser.cpp" />
+    <ClCompile Include="ServerUser.cpp" />
+    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="IrrSocketFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="protocol.h" />
-    <ClInclude Include="server.h" />
-    <ClInclude Include="serveruser.h" />
+    <ClInclude Include="ServerUser.h" />
+    <ClInclude Include="Server.h" />
+    <ClInclude Include="IrrSocketFile.h" />
   </ItemGroup>
 </Project>
