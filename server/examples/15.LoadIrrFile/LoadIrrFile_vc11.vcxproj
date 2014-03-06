@@ -70,8 +70,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\bin\Win32-VisualStudio\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\bin\Win64-VisualStudio\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\debug\Win32-VisualStudio\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\debug\Win64-VisualStudio\</OutDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\bin\Win32-VisualStudio\</OutDir>
@@ -113,7 +113,7 @@
       <Culture>0x0c07</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin\Win32-VisualStudio\15.LoadIrrFile.exe</OutputFile>
+      <OutputFile>$(OutDir)15.LoadIrrFile.exe</OutputFile>
       <AdditionalLibraryDirectories>..\..\lib\Win32-visualstudio;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -143,7 +143,7 @@
       <Culture>0x0c07</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin\Win64-VisualStudio\15.LoadIrrFile.exe</OutputFile>
+      <OutputFile>$(OutDir)15.LoadIrrFile.exe</OutputFile>
       <AdditionalLibraryDirectories>..\..\lib\Win64-visualstudio;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -174,7 +174,7 @@
       <Culture>0x0c07</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin\Win32-VisualStudio\15.LoadIrrFile.exe</OutputFile>
+      <OutputFile>$(OutDir)15.LoadIrrFile.exe</OutputFile>
       <AdditionalLibraryDirectories>..\..\lib\Win32-visualstudio;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <DataExecutionPrevention>
@@ -204,7 +204,7 @@
       <Culture>0x0c07</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin\Win64-VisualStudio\15.LoadIrrFile.exe</OutputFile>
+      <OutputFile>$(OutDir)15.LoadIrrFile.exe</OutputFile>
       <AdditionalLibraryDirectories>..\..\lib\Win64-visualstudio;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <DataExecutionPrevention>
