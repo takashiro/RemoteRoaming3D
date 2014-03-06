@@ -3,6 +3,9 @@
 *.vcxproj.user
 Debug/
 Release/
+Debug64/
+Release64/
 *.opensdf
 ipch/
 *.suo
+*.obj
