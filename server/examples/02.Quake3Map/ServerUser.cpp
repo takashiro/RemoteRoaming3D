@@ -53,7 +53,7 @@ ServerUser::~ServerUser(){
 
 DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	ServerUser *client = (ServerUser *) pParam;
-	SOCKET socket = client->_socket;
+	SOCKET &socket = client->_socket;
 
 	int result = 0;
 	const int length = 1024;
@@ -61,7 +61,6 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 
 	while (true)
 	{
-		memset(buffer, 0, sizeof(buffer));
 		result = recv(socket, buffer, length, 0);
 		
 		if (result == 0 || result == SOCKET_ERROR) 
@@ -394,6 +393,10 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 				str += fps;
 
 				device->setWindowCaption(str.c_str());
+				
+				if(lastFPS == -1){
+					client->sendScreenshot();
+				}
 				lastFPS = fps;
 			}
 		}

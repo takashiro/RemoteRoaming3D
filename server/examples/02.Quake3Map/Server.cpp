@@ -77,14 +77,14 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 {
 	Server *server = (Server *) pParam;
 
-	sockaddr_in addr_client;
-	int nAddrLen = sizeof(addr_client);
+	sockaddr_in client_addr;
+	int nAddrLen = sizeof(client_addr);
 
 	SOCKET server_socket = (SOCKET) server->_server_socket;
 	
 	while(true)
 	{
-		SOCKET client_socket = accept(server_socket, (sockaddr *)&addr_client, &nAddrLen);
+		SOCKET client_socket = accept(server_socket, (sockaddr *)&client_addr, &nAddrLen);
 		if (client_socket == INVALID_SOCKET)
 		{
 			continue;
@@ -95,25 +95,22 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 		ServerUser *client = new ServerUser(server, client_socket);
 		if(client->isValid()){
 			server->_clients.push_back(client);
-			printf("new client:");
-			printip(addr_client);
+			printf("new client: ");
+			printip(client_addr);
 			printf("\n");
 		}else{
 			delete client;
 		}
+
+		Sleep(100);
 	}
 
 	return 0;
 }
 
 void Server::disconnect(ServerUser *client){
-	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++){
-		if(*i == client){
-			_clients.remove(client);
-			printf("client disconnected:");
-			printip(client->getIp());
-			printf("\n");
-			break;
-		}
-	}
+	_clients.remove(client);
+	printf("client disconnected: ");
+	printip(client->getIp());
+	printf("\n");
 }
