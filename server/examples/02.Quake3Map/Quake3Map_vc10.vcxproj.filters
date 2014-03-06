@@ -5,12 +5,12 @@
     <ClCompile Include="protocol.cpp" />
     <ClCompile Include="ServerUser.cpp" />
     <ClCompile Include="Server.cpp" />
-    <ClCompile Include="IrrSocketFile.cpp" />
+    <ClCompile Include="IrrMemoryFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="protocol.h" />
     <ClInclude Include="ServerUser.h" />
     <ClInclude Include="Server.h" />
-    <ClInclude Include="IrrSocketFile.h" />
+    <ClInclude Include="IrrMemoryFile.h" />
   </ItemGroup>
 </Project>

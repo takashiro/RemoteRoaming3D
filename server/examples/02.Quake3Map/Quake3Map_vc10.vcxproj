@@ -208,7 +208,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="IrrSocketFile.cpp" />
+    <ClCompile Include="IrrMemoryFile.cpp" />
     <ClCompile Include="ServerUser.cpp" />
     <ClCompile Include="main.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -230,7 +230,7 @@
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IrrSocketFile.h" />
+    <ClInclude Include="IrrMemoryFile.h" />
     <ClInclude Include="ServerUser.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="Server.h" />

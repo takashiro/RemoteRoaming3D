@@ -1,9 +1,10 @@
 #include "Server.h"
 #include "ServerUser.h"
+#include "IrrMemoryFile.h"
 
 #include <memory.h>
 #include <iostream>
-#include <IImageWriter.h>
+#include <fstream>
 
 enum
 {
@@ -33,6 +34,7 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 	}
 
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
+	_is_rendering = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 ServerUser::~ServerUser(){
@@ -45,6 +47,8 @@ ServerUser::~ServerUser(){
 	if(_device_thread != NULL){
 		CloseHandle(_device_thread);
 	}
+
+	CloseHandle(_is_rendering);
 }
 
 DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
@@ -86,51 +90,37 @@ void ServerUser::sendScreenshot(){
 		return;
 	}
 
+	WaitForSingleObject(_is_rendering, INFINITE);
 	video::IImage* image = device->getVideoDriver()->createScreenShot();
+	ReleaseSemaphore(_is_rendering, 1, NULL);
+
 	if (image)
 	{
-		device->getVideoDriver()->writeImageToFile(image, "screenshot.jpg");
+		IrrMemoryFile *file = new IrrMemoryFile("screenshot.jpg");
+		if(!device->getVideoDriver()->writeImageToFile(image, file))
+		{
+			puts("failed to transfer video frame");
+		}
 		image->drop();
-	}
 
+		const std::string &content = file->getContent();
+		int length = content.size();
 
-
-	const int SIZE = 1024 * 8;
-	FILE* fp;
-	int send_count;
-	int length;
-
-	if((fp=fopen("screenshot.jpg","rb"))==NULL)
-	{
-		printf("从服务器端返回文件未打开\n");
-	}
-
-	fseek(fp,0L,SEEK_END);
-	length=ftell(fp);
-
-	send(_socket, (char *)&length + 3, 1, 0);
-	send(_socket, (char *)&length + 2, 1, 0);
-	send(_socket, (char *)&length + 1, 1, 0);
-	send(_socket, (char *)&length + 0, 1, 0);
-	fseek(fp, 0L, SEEK_SET);
+		send(_socket, (char *)&length + 3, 1, 0);
+		send(_socket, (char *)&length + 2, 1, 0);
+		send(_socket, (char *)&length + 1, 1, 0);
+		send(_socket, (char *)&length + 0, 1, 0);
 		
-	//transfer screenshot
-	long int y=0;
-	char trans[SIZE];
-	while(!feof(fp))
-	{
-		fread(trans,1,SIZE,fp);
-		y=y+SIZE;
-		if(y<length)
+		//transfer screenshot
+		long y = 0;
+		const char *p = content.c_str();
+		while(y < length)
 		{
-			send_count = send(_socket, trans, SIZE, 0);
+			y += send(_socket, p + y, length - y, 0);
 		}
-		else
-		{
-			send(_socket, trans, length + SIZE - y, 0);
-		}
+
+		file->drop();
 	}
-	fclose(fp);
 }
 
 sockaddr_in ServerUser::getIp(){
@@ -347,52 +337,54 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	{
 		if (device->isWindowActive())
 		{
+			WaitForSingleObject(client->_is_rendering, INFINITE);
 			driver->beginScene(true, true, video::SColor(255,200,200,200));
 			smgr->drawAll();
 
-		// All intersections in this example are done with a ray cast out from the camera to
-		// a distance of 1000.  You can easily modify this to check (e.g.) a bullet
-		// trajectory or a sword's position, or create a ray from a mouse click position using
-		// ISceneCollisionManager::getRayFromScreenCoordinates()
-		core::line3d<f32> ray;
-		ray.start = camera->getPosition();
-		ray.end = ray.start + (camera->getTarget() - ray.start).normalize() * 10.0f;
+			// All intersections in this example are done with a ray cast out from the camera to
+			// a distance of 1000.  You can easily modify this to check (e.g.) a bullet
+			// trajectory or a sword's position, or create a ray from a mouse click position using
+			// ISceneCollisionManager::getRayFromScreenCoordinates()
+			core::line3d<f32> ray;
+			ray.start = camera->getPosition();
+			ray.end = ray.start + (camera->getTarget() - ray.start).normalize() * 10.0f;
 
-		// Tracks the current intersection point with the level or a mesh
-		core::vector3df intersection;
-		// Used to show with triangle has been hit
-		core::triangle3df hitTriangle;
+			// Tracks the current intersection point with the level or a mesh
+			core::vector3df intersection;
+			// Used to show with triangle has been hit
+			core::triangle3df hitTriangle;
 
-		// This call is all you need to perform ray/triangle collision on every scene node
-		// that has a triangle selector, including the Quake level mesh.  It finds the nearest
-		// collision point/triangle, and returns the scene node containing that point.
-		// Irrlicht provides other types of selection, including ray/triangle selector,
-		// ray/box and ellipse/triangle selector, plus associated helpers.
-		// See the methods of ISceneCollisionManager
-		scene::ISceneNode * selectedSceneNode =
-			collMan->getSceneNodeAndCollisionPointFromRay(
-			ray,
-			intersection, // This will be the position of the collision
-			hitTriangle, // This will be the triangle hit in the collision
-			IDFlag_IsPickable, // This ensures that only nodes that we have
-			// set up to be pickable are considered
-			0); // Check the entire scene (this is actually the implicit default)
+			// This call is all you need to perform ray/triangle collision on every scene node
+			// that has a triangle selector, including the Quake level mesh.  It finds the nearest
+			// collision point/triangle, and returns the scene node containing that point.
+			// Irrlicht provides other types of selection, including ray/triangle selector,
+			// ray/box and ellipse/triangle selector, plus associated helpers.
+			// See the methods of ISceneCollisionManager
+			scene::ISceneNode * selectedSceneNode =
+				collMan->getSceneNodeAndCollisionPointFromRay(
+				ray,
+				intersection, // This will be the position of the collision
+				hitTriangle, // This will be the triangle hit in the collision
+				IDFlag_IsPickable, // This ensures that only nodes that we have
+				// set up to be pickable are considered
+				0); // Check the entire scene (this is actually the implicit default)
 
-		// If the ray hit anything, move the billboard to the collision position
-		// and draw the triangle that was hit.
-		if(selectedSceneNode)
-		{
-			//	bill->setPosition(intersection);
+			// If the ray hit anything, move the billboard to the collision position
+			// and draw the triangle that was hit.
+			if(selectedSceneNode)
+			{
+				//	bill->setPosition(intersection);
 
-			// We need to reset the transform before doing our own rendering.
-			driver->setTransform(video::ETS_WORLD, core::matrix4());
-			driver->setMaterial(material);
-			driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
-		}
+				// We need to reset the transform before doing our own rendering.
+				driver->setTransform(video::ETS_WORLD, core::matrix4());
+				driver->setMaterial(material);
+				driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
+			}
 
-		driver->endScene();
+			driver->endScene();
+			ReleaseSemaphore(client->_is_rendering, 1, NULL);
 
-		int fps = driver->getFPS();
+			int fps = driver->getFPS();
 
 			if (lastFPS != fps)
 			{
