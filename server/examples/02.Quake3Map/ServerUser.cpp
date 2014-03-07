@@ -35,6 +35,7 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
 	_is_rendering = CreateSemaphore(NULL, 1, 1, NULL);
+	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 ServerUser::~ServerUser(){
@@ -77,13 +78,36 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	return 0;
 }
 
-void ServerUser::disconnect(){
+void ServerUser::sendPacket(const std::string &raw)
+{
+	WaitForSingleObject(_is_sending_data, INFINITE);
+
+	size_t length = raw.length();
+	long y = 0;
+	const char *p = raw.c_str();
+	while(y < length)
+	{
+		y += send(_socket, p + y, length - y, 0);
+	}
+
+	ReleaseSemaphore(_is_sending_data, 1, NULL);
+}
+
+void ServerUser::sendPacket(const R3D::Packet &packet)
+{
+	sendPacket(packet.toString());
+	sendPacket("\n");
+}
+
+void ServerUser::disconnect()
+{
 	_device->closeDevice();
 	WaitForSingleObject(_device_thread, INFINITE);
 	_server->disconnect(this);
 }
 
-void ServerUser::sendScreenshot(){
+void ServerUser::sendScreenshot()
+{
 	IrrlichtDevice *&device = _device;
 	if(device == NULL){
 		return;
@@ -105,18 +129,17 @@ void ServerUser::sendScreenshot(){
 		const std::string &content = file->getContent();
 		int length = content.size();
 
+		//transfer screenshot length
+		/*R3D::Packet packet(R3D::UpdateVideoFrame);
+		packet.args[0] = length;
+		sendPacket(packet);*/
 		send(_socket, (char *)&length + 3, 1, 0);
 		send(_socket, (char *)&length + 2, 1, 0);
 		send(_socket, (char *)&length + 1, 1, 0);
 		send(_socket, (char *)&length + 0, 1, 0);
-		
-		//transfer screenshot
-		long y = 0;
-		const char *p = content.c_str();
-		while(y < length)
-		{
-			y += send(_socket, p + y, length - y, 0);
-		}
+
+		//transfer the picture
+		sendPacket(content);
 
 		file->drop();
 	}

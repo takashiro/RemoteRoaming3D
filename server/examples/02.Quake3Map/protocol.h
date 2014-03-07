@@ -15,14 +15,16 @@ namespace R3D{
 		SetResolution,
 
 		Move,
-		Scale
+		Scale,
+
+		NumOfCommands
 	};
 
 	struct Packet{
 		Command command;
-		
 		Json::Value args;
 
+		inline Packet(Command command = Invalid){this->command = command;}
 		std::string toString() const;
 		static Packet FromString(const char *str);
 	};

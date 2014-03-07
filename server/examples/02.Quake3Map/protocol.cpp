@@ -1,5 +1,5 @@
 #include "protocol.h"
-#include <json/reader.h>
+#include <json/json.h>
 
 using namespace R3D;
 
@@ -7,7 +7,9 @@ std::string Packet::toString() const{
 	Json::Value packet;
 	packet[0] = (int) command;
 	packet[1] = args;
-	return packet.toStyledString();
+	
+	Json::FastWriter writer;
+	return writer.write(packet);
 }
 
 Packet Packet::FromString(const char *str){
@@ -16,7 +18,6 @@ Packet Packet::FromString(const char *str){
 	Json::Reader reader;
 	Json::Value value;
 	if(!reader.parse(str, value)){
-		packet.command = Invalid;
 		packet.args = Json::nullValue;
 	}else{
 		packet.command = (Command) value[0].asInt();

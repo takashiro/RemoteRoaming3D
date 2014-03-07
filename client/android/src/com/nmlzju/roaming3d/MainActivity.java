@@ -1,8 +1,10 @@
 package com.nmlzju.roaming3d;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
@@ -18,14 +20,10 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 
 @SuppressLint({ "NewApi", "NewApi", "NewApi" })
@@ -49,8 +47,7 @@ public class MainActivity extends Activity {
 	private float oldDistance;
 	private float newDistance;
 	private Queue<Packet> sendQueue = new LinkedList<Packet>();
-	private int recvLength = 0;
-	private byte[] recv = new byte[BUFFER_SIZE];
+	private byte[] recvBuffer = new byte[BUFFER_SIZE];
 	private byte[] recvAll = new byte[BITMAP_SIZE];
 	// private Bitmap recvBitmap;
 	private Socket socket;
@@ -200,6 +197,15 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			if(dos != null){
+				try {
+					dos.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -216,27 +222,29 @@ public class MainActivity extends Activity {
 		public void run() {
 			super.run();
 
-			DataInputStream dis = null;
+			DataInputStream stream = null;
 			Bitmap recvBitmap;
 			int allLength = 0;
 			int allInt = 0;
+			int recvLength = 0;
 			try {
-				dis = new DataInputStream(socket.getInputStream());
+				stream = new DataInputStream(socket.getInputStream());
 				while (true) {
-					allInt = dis.readInt();
-					//Log.i(TAG, "allInt " + allInt);
+					allInt = stream.readInt();
 					allLength = 0;
+
 					while (allLength < allInt) {
 						if (allLength + BUFFER_SIZE <= allInt) {
-							dis.readFully(recv, 0, BUFFER_SIZE);
+							stream.readFully(recvBuffer, 0, BUFFER_SIZE);
 							recvLength = BUFFER_SIZE;
 						} else {
 							recvLength = allInt - allLength;
-							dis.readFully(recv, 0, recvLength);
+							stream.readFully(recvBuffer, 0, recvLength);
 						}
-						System.arraycopy(recv, 0, recvAll, allLength, recvLength);
+						System.arraycopy(recvBuffer, 0, recvAll, allLength, recvLength);
 						allLength += recvLength;
 					}
+					
 					//Log.i(TAG, "allLength " + allLength);
 
 					recvBitmap = BitmapFactory.decodeByteArray(recvAll, 0, allLength);
@@ -248,17 +256,8 @@ public class MainActivity extends Activity {
 				//
 				// }
 			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			try {
-				dis.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

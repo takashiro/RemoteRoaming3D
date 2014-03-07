@@ -11,9 +11,10 @@ public class Packet {
 
 		//Client to Server
 		SET_RESOLUTION,
-
 		MOVE,
-		SCALE
+		SCALE,
+		
+		length
 	};
 	
 	public Command command;
@@ -35,6 +36,10 @@ public class Packet {
 	}
 	
 	public static Packet parse(String json){
+		if(json == null || json.length() <= 0){
+			return null;
+		}
+		
 		try {
 			JSONArray raw = new JSONArray(json);
 			Packet packet = new Packet();

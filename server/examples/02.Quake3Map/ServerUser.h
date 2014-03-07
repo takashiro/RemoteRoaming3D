@@ -19,6 +19,8 @@ public:
 	inline irr::IrrlichtDevice *getDevice(){return _device;}
 	sockaddr_in getIp();
 
+	void sendPacket(const R3D::Packet &packet);
+	void sendPacket(const std::string &raw);
 	void disconnect();
 
 protected:
@@ -46,6 +48,7 @@ private:
 	static DWORD WINAPI _DeviceThread(LPVOID lpParam);
 	HANDLE _device_thread;
 	HANDLE _is_rendering;
+	HANDLE _is_sending_data;
 };
 
 #endif
