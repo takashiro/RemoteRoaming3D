@@ -1,10 +1,8 @@
 package com.nmlzju.roaming3d;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
@@ -32,7 +30,6 @@ public class MainActivity extends Activity {
 	private static final String TAG = "com.nlmzju.roaming3d";
 	private static String IP = "192.168.137.1";
 	private static final int PORT = 6666;
-	private static final int BUFFER_SIZE = 1024 * 8;
 	private static final int BITMAP_SIZE = 960 * 540 * 4;
 
 	private ImageView image;
@@ -47,9 +44,7 @@ public class MainActivity extends Activity {
 	private float oldDistance;
 	private float newDistance;
 	private Queue<Packet> sendQueue = new LinkedList<Packet>();
-	private byte[] recvBuffer = new byte[BUFFER_SIZE];
-	private byte[] recvAll = new byte[BITMAP_SIZE];
-	// private Bitmap recvBitmap;
+	private byte[] recvBuffer = new byte[BITMAP_SIZE];
 	private Socket socket;
 
 	@Override
@@ -223,32 +218,21 @@ public class MainActivity extends Activity {
 			super.run();
 
 			DataInputStream stream = null;
-			Bitmap recvBitmap;
-			int allLength = 0;
-			int allInt = 0;
-			int recvLength = 0;
+			int allLength;
+			int recvLength;
 			try {
 				stream = new DataInputStream(socket.getInputStream());
 				while (true) {
-					allInt = stream.readInt();
-					allLength = 0;
+					allLength = stream.readInt();
+					recvLength = 0;
 
-					while (allLength < allInt) {
-						if (allLength + BUFFER_SIZE <= allInt) {
-							stream.readFully(recvBuffer, 0, BUFFER_SIZE);
-							recvLength = BUFFER_SIZE;
-						} else {
-							recvLength = allInt - allLength;
-							stream.readFully(recvBuffer, 0, recvLength);
-						}
-						System.arraycopy(recvBuffer, 0, recvAll, allLength, recvLength);
-						allLength += recvLength;
+					while (recvLength < allLength) {
+						recvLength += stream.read(recvBuffer, recvLength, allLength - recvLength);
 					}
 					
 					//Log.i(TAG, "allLength " + allLength);
 
-					recvBitmap = BitmapFactory.decodeByteArray(recvAll, 0, allLength);
-
+					Bitmap recvBitmap = BitmapFactory.decodeByteArray(recvBuffer, 0, allLength);
 					handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
 				}
 				// dis.close();
