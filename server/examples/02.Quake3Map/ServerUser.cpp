@@ -25,7 +25,7 @@ enum
 using namespace irr;
 
 ServerUser::ServerUser(Server *server, SOCKET socket)
-	:_server(server), _socket(socket), _device_thread(NULL)
+	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL)
 {
 	if(_callbacks.empty()){
 		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
@@ -93,15 +93,11 @@ void ServerUser::sendPacket(const std::string &raw)
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
 }
 
-void ServerUser::sendPacket(const R3D::Packet &packet)
-{
-	sendPacket(packet.toString());
-	sendPacket("\n");
-}
-
 void ServerUser::disconnect()
 {
-	_device->closeDevice();
+	if(_device){
+		_device->closeDevice();
+	}
 	WaitForSingleObject(_device_thread, INFINITE);
 	_server->disconnect(this);
 }
@@ -130,13 +126,13 @@ void ServerUser::sendScreenshot()
 		int length = content.size();
 
 		//transfer screenshot length
-		/*R3D::Packet packet(R3D::UpdateVideoFrame);
+		R3D::Packet packet(R3D::UpdateVideoFrame);
 		packet.args[0] = length;
-		sendPacket(packet);*/
-		send(_socket, (char *)&length + 3, 1, 0);
+		sendPacket(packet);
+		/*send(_socket, (char *)&length + 3, 1, 0);
 		send(_socket, (char *)&length + 2, 1, 0);
 		send(_socket, (char *)&length + 1, 1, 0);
-		send(_socket, (char *)&length + 0, 1, 0);
+		send(_socket, (char *)&length + 0, 1, 0);*/
 
 		//transfer the picture
 		sendPacket(content);

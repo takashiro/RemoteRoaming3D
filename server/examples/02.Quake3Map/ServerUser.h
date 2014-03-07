@@ -19,7 +19,7 @@ public:
 	inline irr::IrrlichtDevice *getDevice(){return _device;}
 	sockaddr_in getIp();
 
-	void sendPacket(const R3D::Packet &packet);
+	inline void sendPacket(const R3D::Packet &packet){sendPacket(packet.toString());};
 	void sendPacket(const std::string &raw);
 	void disconnect();
 

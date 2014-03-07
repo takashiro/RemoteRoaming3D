@@ -60,15 +60,12 @@ public class MainActivity extends Activity {
 			public void handle(JSONArray args){
 				try{
 					int allLength = args.getInt(0);
-					Log.i(TAG, "allLength:" + allLength);
 					int recvLength = 0;
 					
 					DataInputStream stream = new DataInputStream(socket.getInputStream());
 					while (recvLength < allLength) {
 						recvLength += stream.read(recvBuffer, recvLength, allLength - recvLength);
 					}
-					
-					Log.i(TAG, "recvLength:" + recvLength);
 					
 					Bitmap recvBitmap = BitmapFactory.decodeByteArray(recvBuffer, 0, allLength);
 					handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
@@ -252,20 +249,16 @@ public class MainActivity extends Activity {
 				stream = new DataInputStream(socket.getInputStream());
 				while (true) {
 					offset = 0;
-					/*do{
+					do{
 						stream.readFully(recvBuffer, offset, 1);
 					}while(offset < BITMAP_SIZE && recvBuffer[offset++] != '\n');
 				
 					String json = new String(recvBuffer, 0, offset);
-					Log.i(TAG, "received json:" + json);
 					Packet packet = Packet.parse(json);
 					if(packet == null){
 						continue;
-					}*/
-					
-					Packet packet = new Packet(Packet.Command.UPDATE_VIDEO_FRAME);
-					packet.args.put(stream.readInt());
-					
+					}
+
 					int command_id = 1;//packet.command.ordinal();
 					if(command_id < callbacks.length){
 						Callback func = callbacks[command_id];
