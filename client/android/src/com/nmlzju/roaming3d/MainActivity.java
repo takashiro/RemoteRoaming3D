@@ -39,12 +39,15 @@ public class MainActivity extends Activity {
 	private int screen_width;
 	private int screen_height;
 
-	private float x0;
-	private float y0;
+	private float oldX;
+	private float oldY;
 	private float deltaX;
 	private float deltaY;
+	private float newX;
+	private float newY;
 	private float oldDistance;
 	private float newDistance;
+	
 	private Queue<Packet> sendQueue = new LinkedList<Packet>();
 	private byte[] recvBuffer = new byte[BITMAP_SIZE];
 	private Socket socket;
@@ -120,34 +123,34 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		try {
-			// int historySize = event.getHistorySize();
 			int pointCount = event.getPointerCount();
 			if (pointCount > 2) {
 				pointCount = 2;
 			}
 			
-			float x = event.getX();
-			float y = event.getY();
+			newX = event.getX();
+			newY = event.getY();
+	
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
-				x0 = x;
-				y0 = y;
-				deltaX = deltaY = 0;
-				//Log.i(TAG, "Down " + x + "---" + y);
+				oldX = newX;
+				oldX = newY;
 				break;
-			case MotionEvent.ACTION_POINTER_DOWN:
-				oldDistance = (event.getX(0) - event.getX(1)) * (event.getX(0) - event.getX(1)) + (event.getY(0) - event.getY(1)) * (event.getY(0) - event.getY(1));
+			case MotionEvent.ACTION_POINTER_DOWN:{
+				float disX = event.getX(0) - event.getX(1);
+				float disY = event.getY(0) - event.getY(1);
+				oldDistance = disX * disX + disY * disY;
 				break;
-			case MotionEvent.ACTION_CANCEL:
-			case MotionEvent.ACTION_UP:
-				//Log.i(TAG, "UP " + x + "---" + y);
-				break;
+			}
+
 			case MotionEvent.ACTION_MOVE:
+				
 				if (pointCount == 1) {
-					deltaX = x - x0;
-					deltaY = y - y0;
-					x0 = x;
-					y0 = y;
+					deltaX = newX - oldX;
+					deltaY = newY - oldY;
+					oldX = newX;
+					oldY = newY;
+					
 					if (deltaX < 2 && deltaX > -2)
 						deltaX = 0;
 					if (deltaY < 2 && deltaY > -2)
@@ -159,10 +162,15 @@ public class MainActivity extends Activity {
 					sendQueue.offer(packet);
 					//Log.i(TAG, "MOVE " + deltaX + "---" + deltaY);
 				} else if (pointCount == 2) {
-					newDistance = (event.getX(0) - event.getX(1)) * (event.getX(0) - event.getX(1)) + (event.getY(0) - event.getY(1)) * (event.getY(0) - event.getY(1));
+					float disX = event.getX(0) - event.getX(1);
+					float disY = event.getY(0) - event.getY(1);
+					newDistance = disX * disX + disY * disY;
+					float deltaDistance = newDistance - oldDistance;
+					
 					Packet packet = new Packet(Packet.Command.SCALE_CAMERA);
-					packet.args.put(newDistance - oldDistance);
+					packet.args.put(deltaDistance);
 					sendQueue.offer(packet);
+					
 					oldDistance = newDistance;
 				}
 				break;
@@ -206,7 +214,6 @@ public class MainActivity extends Activity {
 						continue;
 					Packet packet = sendQueue.poll();
 					StringBuilder sendString = new StringBuilder(packet.toString());
-					sendString.append('\n');
 					dos.write(sendString.toString().getBytes());
 					dos.flush();
 				}

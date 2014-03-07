@@ -16,6 +16,7 @@ namespace R3D{
 
 		RotateCamera,
 		ScaleCamera,
+		MoveCamera,
 
 		NumOfCommands
 	};

@@ -28,11 +28,12 @@ protected:
 	void handleCommand(const char *cmd);
 
 	typedef void (ServerUser::*Callback)(const Json::Value &args);
-	std::map<R3D::Command, Callback> _callbacks;
+	static std::map<R3D::Command, Callback> _callbacks;
 
 	void _createDevice(const Json::Value &args);
 	void _rotateCamera(const Json::Value &args);
 	void _scaleCamera(const Json::Value &args);
+	void _moveCamera(const Json::Value &args);
 
 	int _screen_width;
 	int _screen_height;

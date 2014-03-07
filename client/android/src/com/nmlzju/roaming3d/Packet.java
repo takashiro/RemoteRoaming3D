@@ -12,6 +12,7 @@ public class Packet {
 		SET_RESOLUTION,
 		ROTATE_CAMERA,
 		SCALE_CAMERA,
+		MOVE_CAMERA,
 		
 		length
 	};

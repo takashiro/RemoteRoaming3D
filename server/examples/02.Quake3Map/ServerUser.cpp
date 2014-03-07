@@ -24,6 +24,8 @@ enum
 
 using namespace irr;
 
+std::map<R3D::Command, ServerUser::Callback> ServerUser::_callbacks;
+
 ServerUser::ServerUser(Server *server, SOCKET socket)
 	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL)
 {
@@ -31,6 +33,7 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
 		_callbacks[R3D::RotateCamera] = &ServerUser::_rotateCamera;
 		_callbacks[R3D::ScaleCamera] = &ServerUser::_scaleCamera;
+		_callbacks[R3D::MoveCamera] = &ServerUser::_moveCamera;
 	}
 
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
@@ -129,10 +132,6 @@ void ServerUser::sendScreenshot()
 		R3D::Packet packet(R3D::UpdateVideoFrame);
 		packet.args[0] = length;
 		sendPacket(packet);
-		/*send(_socket, (char *)&length + 3, 1, 0);
-		send(_socket, (char *)&length + 2, 1, 0);
-		send(_socket, (char *)&length + 1, 1, 0);
-		send(_socket, (char *)&length + 0, 1, 0);*/
 
 		//transfer the picture
 		sendPacket(content);
@@ -150,28 +149,36 @@ sockaddr_in ServerUser::getIp(){
 
 void ServerUser::handleCommand(const char *cmd)
 {
-	IrrlichtDevice *&device = _device;
-	if(device == NULL){
-		return;
-	}
-
 	R3D::Packet packet = R3D::Packet::FromString(cmd);
 	std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
 	if(iter != _callbacks.end()){
 		Callback func = iter->second;
 		if(func != NULL){
 			(this->*func)(packet.args);
+			return;
 		}
 	}
+	printf("invalid packet:");
+	puts(cmd);
 }
 
 void ServerUser::_createDevice(const Json::Value &args){
+	if(_device != NULL){
+		return;
+	}
+
 	_screen_width = args[0].asInt();
 	_screen_height = args[1].asInt();
+	printf("createDevice %d %d\n", _screen_width, _screen_height);
+	
 	_device_thread = CreateThread(NULL, 0, _DeviceThread, (LPVOID) this, 0, NULL);
 }
 
 void ServerUser::_rotateCamera(const Json::Value &args){
+	if(_device == NULL){
+		return;
+	}
+	
 	irr::gui::ICursorControl *cursor = _device->getCursorControl();
 	irr::core::vector2d<irr::s32> pos = cursor->getPosition();
 	pos.X -= args[0].asInt() * 10;
@@ -182,6 +189,10 @@ void ServerUser::_rotateCamera(const Json::Value &args){
 }
 
 void ServerUser::_scaleCamera(const Json::Value &args){
+	if(_device == NULL){
+		return;
+	}
+
 	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
 	core::vector3df look_at = camera->getTarget();
 	look_at.normalize();
@@ -200,6 +211,25 @@ void ServerUser::_scaleCamera(const Json::Value &args){
 	camera->setPosition(position);
 
 	sendScreenshot();
+}
+
+void ServerUser::_moveCamera(const Json::Value &args){
+	if(_device == NULL){
+		return;
+	}
+
+	float deltaX = args[0].asFloat();
+	float deltaY = args[1].asFloat();
+
+	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
+	core::vector3df pos = camera->getPosition();
+	core::vector3df look_at = camera->getTarget();
+	look_at.normalize();
+
+	pos.X += deltaX;
+	pos.Y += deltaY;
+
+	camera->setPosition(pos);
 }
 
 DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
