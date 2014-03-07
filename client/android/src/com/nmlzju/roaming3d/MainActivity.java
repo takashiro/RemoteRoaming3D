@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import com.nmlzju.roaming3d.R;
@@ -18,6 +19,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.Window;
@@ -27,7 +29,7 @@ import android.widget.ImageView;
 @SuppressLint({ "NewApi", "NewApi", "NewApi" })
 public class MainActivity extends Activity {
 
-	private static final String TAG = "com.nlmzju.roaming3d";
+	private static final String TAG = "com.nmlzju.roaming3d";
 	private static String IP = "192.168.137.1";
 	private static final int PORT = 6666;
 	private static final int BITMAP_SIZE = 960 * 540 * 4;
@@ -46,10 +48,37 @@ public class MainActivity extends Activity {
 	private Queue<Packet> sendQueue = new LinkedList<Packet>();
 	private byte[] recvBuffer = new byte[BITMAP_SIZE];
 	private Socket socket;
+	
+	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		callbacks[Packet.Command.UPDATE_VIDEO_FRAME.ordinal()] = new Callback(){
+			@Override
+			public void handle(JSONArray args){
+				try{
+					int allLength = args.getInt(0);
+					Log.i(TAG, "allLength:" + allLength);
+					int recvLength = 0;
+					
+					DataInputStream stream = new DataInputStream(socket.getInputStream());
+					while (recvLength < allLength) {
+						recvLength += stream.read(recvBuffer, recvLength, allLength - recvLength);
+					}
+					
+					Log.i(TAG, "recvLength:" + recvLength);
+					
+					Bitmap recvBitmap = BitmapFactory.decodeByteArray(recvBuffer, 0, allLength);
+					handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		};
 		
 		// Set full screen, no Status-Bar or anything except the Activity window!
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -218,34 +247,38 @@ public class MainActivity extends Activity {
 			super.run();
 
 			DataInputStream stream = null;
-			int allLength;
-			int recvLength;
+			int offset;
 			try {
 				stream = new DataInputStream(socket.getInputStream());
 				while (true) {
-					allLength = stream.readInt();
-					recvLength = 0;
-
-					while (recvLength < allLength) {
-						recvLength += stream.read(recvBuffer, recvLength, allLength - recvLength);
-					}
+					offset = 0;
+					/*do{
+						stream.readFully(recvBuffer, offset, 1);
+					}while(offset < BITMAP_SIZE && recvBuffer[offset++] != '\n');
+				
+					String json = new String(recvBuffer, 0, offset);
+					Log.i(TAG, "received json:" + json);
+					Packet packet = Packet.parse(json);
+					if(packet == null){
+						continue;
+					}*/
 					
-					//Log.i(TAG, "allLength " + allLength);
-
-					Bitmap recvBitmap = BitmapFactory.decodeByteArray(recvBuffer, 0, allLength);
-					handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
+					Packet packet = new Packet(Packet.Command.UPDATE_VIDEO_FRAME);
+					packet.args.put(stream.readInt());
+					
+					int command_id = 1;//packet.command.ordinal();
+					if(command_id < callbacks.length){
+						Callback func = callbacks[command_id];
+						if(func != null){
+							func.handle(packet.args);
+						}
+					}
 				}
-				// dis.close();
-				// } catch(Exception e){
-				//
-				// }
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-
 	}
-
 }
