@@ -29,8 +29,8 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 {
 	if(_callbacks.empty()){
 		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
-		_callbacks[R3D::Move] = &ServerUser::_moveCamera;
-		_callbacks[R3D::Scale] = &ServerUser::_scaleCamera;
+		_callbacks[R3D::RotateCamera] = &ServerUser::_rotateCamera;
+		_callbacks[R3D::ScaleCamera] = &ServerUser::_scaleCamera;
 	}
 
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
@@ -171,7 +171,7 @@ void ServerUser::_createDevice(const Json::Value &args){
 	_device_thread = CreateThread(NULL, 0, _DeviceThread, (LPVOID) this, 0, NULL);
 }
 
-void ServerUser::_moveCamera(const Json::Value &args){
+void ServerUser::_rotateCamera(const Json::Value &args){
 	irr::gui::ICursorControl *cursor = _device->getCursorControl();
 	irr::core::vector2d<irr::s32> pos = cursor->getPosition();
 	pos.X -= args[0].asInt() * 10;

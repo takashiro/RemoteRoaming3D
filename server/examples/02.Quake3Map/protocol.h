@@ -14,8 +14,8 @@ namespace R3D{
 		//Client to Server
 		SetResolution,
 
-		Move,
-		Scale,
+		RotateCamera,
+		ScaleCamera,
 
 		NumOfCommands
 	};

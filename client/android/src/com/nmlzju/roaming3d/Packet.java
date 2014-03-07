@@ -7,12 +7,11 @@ public class Packet {
 
 		//Server to Client
 		UPDATE_VIDEO_FRAME,
-	
 
 		//Client to Server
 		SET_RESOLUTION,
-		MOVE,
-		SCALE,
+		ROTATE_CAMERA,
+		SCALE_CAMERA,
 		
 		length
 	};

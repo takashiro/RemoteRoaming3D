@@ -153,14 +153,14 @@ public class MainActivity extends Activity {
 					if (deltaY < 2 && deltaY > -2)
 						deltaY = 0;
 
-					Packet packet = new Packet(Packet.Command.MOVE);
+					Packet packet = new Packet(Packet.Command.ROTATE_CAMERA);
 					packet.args.put(deltaX);
 					packet.args.put(deltaY);
 					sendQueue.offer(packet);
 					//Log.i(TAG, "MOVE " + deltaX + "---" + deltaY);
 				} else if (pointCount == 2) {
 					newDistance = (event.getX(0) - event.getX(1)) * (event.getX(0) - event.getX(1)) + (event.getY(0) - event.getY(1)) * (event.getY(0) - event.getY(1));
-					Packet packet = new Packet(Packet.Command.SCALE);
+					Packet packet = new Packet(Packet.Command.SCALE_CAMERA);
 					packet.args.put(newDistance - oldDistance);
 					sendQueue.offer(packet);
 					oldDistance = newDistance;
