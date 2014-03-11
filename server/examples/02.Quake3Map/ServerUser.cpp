@@ -85,12 +85,12 @@ void ServerUser::sendPacket(const std::string &raw)
 {
 	WaitForSingleObject(_is_sending_data, INFINITE);
 
-	size_t length = raw.length();
-	long y = 0;
+	size_t length = (int) raw.length();
+	size_t y = 0;
 	const char *p = raw.c_str();
 	while(y < length)
 	{
-		y += send(_socket, p + y, length - y, 0);
+		y += send(_socket, p + y, int(length - y), 0);
 	}
 
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
@@ -126,7 +126,7 @@ void ServerUser::sendScreenshot()
 		image->drop();
 
 		const std::string &content = file->getContent();
-		int length = content.size();
+		size_t length = content.size();
 
 		//transfer screenshot length
 		R3D::Packet packet(R3D::UpdateVideoFrame);
