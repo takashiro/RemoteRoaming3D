@@ -9,3 +9,5 @@ Release64/
 ipch/
 *.suo
 *.obj
+*.lib
+*.exp
