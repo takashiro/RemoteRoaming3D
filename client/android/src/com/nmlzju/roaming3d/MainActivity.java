@@ -80,6 +80,13 @@ public class MainActivity extends Activity {
 			}
 		};
 		
+		callbacks[Packet.Command.QUIT.ordinal()] = new Callback(){
+			@Override
+			public void handle(JSONArray args){
+				System.exit(0);
+			}
+		};
+		
 		// Set full screen, no Status-Bar or anything except the Activity window!
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);

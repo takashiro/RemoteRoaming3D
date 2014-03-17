@@ -9,7 +9,7 @@ namespace R3D{
 
 		//Server to Client
 		UpdateVideoFrame,
-		
+		Quit,
 
 		//Client to Server
 		SetResolution,

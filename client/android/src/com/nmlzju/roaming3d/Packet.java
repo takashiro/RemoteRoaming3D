@@ -7,6 +7,7 @@ public class Packet {
 
 		//Server to Client
 		UPDATE_VIDEO_FRAME,
+		QUIT,
 
 		//Client to Server
 		SET_RESOLUTION,
