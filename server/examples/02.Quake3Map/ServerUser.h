@@ -41,6 +41,7 @@ protected:
 	Server *_server;
 	SOCKET _socket;
 	irr::IrrlichtDevice *_device;
+	irr::video::IImage *_current_frame;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);

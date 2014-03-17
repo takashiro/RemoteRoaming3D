@@ -27,7 +27,8 @@ using namespace irr;
 std::map<R3D::Command, ServerUser::Callback> ServerUser::_callbacks;
 
 ServerUser::ServerUser(Server *server, SOCKET socket)
-	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL)
+	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
+	_current_frame(NULL)
 {
 	if(_callbacks.empty()){
 		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
@@ -108,12 +109,14 @@ void ServerUser::disconnect()
 void ServerUser::sendScreenshot()
 {
 	IrrlichtDevice *&device = _device;
-	if(device == NULL){
+	if(device == NULL || _current_frame == NULL)
+	{
 		return;
 	}
 
 	WaitForSingleObject(_is_rendering, INFINITE);
-	video::IImage* image = device->getVideoDriver()->createScreenShot();
+	video::IImage *image = device->getVideoDriver()->createImage(_current_frame->getColorFormat(), _current_frame->getDimension());
+	_current_frame->copyTo(image);
 	ReleaseSemaphore(_is_rendering, 1, NULL);
 
 	if (image)
@@ -151,7 +154,8 @@ void ServerUser::handleCommand(const char *cmd)
 {
 	R3D::Packet packet = R3D::Packet::FromString(cmd);
 	std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
-	if(iter != _callbacks.end()){
+	if(iter != _callbacks.end())
+	{
 		Callback func = iter->second;
 		if(func != NULL){
 			(this->*func)(packet.args);
@@ -430,7 +434,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 			}
 
 			driver->endScene();
-			ReleaseSemaphore(client->_is_rendering, 1, NULL);
 
 			int fps = driver->getFPS();
 
@@ -442,12 +445,15 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 				str += fps;
 
 				device->setWindowCaption(str.c_str());
-				
-				if(lastFPS == -1){
-					client->sendScreenshot();
-				}
 				lastFPS = fps;
 			}
+
+			if(client->_current_frame != NULL){
+				client->_current_frame->drop();
+			}
+			client->_current_frame = driver->createScreenShot();
+
+			ReleaseSemaphore(client->_is_rendering, 1, NULL);
 		}
 		else
 			device->yield();
