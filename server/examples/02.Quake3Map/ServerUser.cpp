@@ -238,7 +238,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	IrrlichtDevice *&device = client->_device;
 
 	//create device and exit if creation failed
-	device = createDevice(video::EDT_DIRECT3D9, core::dimension2d<u32>(client->_screen_width, client->_screen_height));
+	device = createDevice(ServerInstance->getDriverType(), core::dimension2d<u32>(client->_screen_width, client->_screen_height));
 	if (device == NULL)
 		return 1; // could not create selected driver.
 

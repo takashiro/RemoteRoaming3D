@@ -55,9 +55,8 @@ int main()
 	driverChoiceConsole does exactly the same.
 	*/
 
-	/*// ask user for driver
-
-	video::E_DRIVER_TYPE driverType;
+	// ask user for driver
+	irr::video::E_DRIVER_TYPE driverType;
 
 	printf("Please select the driver you want for this example:\n"\
 		" (a) OpenGL 1.5\n (b) Direct3D 9.0c\n (c) Direct3D 8.1\n"\
@@ -69,17 +68,19 @@ int main()
 
 	switch(i)
 	{
-		case 'a': driverType = video::EDT_OPENGL;   break;
-		case 'b': driverType = video::EDT_DIRECT3D9;break;
-		case 'c': driverType = video::EDT_DIRECT3D8;break;
-		case 'd': driverType = video::EDT_BURNINGSVIDEO;break;
-		case 'e': driverType = video::EDT_SOFTWARE; break;
-		case 'f': driverType = video::EDT_NULL;     break;
+		case 'a': driverType = irr::video::EDT_OPENGL;   break;
+		case 'b': driverType = irr::video::EDT_DIRECT3D9;break;
+		case 'c': driverType = irr::video::EDT_DIRECT3D8;break;
+		case 'd': driverType = irr::video::EDT_BURNINGSVIDEO;break;
+		case 'e': driverType = irr::video::EDT_SOFTWARE; break;
+		case 'f': driverType = irr::video::EDT_NULL;     break;
 		default: return 1;
-	}*/
+	}
 
 	//create a server
 	Server server;
+	ServerInstance = &server;
+	server.setDriverType(driverType);
 	server.setIndependentThreadEnabled(false);
 	server.listenTo(6666);
 

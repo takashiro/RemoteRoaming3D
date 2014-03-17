@@ -1,6 +1,8 @@
 #include "Server.h"
 #include "ServerUser.h"
 
+Server *ServerInstance = NULL;
+
 inline void printip(const sockaddr_in &ip){
 	printf("%d.%d.%d.%d", ip.sin_addr.S_un.S_un_b.s_b1, ip.sin_addr.S_un.S_un_b.s_b2, ip.sin_addr.S_un.S_un_b.s_b3, ip.sin_addr.S_un.S_un_b.s_b4);
 }
