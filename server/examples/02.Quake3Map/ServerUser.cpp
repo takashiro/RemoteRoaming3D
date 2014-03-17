@@ -174,7 +174,6 @@ void ServerUser::_createDevice(const Json::Value &args){
 
 	_screen_width = args[0].asInt();
 	_screen_height = args[1].asInt();
-	printf("createDevice %d %d\n", _screen_width, _screen_height);
 	
 	_device_thread = CreateThread(NULL, 0, _DeviceThread, (LPVOID) this, 0, NULL);
 }
@@ -282,8 +281,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	
 	IrrlichtDevice *&device = client->_device;
 
-	//create device and exit if creation failed
-	device = createDevice(ServerInstance->getDriverType(), core::dimension2d<u32>(client->_screen_width, client->_screen_height));
+	device = createDevice(ServerInstance->getDriverType(), core::dimension2d<u32>(client->_screen_width, client->_screen_height));	
 	if (device == NULL)
 		return 1; // could not create selected driver.
 
@@ -294,6 +292,14 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	*/
 	video::IVideoDriver* driver = device->getVideoDriver();
 	scene::ISceneManager* smgr = device->getSceneManager();
+
+	//hide the window
+#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+	ShowWindow(reinterpret_cast<HWND>(driver->getExposedVideoData().OpenGLWin32.HWnd), SW_HIDE);
+#endif
+
+	//Disable all logs
+	device->getLogger()->setLogLevel(irr::ELL_NONE);
 
 	/*
 	To display the Quake 3 map, we first need to load it. Quake 3 maps
@@ -371,22 +377,11 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 	/*
 	Now we only need a camera to look at the Quake 3 map.
-	We want to create a user controlled camera. There are some
-	cameras available in the Irrlicht engine. For example the
-	MayaCamera which can be controlled like the camera in Maya:
-	Rotate with left mouse button pressed, Zoom with both buttons pressed,
-	translate with right mouse button pressed. This could be created with
-	irr::scene::ISceneManager::addCameraSceneNodeMaya(). But for this
-	example, we want to create a camera which behaves like the ones in
-	first person shooter games (FPS) and hence use
-	irr::scene::ISceneManager::addCameraSceneNodeFPS().
+	Set a jump speed of 3 units per second, which gives a fairly realistic jump
+	when used with the gravity of (0, -10, 0) in the collision response animator.
 	*/
-
-	// Set a jump speed of 3 units per second, which gives a fairly realistic jump
-	// when used with the gravity of (0, -10, 0) in the collision response animator.
 	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode();
 	camera->setPosition(core::vector3df(0,20,-5));
-	camera->setTarget(core::vector3df(0,20,5));
 	camera->setFarValue(5000.0f);
 
 	if (selector)
@@ -420,79 +415,74 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 	while(device->run())
 	{
-		if (device->isWindowActive())
+		WaitForSingleObject(client->_is_rendering, INFINITE);
+		driver->beginScene(true, true, video::SColor(255,200,200,200));
+		smgr->drawAll();
+
+		// All intersections in this example are done with a ray cast out from the camera to
+		// a distance of 1000.  You can easily modify this to check (e.g.) a bullet
+		// trajectory or a sword's position, or create a ray from a mouse click position using
+		// ISceneCollisionManager::getRayFromScreenCoordinates()
+		core::line3d<f32> ray;
+		ray.start = camera->getPosition();
+		ray.end = ray.start + (camera->getTarget() - ray.start).normalize() * 10.0f;
+
+		// Tracks the current intersection point with the level or a mesh
+		core::vector3df intersection;
+		// Used to show with triangle has been hit
+		core::triangle3df hitTriangle;
+
+		// This call is all you need to perform ray/triangle collision on every scene node
+		// that has a triangle selector, including the Quake level mesh.  It finds the nearest
+		// collision point/triangle, and returns the scene node containing that point.
+		// Irrlicht provides other types of selection, including ray/triangle selector,
+		// ray/box and ellipse/triangle selector, plus associated helpers.
+		// See the methods of ISceneCollisionManager
+		scene::ISceneNode * selectedSceneNode =
+			collMan->getSceneNodeAndCollisionPointFromRay(
+			ray,
+			intersection, // This will be the position of the collision
+			hitTriangle, // This will be the triangle hit in the collision
+			IDFlag_IsPickable, // This ensures that only nodes that we have
+			// set up to be pickable are considered
+			0); // Check the entire scene (this is actually the implicit default)
+
+		// If the ray hit anything, move the billboard to the collision position
+		// and draw the triangle that was hit.
+		if(selectedSceneNode)
 		{
-			WaitForSingleObject(client->_is_rendering, INFINITE);
-			driver->beginScene(true, true, video::SColor(255,200,200,200));
-			smgr->drawAll();
+			//	bill->setPosition(intersection);
 
-			// All intersections in this example are done with a ray cast out from the camera to
-			// a distance of 1000.  You can easily modify this to check (e.g.) a bullet
-			// trajectory or a sword's position, or create a ray from a mouse click position using
-			// ISceneCollisionManager::getRayFromScreenCoordinates()
-			core::line3d<f32> ray;
-			ray.start = camera->getPosition();
-			ray.end = ray.start + (camera->getTarget() - ray.start).normalize() * 10.0f;
-
-			// Tracks the current intersection point with the level or a mesh
-			core::vector3df intersection;
-			// Used to show with triangle has been hit
-			core::triangle3df hitTriangle;
-
-			// This call is all you need to perform ray/triangle collision on every scene node
-			// that has a triangle selector, including the Quake level mesh.  It finds the nearest
-			// collision point/triangle, and returns the scene node containing that point.
-			// Irrlicht provides other types of selection, including ray/triangle selector,
-			// ray/box and ellipse/triangle selector, plus associated helpers.
-			// See the methods of ISceneCollisionManager
-			scene::ISceneNode * selectedSceneNode =
-				collMan->getSceneNodeAndCollisionPointFromRay(
-				ray,
-				intersection, // This will be the position of the collision
-				hitTriangle, // This will be the triangle hit in the collision
-				IDFlag_IsPickable, // This ensures that only nodes that we have
-				// set up to be pickable are considered
-				0); // Check the entire scene (this is actually the implicit default)
-
-			// If the ray hit anything, move the billboard to the collision position
-			// and draw the triangle that was hit.
-			if(selectedSceneNode)
-			{
-				//	bill->setPosition(intersection);
-
-				// We need to reset the transform before doing our own rendering.
-				driver->setTransform(video::ETS_WORLD, core::matrix4());
-				driver->setMaterial(material);
-				driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
-			}
-
-			driver->endScene();
-
-			if(client->_current_frame != NULL){
-				client->_current_frame->drop();
-			}
-			client->_current_frame = driver->createScreenShot();
-
-			ReleaseSemaphore(client->_is_rendering, 1, NULL);
-
-			int fps = driver->getFPS();
-			if (lastFPS != fps)
-			{
-				core::stringw str = L"Irrlicht Engine - Quake 3 Map example [";
-				str += driver->getName();
-				str += "] FPS:";
-				str += fps;
-
-				device->setWindowCaption(str.c_str());
-				
-				if(lastFPS == -1){
-					client->sendScreenshot();
-				}
-				lastFPS = fps;
-			}
+			// We need to reset the transform before doing our own rendering.
+			driver->setTransform(video::ETS_WORLD, core::matrix4());
+			driver->setMaterial(material);
+			driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
 		}
-		else
-			device->yield();
+
+		driver->endScene();
+
+		if(client->_current_frame != NULL){
+			client->_current_frame->drop();
+		}
+		client->_current_frame = driver->createScreenShot();
+
+		ReleaseSemaphore(client->_is_rendering, 1, NULL);
+
+		int fps = driver->getFPS();
+		if (lastFPS != fps)
+		{
+			core::stringw str = L"Irrlicht Engine - Quake 3 Map example [";
+			str += driver->getName();
+			str += "] FPS:";
+			str += fps;
+
+			device->setWindowCaption(str.c_str());
+				
+			if(lastFPS == -1){
+				client->sendScreenshot();
+			}
+			lastFPS = fps;
+		}
 	}
 
 	/*
