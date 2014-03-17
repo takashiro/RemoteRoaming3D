@@ -30,7 +30,8 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
 	_current_frame(NULL)
 {
-	if(_callbacks.empty()){
+	if(_callbacks.empty())
+	{
 		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
 		_callbacks[R3D::RotateCamera] = &ServerUser::_rotateCamera;
 		_callbacks[R3D::ScaleCamera] = &ServerUser::_scaleCamera;
@@ -179,40 +180,80 @@ void ServerUser::_createDevice(const Json::Value &args){
 }
 
 void ServerUser::_rotateCamera(const Json::Value &args){
-	if(_device == NULL){
+	if(_device == NULL)
+	{
 		return;
 	}
-	
-	irr::gui::ICursorControl *cursor = _device->getCursorControl();
-	irr::core::vector2d<irr::s32> pos = cursor->getPosition();
-	pos.X -= args[0].asInt() * 10;
-	pos.Y -= args[1].asInt() * 10;
-	cursor->setPosition(pos);
+
+	static bool firstUpdate = true;
+	static f32 MaxVerticalAngle = 88.0f;
+	static f32 RotateSpeed = 0.05f;
+
+	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
+
+	if (firstUpdate)
+	{
+		camera->updateAbsolutePosition();
+		firstUpdate = false;
+	}
+
+	// update position
+	core::vector3df pos = camera->getPosition();
+
+	// Update rotation
+	core::vector3df target = (camera->getTarget() - camera->getAbsolutePosition());
+	core::vector3df relativeRotation = target.getHorizontalAngle();
+	core::vector2df CursorPos(args[0].asFloat(), args[1].asFloat());
+
+	relativeRotation.Y -= CursorPos.X * RotateSpeed;
+	relativeRotation.X -= CursorPos.Y * RotateSpeed;
+
+	// X < MaxVerticalAngle or X > 360-MaxVerticalAngle
+	if (relativeRotation.X > MaxVerticalAngle * 2 && relativeRotation.X < 360.0f - MaxVerticalAngle)
+	{
+		relativeRotation.X = 360.0f - MaxVerticalAngle;
+	}
+	else if (relativeRotation.X > MaxVerticalAngle && relativeRotation.X < 360.0f - MaxVerticalAngle)
+	{
+		relativeRotation.X = MaxVerticalAngle;
+	}
+
+	// set target
+	core::matrix4 mat;
+	mat.setRotationDegrees(core::vector3df(relativeRotation.X, relativeRotation.Y, 0));
+	target.set(0,0, core::max_(1.f, pos.getLength()));
+	mat.transformVect(target);
+
+	// write translation
+	camera->setPosition(pos);
+
+	// write right target
+	target += pos;
+	camera->setTarget(target);
 
 	sendScreenshot();
 }
 
-void ServerUser::_scaleCamera(const Json::Value &args){
-	if(_device == NULL){
+void ServerUser::_scaleCamera(const Json::Value &args)
+{
+	if(_device == NULL)
+	{
 		return;
 	}
 
 	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
-	core::vector3df look_at = camera->getTarget();
-	look_at.normalize();
+	core::vector3df target = camera->getTarget();
 	core::vector3df position = camera->getPosition();
-		
-	float delta = args[0].asFloat();
-	if(delta > 0)
-	{
-		position += look_at;
-	}
-	else if(delta < 0)
-	{
-		position -= look_at;
-	}
+	
+	core::vector3df look_at = target;
+	look_at.normalize();
+	f32 delta = args[0].asFloat() * 0.05f;
+	look_at *= delta;
 
+	position += look_at;
+	target += look_at;
 	camera->setPosition(position);
+	camera->setTarget(target);
 
 	sendScreenshot();
 }
@@ -306,7 +347,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	{
 		node->setMaterialFlag(irr::video::EMF_LIGHTING,true);
 
-
 		node->setScale(core::vector3df(80,80,80));
 		node->setRotation(core::vector3df(-90,0,0));
 		node->setPosition(core::vector3df(0,-40,0));
@@ -344,8 +384,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 	// Set a jump speed of 3 units per second, which gives a fairly realistic jump
 	// when used with the gravity of (0, -10, 0) in the collision response animator.
-	scene::ICameraSceneNode* camera =
-		smgr->addCameraSceneNodeFPS(0, 10.0f, .05f, ID_IsNotPickable, 0, 0, true, 3.f);
+	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode();
 	camera->setPosition(core::vector3df(0,20,-5));
 	camera->setTarget(core::vector3df(0,20,5));
 	camera->setFarValue(5000.0f);
@@ -359,12 +398,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 		camera->addAnimator(anim);
 		anim->drop();  // And likewise, drop the animator when we're done referring to it.
 	}
-
-	/*
-	The mouse cursor needs not be visible, so we hide it via the
-	irr::IrrlichtDevice::ICursorControl.
-	*/
-	device->getCursorControl()->setVisible(false);
 
 	/*
 	We have done everything, so lets draw it. We also write the current
@@ -435,8 +468,14 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 			driver->endScene();
 
-			int fps = driver->getFPS();
+			if(client->_current_frame != NULL){
+				client->_current_frame->drop();
+			}
+			client->_current_frame = driver->createScreenShot();
 
+			ReleaseSemaphore(client->_is_rendering, 1, NULL);
+
+			int fps = driver->getFPS();
 			if (lastFPS != fps)
 			{
 				core::stringw str = L"Irrlicht Engine - Quake 3 Map example [";
@@ -445,15 +484,12 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 				str += fps;
 
 				device->setWindowCaption(str.c_str());
+				
+				if(lastFPS == -1){
+					client->sendScreenshot();
+				}
 				lastFPS = fps;
 			}
-
-			if(client->_current_frame != NULL){
-				client->_current_frame->drop();
-			}
-			client->_current_frame = driver->createScreenShot();
-
-			ReleaseSemaphore(client->_is_rendering, 1, NULL);
 		}
 		else
 			device->yield();

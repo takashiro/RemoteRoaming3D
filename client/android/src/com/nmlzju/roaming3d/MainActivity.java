@@ -133,9 +133,11 @@ public class MainActivity extends Activity {
 	
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_UP:{
 				oldX = newX;
-				oldX = newY;
+				oldY = newY;
 				break;
+			}
 			case MotionEvent.ACTION_POINTER_DOWN:{
 				float disX = event.getX(0) - event.getX(1);
 				float disY = event.getY(0) - event.getY(1);
@@ -144,17 +146,14 @@ public class MainActivity extends Activity {
 			}
 
 			case MotionEvent.ACTION_MOVE:
-				
 				if (pointCount == 1) {
 					deltaX = newX - oldX;
 					deltaY = newY - oldY;
 					oldX = newX;
 					oldY = newY;
 					
-					if (deltaX < 2 && deltaX > -2)
-						deltaX = 0;
-					if (deltaY < 2 && deltaY > -2)
-						deltaY = 0;
+					if(deltaX * deltaX + deltaY * deltaY < 8)
+						break;
 
 					Packet packet = new Packet(Packet.Command.ROTATE_CAMERA);
 					packet.args.put(deltaX);
@@ -165,7 +164,7 @@ public class MainActivity extends Activity {
 					float disX = event.getX(0) - event.getX(1);
 					float disY = event.getY(0) - event.getY(1);
 					newDistance = disX * disX + disY * disY;
-					float deltaDistance = newDistance - oldDistance;
+					float deltaDistance = (float) (Math.sqrt(newDistance) - Math.sqrt(oldDistance));
 					
 					Packet packet = new Packet(Packet.Command.SCALE_CAMERA);
 					packet.args.put(deltaDistance);
