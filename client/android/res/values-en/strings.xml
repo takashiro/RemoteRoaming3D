@@ -8,5 +8,8 @@
     <string name="main_screen">Main Screen</string>
     <string name="menu_connect">Connect</string>
     <string name="pref_server_ip">Server IP</string>
+    <string name="pref_auto_connect_on_start">Auto connect on start</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

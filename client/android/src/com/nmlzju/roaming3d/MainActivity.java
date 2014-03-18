@@ -15,6 +15,7 @@ import com.nmlzju.roaming3d.R;
 
 import android.os.*;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
@@ -28,8 +29,8 @@ import android.widget.ImageView;
 public class MainActivity extends Activity {
 
 	private static String IP = "192.168.137.1";
-	private static final int PORT = 6666;
-	private static final int BITMAP_SIZE = 960 * 540 * 4;
+	private static int PORT = 6666;
+	private static int BITMAP_SIZE = 1;
 
 	private ImageView image;
 
@@ -46,13 +47,17 @@ public class MainActivity extends Activity {
 	private float newDistance;
 	
 	private Queue<Packet> sendQueue = new LinkedList<Packet>();
-	private byte[] recvBuffer = new byte[BITMAP_SIZE];
-	private Socket socket;
+	private byte[] recvBuffer = null;
+	private Socket socket = null;
 	
 	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		// Set full screen, no Status-Bar or anything except the Activity window!
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
 		super.onCreate(savedInstanceState);
 		
 		callbacks[Packet.Command.UPDATE_VIDEO_FRAME.ordinal()] = new Callback(){
@@ -84,14 +89,13 @@ public class MainActivity extends Activity {
 			}
 		};
 		
-		// Set full screen, no Status-Bar or anything except the Activity window!
-		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 		screen_width = displayMetrics.widthPixels;
 		screen_height = displayMetrics.heightPixels;
+		
+		BITMAP_SIZE = screen_width * screen_height * 4;
+		recvBuffer = new byte[BITMAP_SIZE];
 
 		setContentView(R.layout.activity_main);
 		image = (ImageView) findViewById(R.id.image);
@@ -216,11 +220,14 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.menu_exit:
-				System.exit(0);
-				return true;
-	        default:
-	            return super.onOptionsItemSelected(item);
+		case R.id.menu_settings:
+			startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+			return true;
+		case R.id.menu_exit:
+			System.exit(0);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 	    }
 	}
 

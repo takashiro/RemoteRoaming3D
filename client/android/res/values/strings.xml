@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="app_name">漫游3D</string>
@@ -8,6 +9,8 @@
     <string name="main_screen">场景屏幕</string>
     <string name="menu_connect">连接</string>
     <string name="pref_server_ip">服务器地址</string>
-    <string name="pref_auto_connect_on_start"></string>
+    <string name="pref_auto_connect_on_start">启动时自动连接</string>
+    <string name="title_activity_settings">设置</string>
+    <string name="action_settings">设置</string>
 
 </resources>
