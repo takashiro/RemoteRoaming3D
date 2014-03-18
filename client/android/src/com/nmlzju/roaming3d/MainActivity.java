@@ -14,12 +14,10 @@ import org.json.JSONException;
 import com.nmlzju.roaming3d.R;
 
 import android.os.*;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -29,7 +27,6 @@ import android.widget.ImageView;
 
 public class MainActivity extends Activity {
 
-	private static final String TAG = "com.nmlzju.roaming3d";
 	private static String IP = "192.168.137.1";
 	private static final int PORT = 6666;
 	private static final int BITMAP_SIZE = 960 * 540 * 4;

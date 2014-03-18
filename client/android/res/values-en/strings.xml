@@ -7,5 +7,6 @@
     <string name="menu_exit">Exit</string>
     <string name="main_screen">Main Screen</string>
     <string name="menu_connect">Connect</string>
+    <string name="pref_server_ip">Server IP</string>
 
 </resources>
