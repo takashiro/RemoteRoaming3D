@@ -21,12 +21,12 @@ import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-@SuppressLint({ "NewApi", "NewApi", "NewApi" })
 public class MainActivity extends Activity {
 
 	private static final String TAG = "com.nmlzju.roaming3d";
@@ -106,7 +106,13 @@ public class MainActivity extends Activity {
 			.penaltyLog()
 			.build()
 		);
-		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedSqlLiteObjects().detectLeakedClosableObjects().penaltyLog().penaltyDeath().build());
+		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+			.detectLeakedSqlLiteObjects()
+			.detectLeakedClosableObjects()
+			.penaltyLog()
+			.penaltyDeath()
+			.build()
+		);
 		
 		try {
 			socket = new Socket(IP, PORT);
@@ -145,6 +151,7 @@ public class MainActivity extends Activity {
 				oldY = newY;
 				break;
 			}
+			
 			case MotionEvent.ACTION_POINTER_DOWN:{
 				float disX = event.getX(0) - event.getX(1);
 				float disY = event.getY(0) - event.getY(1);
@@ -207,6 +214,17 @@ public class MainActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_exit:
+				System.exit(0);
+				return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
 	}
 
 	public class sendThread extends Thread {

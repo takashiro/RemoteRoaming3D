@@ -1,9 +1,11 @@
 <resources>
 
-    <string name="app_name">Roaming 3D</string>
+    <string name="app_name">漫游3D</string>
     <string name="hello_world">Hello world!</string>
-    <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">Roaming 3D</string>
-    <string name="menu_exit">Exit</string>
+    <string name="menu_settings">设置</string>
+    <string name="title_activity_main">漫游3D</string>
+    <string name="menu_exit">退出</string>
+    <string name="main_screen">场景屏幕</string>
+    <string name="menu_connect">连接</string>
 
 </resources>
