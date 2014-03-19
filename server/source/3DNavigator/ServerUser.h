@@ -17,7 +17,7 @@ public:
 
 	inline bool isValid() const{return _receive_thread != NULL;}
 	inline irr::IrrlichtDevice *getDevice(){return _device;}
-	sockaddr_in getIp();
+	sockaddr_in getIp() const;
 
 	inline void sendPacket(const R3D::Packet &packet){sendPacket(packet.toString());};
 	void sendPacket(const std::string &raw);

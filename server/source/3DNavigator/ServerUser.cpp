@@ -144,7 +144,8 @@ void ServerUser::sendScreenshot()
 	}
 }
 
-sockaddr_in ServerUser::getIp(){
+sockaddr_in ServerUser::getIp() const
+{
 	sockaddr_in ip;
 	int length = sizeof(ip);
 	getpeername(_socket, (sockaddr *) &ip, &length);
