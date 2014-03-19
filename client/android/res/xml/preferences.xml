@@ -2,4 +2,5 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <CheckBoxPreference android:title="@string/pref_auto_connect_on_start" android:key="auto_connect_on_start" android:defaultValue="true"/>
     <EditTextPreference android:title="@string/pref_server_ip" android:key="server_ip" android:defaultValue="192.168.137.1"/>
+    <EditTextPreference android:key="server_port" android:title="@string/pref_server_port" android:numeric="integer" android:inputType="number" android:defaultValue="6666"/>
 </PreferenceScreen>

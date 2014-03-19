@@ -27,11 +27,12 @@ import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
 	private static String IP = "192.168.137.1";
-	private static int PORT = 6666;
+	private static short PORT = 6666;
 	private static int BITMAP_SIZE = 1;
 
 	private ImageView image;
@@ -54,6 +55,28 @@ public class MainActivity extends Activity {
 	
 	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 
+	private void connectToServer(){
+		if(socket == null){
+			Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
+			try {
+				socket = new Socket(IP, PORT);
+				
+				Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
+				packet.args.put(screen_width);
+				packet.args.put(screen_height);
+				sendQueue.offer(packet);
+			
+				new sendThread().start();
+				new recvThread().start();
+			} catch (UnknownHostException e) {
+				Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// Set full screen, no Status-Bar or anything except the Activity window!
@@ -65,7 +88,12 @@ public class MainActivity extends Activity {
 		//Get default settings
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		IP = settings.getString("server_ip", IP);
-		
+		try{
+			PORT = Short.parseShort(settings.getString("server_port", String.valueOf(PORT)));
+		}catch(NumberFormatException e){
+		}
+	
+		//initialize callback functions
 		callbacks[Packet.Command.UPDATE_VIDEO_FRAME.ordinal()] = new Callback(){
 			@Override
 			public void handle(JSONArray args){
@@ -95,6 +123,7 @@ public class MainActivity extends Activity {
 			}
 		};
 		
+		//get the screen size
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 		screen_width = displayMetrics.widthPixels;
@@ -121,22 +150,8 @@ public class MainActivity extends Activity {
 			.build()
 		);
 		
-		try {
-			socket = new Socket(IP, PORT);
-
-			Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
-			packet.args.put(screen_width);
-			packet.args.put(screen_height);
-			sendQueue.offer(packet);
-
-			new sendThread().start();
-			new recvThread().start();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if(settings.getBoolean("auto_connect_on_start", false)){
+			connectToServer();
 		}
 	}
 
@@ -226,6 +241,9 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		case R.id.menu_connect:
+			connectToServer();
+			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(MainActivity.this, SettingsActivity.class));
 			return true;
