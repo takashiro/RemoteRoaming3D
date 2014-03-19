@@ -253,15 +253,15 @@ void ServerUser::_scaleCamera(const Json::Value &args)
 	core::vector3df target = camera->getTarget();
 	core::vector3df position = camera->getPosition();
 	
-	core::vector3df look_at = target;
+	core::vector3df look_at = target - position;
 	look_at.normalize();
-	f32 delta = args[0].asFloat() * 0.05f;
+	f32 delta = args[0].asFloat() * 0.1f;
 	look_at *= delta;
 
 	position += look_at;
 	target += look_at;
-	camera->setPosition(position);
 	camera->setTarget(target);
+	camera->setPosition(position);
 
 	sendScreenshot();
 }
@@ -382,8 +382,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 		node->setTriangleSelector(selector);
 		// We're not done with this selector yet, so don't drop it.
 	}
-
-	scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 10.0), core::vector3df(10, 10, 10));
 
 	/*
 	Now we only need a camera to look at the Quake 3 map.
