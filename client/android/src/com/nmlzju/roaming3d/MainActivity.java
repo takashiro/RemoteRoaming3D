@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
 	private float new_y;
 	private float old_distance;
 	private float new_distance;
+	private int pointer_count = 0;
 	
 	private Queue<Packet> send_queue = new LinkedList<Packet>();
 	private byte[] receive_buffer = null;
@@ -162,12 +163,7 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		int pointCount = event.getPointerCount();
-		if (pointCount > 2) {
-			pointCount = 2;
-		}
-		
+	public boolean onTouchEvent(MotionEvent event) {		
 		new_x = event.getX();
 		new_y = event.getY();
 
@@ -176,19 +172,28 @@ public class MainActivity extends Activity {
 		case MotionEvent.ACTION_UP:{
 			old_x = new_x;
 			old_y = new_y;
+			pointer_count = event.getPointerCount();
 			break;
 		}
 		
 		case MotionEvent.ACTION_POINTER_DOWN:{
-			float disX = event.getX(0) - event.getX(1);
-			float disY = event.getY(0) - event.getY(1);
-			old_distance = disX * disX + disY * disY;
+			pointer_count = event.getPointerCount();
+			
+			if(pointer_count == 2){
+				float disX = event.getX(0) - event.getX(1);
+				float disY = event.getY(0) - event.getY(1);
+				old_distance = disX * disX + disY * disY;
+			}
 			break;
 		}
 
 		case MotionEvent.ACTION_MOVE:
+			if(pointer_count != event.getPointerCount()){
+				break;
+			}
+			
 			try {
-				if (pointCount == 1) {
+				if (pointer_count == 1) {
 					delta_x = new_x - old_x;
 					delta_y = new_y - old_y;
 					old_x = new_x;
@@ -201,8 +206,8 @@ public class MainActivity extends Activity {
 					packet.args.put(delta_x);
 					packet.args.put(delta_y);
 					send_queue.offer(packet);
-					//Log.i(TAG, "MOVE " + deltaX + "---" + deltaY);
-				} else if (pointCount == 2) {
+
+				} else if (pointer_count == 2) {
 					float disX = event.getX(0) - event.getX(1);
 					float disY = event.getY(0) - event.getY(1);
 					new_distance = disX * disX + disY * disY;

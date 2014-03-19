@@ -294,7 +294,8 @@ void ServerUser::_moveCamera(const Json::Value &args){
 
 	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
 	core::vector3df pos = camera->getPosition();
-	core::vector3df look_at = camera->getTarget();
+	core::vector3df target = camera->getTarget();
+	core::vector3df look_at = target - pos;
 	look_at.normalize();
 
 	pos.X += deltaX;
