@@ -152,6 +152,14 @@ sockaddr_in ServerUser::getIp() const
 	return ip;
 }
 
+void ServerUser::getIp(std::wstring &wstr)
+{
+	const sockaddr_in &ip = getIp();
+	wchar_t str[16];
+	swprintf(str, L"%d.%d.%d.%d", ip.sin_addr.S_un.S_un_b.s_b1, ip.sin_addr.S_un.S_un_b.s_b2, ip.sin_addr.S_un.S_un_b.s_b3, ip.sin_addr.S_un.S_un_b.s_b4);
+	wstr = str;
+}
+
 void ServerUser::handleCommand(const char *cmd)
 {
 	R3D::Packet packet = R3D::Packet::FromString(cmd);
@@ -362,19 +370,20 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 		light = smgr->addLightSceneNode(0,core::vector3df(0,10,5),video::SColorf(1.0f, 1.0f, 1.0f),100);
 		smgr->setAmbientLight(video::SColor(0,160,160,160));
 		light->setPosition(core::vector3df(0,10,10));
+		
 		// attach billboard to light
-
 		bill = smgr->addBillboardSceneNode(light, core::dimension2d<f32>(30, 30));
 		bill->setMaterialFlag(video::EMF_LIGHTING, false);
 		bill->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
 		bill->setMaterialTexture(0, driver->getTexture("../../media/particlewhite.bmp"));
-
 
 		selector = smgr->createOctreeTriangleSelector(
 			node->getMesh(), node, 128);
 		node->setTriangleSelector(selector);
 		// We're not done with this selector yet, so don't drop it.
 	}
+
+	scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 10.0), core::vector3df(10, 10, 10));
 
 	/*
 	Now we only need a camera to look at the Quake 3 map.
@@ -472,14 +481,17 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 		int fps = driver->getFPS();
 		if (lastFPS != fps)
 		{
-			core::stringw str = L"Irrlicht Engine - Quake 3 Map example [";
+			std::wstring str;
+			client->getIp(str);
+			str += L" [";
 			str += driver->getName();
-			str += "] FPS:";
+			str += L"] FPS:";
 			str += fps;
 
 			device->setWindowCaption(str.c_str());
 				
-			if(lastFPS == -1){
+			if(lastFPS == -1)
+			{
 				client->sendScreenshot();
 			}
 			lastFPS = fps;
