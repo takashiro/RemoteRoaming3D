@@ -274,9 +274,6 @@ public class MainActivity extends Activity {
 					dos.flush();
 				}
 
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -330,8 +327,6 @@ public class MainActivity extends Activity {
 						}
 					}
 				}
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
