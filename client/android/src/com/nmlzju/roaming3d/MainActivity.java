@@ -3,6 +3,7 @@ package com.nmlzju.roaming3d;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
@@ -53,29 +54,21 @@ public class MainActivity extends Activity {
 	private byte[] recvBuffer = null;
 	private Socket socket = null;
 	
-	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
-
-	private void connectToServer(){
-		if(socket == null){
-			Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
-			try {
-				socket = new Socket(IP, PORT);
-				
-				Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
-				packet.args.put(screen_width);
-				packet.args.put(screen_height);
-				sendQueue.offer(packet);
-			
-				new sendThread().start();
-				new recvThread().start();
-			} catch (UnknownHostException e) {
-				Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	static class ScreenHandler extends Handler{
+		private final WeakReference<MainActivity> activity;
+		
+		public ScreenHandler(MainActivity activity){
+			this.activity = new WeakReference<MainActivity>(activity);
+		}
+		
+		public void handleMessage(Message msg){
+			MainActivity activity = this.activity.get();
+			activity.image.setImageBitmap((Bitmap) msg.obj);
 		}
 	}
+	
+	private Handler screen_handler = new ScreenHandler(this);
+	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -107,7 +100,7 @@ public class MainActivity extends Activity {
 					}
 					
 					Bitmap recvBitmap = BitmapFactory.decodeByteArray(recvBuffer, 0, allLength);
-					handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
+					screen_handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
 				} catch (JSONException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -152,6 +145,28 @@ public class MainActivity extends Activity {
 		
 		if(settings.getBoolean("auto_connect_on_start", false)){
 			connectToServer();
+		}
+	}
+	
+	private void connectToServer(){
+		if(socket == null){
+			Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
+			try {
+				socket = new Socket(IP, PORT);
+				
+				Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
+				packet.args.put(screen_width);
+				packet.args.put(screen_height);
+				sendQueue.offer(packet);
+			
+				new sendThread().start();
+				new recvThread().start();
+			} catch (UnknownHostException e) {
+				Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -289,13 +304,6 @@ public class MainActivity extends Activity {
 			}
 		}
 	}
-
-	private Handler handler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			image.setImageBitmap((Bitmap) msg.obj);
-		}
-	};
 
 	public class recvThread extends Thread {
 
