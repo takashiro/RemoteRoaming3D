@@ -4,8 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -166,7 +166,8 @@ public class MainActivity extends Activity {
 		
 		Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
 		try {
-			socket = new Socket(server_ip, server_port);
+			socket = new Socket();
+			socket.connect(new InetSocketAddress(server_ip, server_port), 3000);
 			
 			send_queue.clear();
 			Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
@@ -176,11 +177,9 @@ public class MainActivity extends Activity {
 		
 			new SendThread().start();
 			new ReceiveThread().start();
-		} catch (UnknownHostException e) {
+		} catch (Exception e) {
 			Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			socket = null;
 		}
 	}
 
@@ -254,7 +253,7 @@ public class MainActivity extends Activity {
 
 	@Override
 	public void onDestroy() {
-		if(socket != null){
+		if(socket != null && !socket.isClosed()){
 			try {
 				socket.close();
 			} catch (IOException e) {
@@ -295,6 +294,10 @@ public class MainActivity extends Activity {
 	public class SendThread extends Thread {
 		@Override
 		public void run() {
+			if(socket == null){
+				return;
+			}
+			
 			DataOutputStream dos = null;
 			try {
 				dos = new DataOutputStream(socket.getOutputStream());
@@ -319,7 +322,9 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			super.run();
+			if(socket == null){
+				return;
+			}
 
 			DataInputStream stream = null;
 			int offset;
