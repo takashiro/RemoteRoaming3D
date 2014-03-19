@@ -3,12 +3,10 @@ package com.nmlzju.roaming3d;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.app.Activity;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 
 public class SettingsActivity extends Activity {
-	
 	public static class SettingsFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -16,6 +14,7 @@ public class SettingsActivity extends Activity {
 
 			// Load the preferences from an XML resource
 			addPreferencesFromResource(R.xml.preferences);
+			
 		}
 	}
 

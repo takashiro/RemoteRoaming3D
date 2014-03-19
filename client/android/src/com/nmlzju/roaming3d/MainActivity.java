@@ -14,8 +14,10 @@ import org.json.JSONException;
 import com.nmlzju.roaming3d.R;
 
 import android.os.*;
+import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
@@ -59,6 +61,10 @@ public class MainActivity extends Activity {
 		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		super.onCreate(savedInstanceState);
+		
+		//Get default settings
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		IP = settings.getString("server_ip", IP);
 		
 		callbacks[Packet.Command.UPDATE_VIDEO_FRAME.ordinal()] = new Callback(){
 			@Override
