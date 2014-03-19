@@ -124,9 +124,11 @@ void ServerUser::clearHotspots()
 	if(_hotspots.empty())
 		return;
 
+	static core::vector3df far_away(FLT_MIN, FLT_MIN, FLT_MIN);
 	scene::ISceneManager *smgr = _device->getSceneManager();
 	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++)
 	{
+		(*i)->setPosition(far_away);
 		smgr->addToDeletionQueue(*i);
 	}
 
