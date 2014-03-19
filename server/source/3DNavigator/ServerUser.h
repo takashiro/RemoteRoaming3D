@@ -24,13 +24,11 @@ public:
 	void sendPacket(const std::string &raw);
 	void disconnect();
 
-	void showHotspots();
-	void hideHotspots();
-
 protected:
 	void sendScreenshot();
-	void createHotspots();
 	void handleCommand(const char *cmd);
+	void createHotspots();
+	void clearHotspots();
 
 	typedef void (ServerUser::*Callback)(const Json::Value &args);
 	static std::map<R3D::Command, Callback> _callbacks;
@@ -39,6 +37,7 @@ protected:
 	void _rotateCamera(const Json::Value &args);
 	void _scaleCamera(const Json::Value &args);
 	void _moveCamera(const Json::Value &args);
+	void _controlHotspots(const Json::Value &args);
 
 	int _screen_width;
 	int _screen_height;
@@ -47,7 +46,7 @@ protected:
 	SOCKET _socket;
 	irr::IrrlichtDevice *_device;
 	irr::video::IImage *_current_frame;
-	std::list<scene::IBillboardTextSceneNode *> _hotspots;
+	std::list<irr::scene::IBillboardTextSceneNode *> _hotspots;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);

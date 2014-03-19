@@ -15,6 +15,8 @@ public class Packet {
 		SCALE_CAMERA,
 		MOVE_CAMERA,
 		
+		CONTROL_HOTSPOTS,
+		
 		length
 	};
 	

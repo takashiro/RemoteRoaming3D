@@ -18,6 +18,8 @@ namespace R3D{
 		ScaleCamera,
 		MoveCamera,
 
+		ControlHotspots,
+
 		NumOfCommands
 	};
 

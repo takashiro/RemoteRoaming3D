@@ -12,6 +12,7 @@
     <string name="title_activity_settings">设置</string>
     <string name="action_settings">设置</string>
     <string name="toast_failed_to_connect_to_server">连接服务器失败</string>
-    <string name="toast_start_connecting">开始连接...</string>
+    <string name="toast_start_connecting">开始连接……</string>
+    <string name="menu_hotspot">热点链接</string>
 
 </resources>

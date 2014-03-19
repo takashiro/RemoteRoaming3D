@@ -36,6 +36,7 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 		_callbacks[R3D::RotateCamera] = &ServerUser::_rotateCamera;
 		_callbacks[R3D::ScaleCamera] = &ServerUser::_scaleCamera;
 		_callbacks[R3D::MoveCamera] = &ServerUser::_moveCamera;
+		_callbacks[R3D::ControlHotspots] = &ServerUser::_controlHotspots;
 	}
 
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
@@ -47,7 +48,7 @@ ServerUser::~ServerUser(){
 	closesocket(_socket);
 
 	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++){
-		delete *i;
+		(*i)->drop();
 	}
 
 	if(_receive_thread != NULL){
@@ -111,29 +112,28 @@ void ServerUser::disconnect()
 	_server->disconnect(this);
 }
 
-void ServerUser::showHotspots()
-{
-	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++){
-		scene::IBillboardTextSceneNode *&text = *i;
-		text->setVisible(true);
-	}
-}
-
-void ServerUser::hideHotspots()
-{
-	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++){
-		scene::IBillboardTextSceneNode *&text = *i;
-		text->setVisible(false);
-	}
-}
-
 void ServerUser::createHotspots()
 {
-	if(_hotspots.empty()){
-		scene::ISceneManager *smgr = _device->getSceneManager();
-		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 20.0), core::vector3df(63.31f, 90.27f, -102.80f));
-		_hotspots.push_back(head_text);
+	if(!_hotspots.empty())
+		return;
+
+	scene::ISceneManager *smgr = _device->getSceneManager();
+	scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 20.0), core::vector3df(63.31f, 90.27f, -102.80f));
+	_hotspots.push_back(head_text);
+}
+
+void ServerUser::clearHotspots()
+{
+	if(_hotspots.empty())
+		return;
+
+	scene::ISceneManager *smgr = _device->getSceneManager();
+	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++)
+	{
+		smgr->addToDeletionQueue(*i);
 	}
+
+	_hotspots.clear();
 }
 
 void ServerUser::sendScreenshot()
@@ -312,6 +312,20 @@ void ServerUser::_moveCamera(const Json::Value &args){
 	pos.Y += deltaY;
 
 	camera->setPosition(pos);
+}
+
+void ServerUser::_controlHotspots(const Json::Value &)
+{
+	if(_hotspots.empty())
+	{
+		createHotspots();
+	}
+	else
+	{
+		clearHotspots();
+	}
+
+	sendScreenshot();
 }
 
 DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){

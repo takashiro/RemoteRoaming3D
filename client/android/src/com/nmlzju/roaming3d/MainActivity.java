@@ -244,6 +244,10 @@ public class MainActivity extends Activity {
 		case R.id.menu_connect:
 			connectToServer();
 			return true;
+		case R.id.menu_hotspot:
+			Packet packet = new Packet(Packet.Command.CONTROL_HOTSPOTS);
+			sendQueue.offer(packet);
+			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(MainActivity.this, SettingsActivity.class));
 			return true;
