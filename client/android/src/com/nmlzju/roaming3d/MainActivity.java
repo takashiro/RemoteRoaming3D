@@ -310,7 +310,7 @@ public class MainActivity extends Activity {
 						continue;
 					}
 
-					int command_id = 1;//packet.command.ordinal();
+					int command_id = packet.command.ordinal();
 					if(command_id < callbacks.length){
 						Callback func = callbacks[command_id];
 						if(func != null){
