@@ -14,5 +14,7 @@
     <string name="toast_failed_to_connect_to_server">Failed to connect to the server</string>
     <string name="toast_start_connecting">Start connecting……</string>
     <string name="menu_hotspot">Hotspot</string>
+    <string name="toast_network_not_available">Sorry, your network is switched off now.</string>
+    <string name="toast_not_on_wifi">You are not on a WiFi hotspot.</string>
 
 </resources>

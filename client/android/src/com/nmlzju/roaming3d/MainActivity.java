@@ -14,9 +14,12 @@ import org.json.JSONException;
 
 import com.nmlzju.roaming3d.R;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.*;
 import android.preference.PreferenceManager;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -141,24 +144,43 @@ public class MainActivity extends Activity {
 	}
 	
 	private void connectToServer(){
-		if(socket == null){
-			Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
-			try {
-				socket = new Socket(server_ip, server_port);
-				
-				Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
-				packet.args.put(screen_width);
-				packet.args.put(screen_height);
-				send_queue.offer(packet);
+		if(socket != null){
+			return;
+		}
+		
+		Context context = getApplicationContext();
+		ConnectivityManager cmgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(cmgr == null){
+			return;
+		}
+		
+		NetworkInfo network = cmgr.getActiveNetworkInfo();
+		if(network == null || !network.isConnected()){
+			Toast.makeText(this, getString(R.string.toast_network_not_available), Toast.LENGTH_LONG).show();
+			return;
+		}
+		
+		if(network.getType() != ConnectivityManager.TYPE_WIFI){
+			Toast.makeText(this, getString(R.string.toast_not_on_wifi), Toast.LENGTH_LONG).show();
+		}
+		
+		Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
+		try {
+			socket = new Socket(server_ip, server_port);
 			
-				new SendThread().start();
-				new ReceiveThread().start();
-			} catch (UnknownHostException e) {
-				Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			send_queue.clear();
+			Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
+			packet.args.put(screen_width);
+			packet.args.put(screen_height);
+			send_queue.offer(packet);
+		
+			new SendThread().start();
+			new ReceiveThread().start();
+		} catch (UnknownHostException e) {
+			Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
