@@ -14,6 +14,7 @@ console.
 */
 
 #include <iostream>
+#include <string>
 
 #include "Server.h"
 
@@ -61,7 +62,7 @@ int main()
 	printf("Please select the driver you want for this example:\n"\
 		" (a) OpenGL 1.5\n (b) Direct3D 9.0c\n (c) Direct3D 8.1\n"\
 		" (d) Burning's Software Renderer\n (e) Software Renderer\n"\
-		" (f) NullDevice\n (otherKey) exit\n\n");
+		" (f) NullDevice\n (otherKey) exit\n");
 
 	char i;
 	std::cin >> i;
@@ -81,8 +82,20 @@ int main()
 	Server server;
 	ServerInstance = &server;
 	server.setDriverType(driverType);
-	server.setIndependentThreadEnabled(false);
 	server.listenTo(6666);
+
+	std::string cmd;
+	while(std::cin >> cmd)
+	{
+		if(cmd == "quit")
+		{
+			break;
+		}
+		else
+		{
+			puts("invalid command");
+		}
+	}
 
 	return 0;
 }

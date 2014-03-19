@@ -8,7 +8,7 @@ inline void printip(const sockaddr_in &ip){
 }
 
 Server::Server()
-	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(false)
+	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(true)
 {
 }
 
@@ -20,7 +20,7 @@ Server::~Server()
 	}
 
 	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++){
-		delete *i;
+		(*i)->disconnect();
 	}
 }
 
