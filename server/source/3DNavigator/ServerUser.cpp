@@ -46,6 +46,10 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 ServerUser::~ServerUser(){
 	closesocket(_socket);
 
+	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++){
+		delete *i;
+	}
+
 	if(_receive_thread != NULL){
 		CloseHandle(_receive_thread);
 	}
@@ -107,11 +111,29 @@ void ServerUser::disconnect()
 	_server->disconnect(this);
 }
 
-void ServerUser::showHotspots(){
-	scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 20.0), core::vector3df(63.31f, 90.27f, -102.80f));
+void ServerUser::showHotspots()
+{
+	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++){
+		scene::IBillboardTextSceneNode *&text = *i;
+		text->setVisible(true);
+	}
 }
 
-void ServerUser::hideHotspots(){
+void ServerUser::hideHotspots()
+{
+	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++){
+		scene::IBillboardTextSceneNode *&text = *i;
+		text->setVisible(false);
+	}
+}
+
+void ServerUser::createHotspots()
+{
+	if(_hotspots.empty()){
+		scene::ISceneManager *smgr = _device->getSceneManager();
+		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 20.0), core::vector3df(63.31f, 90.27f, -102.80f));
+		_hotspots.push_back(head_text);
+	}
 }
 
 void ServerUser::sendScreenshot()

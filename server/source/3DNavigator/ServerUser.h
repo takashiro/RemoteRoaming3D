@@ -29,6 +29,7 @@ public:
 
 protected:
 	void sendScreenshot();
+	void createHotspots();
 	void handleCommand(const char *cmd);
 
 	typedef void (ServerUser::*Callback)(const Json::Value &args);
@@ -46,6 +47,7 @@ protected:
 	SOCKET _socket;
 	irr::IrrlichtDevice *_device;
 	irr::video::IImage *_current_frame;
+	std::list<scene::IBillboardTextSceneNode *> _hotspots;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);
