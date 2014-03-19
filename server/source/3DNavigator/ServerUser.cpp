@@ -216,6 +216,10 @@ void ServerUser::_rotateCamera(const Json::Value &args){
 	static f32 RotateSpeed = 0.05f;
 
 	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
+	if(camera == NULL)
+	{
+		return;
+	}
 
 	if (firstUpdate)
 	{
@@ -268,6 +272,11 @@ void ServerUser::_scaleCamera(const Json::Value &args)
 	}
 
 	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
+	if(camera == NULL)
+	{
+		return;
+	}
+
 	core::vector3df target = camera->getTarget();
 	core::vector3df position = camera->getPosition();
 	
