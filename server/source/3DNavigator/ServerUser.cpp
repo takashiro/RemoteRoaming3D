@@ -107,6 +107,13 @@ void ServerUser::disconnect()
 	_server->disconnect(this);
 }
 
+void ServerUser::showHotspots(){
+	scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 20.0), core::vector3df(63.31f, 90.27f, -102.80f));
+}
+
+void ServerUser::hideHotspots(){
+}
+
 void ServerUser::sendScreenshot()
 {
 	IrrlichtDevice *&device = _device;

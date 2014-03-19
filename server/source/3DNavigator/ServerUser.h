@@ -24,6 +24,9 @@ public:
 	void sendPacket(const std::string &raw);
 	void disconnect();
 
+	void showHotspots();
+	void hideHotspots();
+
 protected:
 	void sendScreenshot();
 	void handleCommand(const char *cmd);
