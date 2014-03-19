@@ -19,6 +19,7 @@ import android.preference.PreferenceManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
@@ -54,19 +55,6 @@ public class MainActivity extends Activity {
 	private byte[] receive_buffer = null;
 	private Socket socket = null;
 	
-	static class ScreenHandler extends Handler{
-		private final WeakReference<MainActivity> activity;
-		
-		public ScreenHandler(MainActivity activity){
-			this.activity = new WeakReference<MainActivity>(activity);
-		}
-		
-		public void handleMessage(Message msg){
-			MainActivity activity = this.activity.get();
-			activity.image.setImageBitmap((Bitmap) msg.obj);
-		}
-	}
-	
 	private Handler screen_handler = new ScreenHandler(this);
 	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 	
@@ -84,6 +72,9 @@ public class MainActivity extends Activity {
 		try{
 			server_port = Short.parseShort(settings.getString("server_port", String.valueOf(server_port)));
 		}catch(NumberFormatException e){
+			Editor editor = settings.edit();
+			editor.putString("server_port", String.valueOf(server_port));
+			editor.apply();
 		}
 	
 		//initialize callback functions
@@ -172,31 +163,31 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		try {
-			int pointCount = event.getPointerCount();
-			if (pointCount > 2) {
-				pointCount = 2;
-			}
-			
-			new_x = event.getX();
-			new_y = event.getY();
-	
-			switch (event.getAction() & MotionEvent.ACTION_MASK) {
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_UP:{
-				old_x = new_x;
-				old_y = new_y;
-				break;
-			}
-			
-			case MotionEvent.ACTION_POINTER_DOWN:{
-				float disX = event.getX(0) - event.getX(1);
-				float disY = event.getY(0) - event.getY(1);
-				old_distance = disX * disX + disY * disY;
-				break;
-			}
+		int pointCount = event.getPointerCount();
+		if (pointCount > 2) {
+			pointCount = 2;
+		}
+		
+		new_x = event.getX();
+		new_y = event.getY();
 
-			case MotionEvent.ACTION_MOVE:
+		switch (event.getAction() & MotionEvent.ACTION_MASK) {
+		case MotionEvent.ACTION_DOWN:
+		case MotionEvent.ACTION_UP:{
+			old_x = new_x;
+			old_y = new_y;
+			break;
+		}
+		
+		case MotionEvent.ACTION_POINTER_DOWN:{
+			float disX = event.getX(0) - event.getX(1);
+			float disY = event.getY(0) - event.getY(1);
+			old_distance = disX * disX + disY * disY;
+			break;
+		}
+
+		case MotionEvent.ACTION_MOVE:
+			try {
 				if (pointCount == 1) {
 					delta_x = new_x - old_x;
 					delta_y = new_y - old_y;
@@ -223,11 +214,12 @@ public class MainActivity extends Activity {
 					
 					old_distance = new_distance;
 				}
-				break;
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			break;
 		}
 
 		return super.onTouchEvent(event);
@@ -239,7 +231,6 @@ public class MainActivity extends Activity {
 			try {
 				socket.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -281,8 +272,10 @@ public class MainActivity extends Activity {
 			try {
 				dos = new DataOutputStream(socket.getOutputStream());
 				while (true) {
-					if (send_queue.isEmpty())
+					if (send_queue.isEmpty()){
 						continue;
+					}
+					
 					Packet packet = send_queue.poll();
 					StringBuilder sendString = new StringBuilder(packet.toString());
 					dos.write(sendString.toString().getBytes());
@@ -290,17 +283,7 @@ public class MainActivity extends Activity {
 				}
 
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-			
-			if(dos != null){
-				try {
-					dos.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 			}
 		}
 	}
@@ -338,6 +321,19 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	static class ScreenHandler extends Handler{
+		private final WeakReference<MainActivity> activity;
+		
+		public ScreenHandler(MainActivity activity){
+			this.activity = new WeakReference<MainActivity>(activity);
+		}
+		
+		public void handleMessage(Message msg){
+			MainActivity activity = this.activity.get();
+			activity.image.setImageBitmap((Bitmap) msg.obj);
 		}
 	}
 }
