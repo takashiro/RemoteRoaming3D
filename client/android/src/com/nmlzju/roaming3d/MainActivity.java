@@ -32,26 +32,26 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	private static String IP = "192.168.137.1";
-	private static short PORT = 6666;
-	private static int BITMAP_SIZE = 1;
+	private static String server_ip = "192.168.137.1";
+	private static short server_port = 6666;
+	private static int bitmap_size = 1;
 
 	private ImageView image;
 
 	private int screen_width;
 	private int screen_height;
 
-	private float oldX;
-	private float oldY;
-	private float deltaX;
-	private float deltaY;
-	private float newX;
-	private float newY;
-	private float oldDistance;
-	private float newDistance;
+	private float old_x;
+	private float old_y;
+	private float delta_x;
+	private float delta_y;
+	private float new_x;
+	private float new_y;
+	private float old_distance;
+	private float new_distance;
 	
-	private Queue<Packet> sendQueue = new LinkedList<Packet>();
-	private byte[] recvBuffer = null;
+	private Queue<Packet> send_queue = new LinkedList<Packet>();
+	private byte[] receive_buffer = null;
 	private Socket socket = null;
 	
 	static class ScreenHandler extends Handler{
@@ -80,9 +80,9 @@ public class MainActivity extends Activity {
 		
 		//Get default settings
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		IP = settings.getString("server_ip", IP);
+		server_ip = settings.getString("server_ip", server_ip);
 		try{
-			PORT = Short.parseShort(settings.getString("server_port", String.valueOf(PORT)));
+			server_port = Short.parseShort(settings.getString("server_port", String.valueOf(server_port)));
 		}catch(NumberFormatException e){
 		}
 	
@@ -96,10 +96,10 @@ public class MainActivity extends Activity {
 					
 					DataInputStream stream = new DataInputStream(socket.getInputStream());
 					while (recvLength < allLength) {
-						recvLength += stream.read(recvBuffer, recvLength, allLength - recvLength);
+						recvLength += stream.read(receive_buffer, recvLength, allLength - recvLength);
 					}
 					
-					Bitmap recvBitmap = BitmapFactory.decodeByteArray(recvBuffer, 0, allLength);
+					Bitmap recvBitmap = BitmapFactory.decodeByteArray(receive_buffer, 0, allLength);
 					screen_handler.obtainMessage(0, recvBitmap).sendToTarget(); // calling handler.handleMessage() or image.setBitmap() will crash
 				} catch (JSONException e) {
 					e.printStackTrace();
@@ -122,8 +122,8 @@ public class MainActivity extends Activity {
 		screen_width = displayMetrics.widthPixels;
 		screen_height = displayMetrics.heightPixels;
 		
-		BITMAP_SIZE = screen_width * screen_height * 4;
-		recvBuffer = new byte[BITMAP_SIZE];
+		bitmap_size = screen_width * screen_height * 4;
+		receive_buffer = new byte[bitmap_size];
 
 		setContentView(R.layout.activity_main);
 		image = (ImageView) findViewById(R.id.image);
@@ -152,15 +152,15 @@ public class MainActivity extends Activity {
 		if(socket == null){
 			Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
 			try {
-				socket = new Socket(IP, PORT);
+				socket = new Socket(server_ip, server_port);
 				
 				Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
 				packet.args.put(screen_width);
 				packet.args.put(screen_height);
-				sendQueue.offer(packet);
+				send_queue.offer(packet);
 			
-				new sendThread().start();
-				new recvThread().start();
+				new SendThread().start();
+				new ReceiveThread().start();
 			} catch (UnknownHostException e) {
 				Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
 			} catch (IOException e) {
@@ -178,50 +178,50 @@ public class MainActivity extends Activity {
 				pointCount = 2;
 			}
 			
-			newX = event.getX();
-			newY = event.getY();
+			new_x = event.getX();
+			new_y = event.getY();
 	
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 			case MotionEvent.ACTION_UP:{
-				oldX = newX;
-				oldY = newY;
+				old_x = new_x;
+				old_y = new_y;
 				break;
 			}
 			
 			case MotionEvent.ACTION_POINTER_DOWN:{
 				float disX = event.getX(0) - event.getX(1);
 				float disY = event.getY(0) - event.getY(1);
-				oldDistance = disX * disX + disY * disY;
+				old_distance = disX * disX + disY * disY;
 				break;
 			}
 
 			case MotionEvent.ACTION_MOVE:
 				if (pointCount == 1) {
-					deltaX = newX - oldX;
-					deltaY = newY - oldY;
-					oldX = newX;
-					oldY = newY;
+					delta_x = new_x - old_x;
+					delta_y = new_y - old_y;
+					old_x = new_x;
+					old_y = new_y;
 					
-					if(deltaX * deltaX + deltaY * deltaY < 8)
+					if(delta_x * delta_x + delta_y * delta_y < 8)
 						break;
 
 					Packet packet = new Packet(Packet.Command.ROTATE_CAMERA);
-					packet.args.put(deltaX);
-					packet.args.put(deltaY);
-					sendQueue.offer(packet);
+					packet.args.put(delta_x);
+					packet.args.put(delta_y);
+					send_queue.offer(packet);
 					//Log.i(TAG, "MOVE " + deltaX + "---" + deltaY);
 				} else if (pointCount == 2) {
 					float disX = event.getX(0) - event.getX(1);
 					float disY = event.getY(0) - event.getY(1);
-					newDistance = disX * disX + disY * disY;
-					float deltaDistance = (float) (Math.sqrt(newDistance) - Math.sqrt(oldDistance));
+					new_distance = disX * disX + disY * disY;
+					float deltaDistance = (float) (Math.sqrt(new_distance) - Math.sqrt(old_distance));
 					
 					Packet packet = new Packet(Packet.Command.SCALE_CAMERA);
 					packet.args.put(deltaDistance);
-					sendQueue.offer(packet);
+					send_queue.offer(packet);
 					
-					oldDistance = newDistance;
+					old_distance = new_distance;
 				}
 				break;
 			}
@@ -261,7 +261,7 @@ public class MainActivity extends Activity {
 			return true;
 		case R.id.menu_hotspot:
 			Packet packet = new Packet(Packet.Command.CONTROL_HOTSPOTS);
-			sendQueue.offer(packet);
+			send_queue.offer(packet);
 			return true;
 		case R.id.menu_settings:
 			startActivity(new Intent(MainActivity.this, SettingsActivity.class));
@@ -274,16 +274,16 @@ public class MainActivity extends Activity {
 	    }
 	}
 
-	public class sendThread extends Thread {
+	public class SendThread extends Thread {
 		@Override
 		public void run() {
 			DataOutputStream dos = null;
 			try {
 				dos = new DataOutputStream(socket.getOutputStream());
 				while (true) {
-					if (sendQueue.isEmpty())
+					if (send_queue.isEmpty())
 						continue;
-					Packet packet = sendQueue.poll();
+					Packet packet = send_queue.poll();
 					StringBuilder sendString = new StringBuilder(packet.toString());
 					dos.write(sendString.toString().getBytes());
 					dos.flush();
@@ -305,7 +305,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	public class recvThread extends Thread {
+	public class ReceiveThread extends Thread {
 
 		@Override
 		public void run() {
@@ -318,10 +318,10 @@ public class MainActivity extends Activity {
 				while (true) {
 					offset = 0;
 					do{
-						stream.readFully(recvBuffer, offset, 1);
-					}while(offset < BITMAP_SIZE && recvBuffer[offset++] != '\n');
+						stream.readFully(receive_buffer, offset, 1);
+					}while(offset < bitmap_size && receive_buffer[offset++] != '\n');
 				
-					String json = new String(recvBuffer, 0, offset);
+					String json = new String(receive_buffer, 0, offset);
 					Packet packet = Packet.parse(json);
 					if(packet == null){
 						continue;
