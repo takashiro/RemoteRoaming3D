@@ -135,37 +135,29 @@ void ServerUser::clearHotspots()
 
 void ServerUser::sendScreenshot()
 {
-	IrrlichtDevice *&device = _device;
-	if(device == NULL || _current_frame == NULL)
+	if(_device == NULL || _current_frame == NULL)
 	{
 		return;
 	}
 
-	video::IImage *image = device->getVideoDriver()->createImage(_current_frame->getColorFormat(), _current_frame->getDimension());
-	_current_frame->copyTo(image);
-
-	if (image)
+	IrrMemoryFile *file = new IrrMemoryFile("screenshot.jpg");
+	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, file))
 	{
-		IrrMemoryFile *file = new IrrMemoryFile("screenshot.jpg");
-		if(!device->getVideoDriver()->writeImageToFile(image, file))
-		{
-			puts("failed to transfer video frame");
-		}
-		image->drop();
-
-		const std::string &content = file->getContent();
-		size_t length = content.size();
-
-		//transfer screenshot length
-		R3D::Packet packet(R3D::UpdateVideoFrame);
-		packet.args[0] = length;
-		sendPacket(packet);
-
-		//transfer the picture
-		sendPacket(content);
-
-		file->drop();
+		puts("failed to transfer video frame");
 	}
+
+	const std::string &content = file->getContent();
+	size_t length = content.size();
+
+	//transfer screenshot length
+	R3D::Packet packet(R3D::UpdateVideoFrame);
+	packet.args[0] = length;
+	sendPacket(packet);
+
+	//transfer the picture
+	sendPacket(content);
+
+	file->drop();
 }
 
 sockaddr_in ServerUser::getIp() const
