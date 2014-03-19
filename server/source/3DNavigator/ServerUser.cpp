@@ -40,16 +40,12 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 	}
 
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
-	_is_rendering = CreateSemaphore(NULL, 1, 1, NULL);
+	_need_update = CreateSemaphore(NULL, 1, 1, NULL);
 	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 ServerUser::~ServerUser(){
 	closesocket(_socket);
-
-	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++){
-		(*i)->drop();
-	}
 
 	if(_receive_thread != NULL){
 		CloseHandle(_receive_thread);
@@ -59,7 +55,7 @@ ServerUser::~ServerUser(){
 		CloseHandle(_device_thread);
 	}
 
-	CloseHandle(_is_rendering);
+	CloseHandle(_need_update);
 }
 
 DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
@@ -107,6 +103,7 @@ void ServerUser::disconnect()
 {
 	if(_device){
 		_device->closeDevice();
+		ReleaseSemaphore(_need_update, 1, NULL);
 	}
 	WaitForSingleObject(_device_thread, INFINITE);
 	_server->disconnect(this);
@@ -144,10 +141,8 @@ void ServerUser::sendScreenshot()
 		return;
 	}
 
-	WaitForSingleObject(_is_rendering, INFINITE);
 	video::IImage *image = device->getVideoDriver()->createImage(_current_frame->getColorFormat(), _current_frame->getDimension());
 	_current_frame->copyTo(image);
-	ReleaseSemaphore(_is_rendering, 1, NULL);
 
 	if (image)
 	{
@@ -268,7 +263,7 @@ void ServerUser::_rotateCamera(const Json::Value &args){
 	target += pos;
 	camera->setTarget(target);
 
-	sendScreenshot();
+	ReleaseSemaphore(_need_update, 1, NULL);
 }
 
 void ServerUser::_scaleCamera(const Json::Value &args)
@@ -292,7 +287,7 @@ void ServerUser::_scaleCamera(const Json::Value &args)
 	camera->setTarget(target);
 	camera->setPosition(position);
 
-	sendScreenshot();
+	ReleaseSemaphore(_need_update, 1, NULL);
 }
 
 void ServerUser::_moveCamera(const Json::Value &args){
@@ -312,6 +307,8 @@ void ServerUser::_moveCamera(const Json::Value &args){
 	pos.Y += deltaY;
 
 	camera->setPosition(pos);
+
+	ReleaseSemaphore(_need_update, 1, NULL);
 }
 
 void ServerUser::_controlHotspots(const Json::Value &)
@@ -325,7 +322,7 @@ void ServerUser::_controlHotspots(const Json::Value &)
 		clearHotspots();
 	}
 
-	sendScreenshot();
+	ReleaseSemaphore(_need_update, 1, NULL);
 }
 
 DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
@@ -466,7 +463,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 	while(device->run())
 	{
-		WaitForSingleObject(client->_is_rendering, INFINITE);
+		WaitForSingleObject(client->_need_update, INFINITE);
 		driver->beginScene(true, true, video::SColor(255,200,200,200));
 		smgr->drawAll();
 
@@ -516,8 +513,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 			client->_current_frame->drop();
 		}
 		client->_current_frame = driver->createScreenShot();
-
-		ReleaseSemaphore(client->_is_rendering, 1, NULL);
+		client->sendScreenshot();
 
 		int fps = driver->getFPS();
 		if (lastFPS != fps)
@@ -530,11 +526,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 			str += fps;
 
 			device->setWindowCaption(str.c_str());
-				
-			if(lastFPS == -1)
-			{
-				client->sendScreenshot();
-			}
+
 			lastFPS = fps;
 		}
 	}

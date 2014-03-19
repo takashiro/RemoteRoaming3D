@@ -54,7 +54,7 @@ private:
 
 	static DWORD WINAPI _DeviceThread(LPVOID lpParam);
 	HANDLE _device_thread;
-	HANDLE _is_rendering;
+	HANDLE _need_update;
 	HANDLE _is_sending_data;
 };
 
