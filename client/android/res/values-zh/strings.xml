@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">漫游3D</string>
+    <string name="menu_settings">设置</string>
+    <string name="title_activity_main">漫游3D</string>
+    <string name="menu_exit">退出</string>
+    <string name="main_screen">场景屏幕</string>
+    <string name="menu_connect">连接</string>
+    <string name="pref_server_ip">服务器地址</string>
+    <string name="pref_auto_connect_on_start">启动时自动连接</string>
+    <string name="title_activity_settings">设置</string>
+    <string name="action_settings">设置</string>
+    <string name="toast_failed_to_connect_to_server">连接服务器失败</string>
+    <string name="toast_start_connecting">开始连接...</string>
+
+</resources>
