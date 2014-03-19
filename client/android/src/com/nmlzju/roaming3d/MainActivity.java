@@ -189,14 +189,21 @@ public class MainActivity extends Activity {
 		new_y = event.getY();
 
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
-		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_UP:{
+			float dis_x = Math.abs(old_x - new_x);
+			float dis_y = Math.abs(old_y - new_y);
+			if(dis_x < 1 && dis_y < 1 && event.getEventTime() - event.getDownTime() <= 100){
+				this.onClick(event);
+			}
+		}
+		
+		case MotionEvent.ACTION_DOWN:{
 			old_x = new_x;
 			old_y = new_y;
 			pointer_count = event.getPointerCount();
 			break;
 		}
-		
+
 		case MotionEvent.ACTION_POINTER_DOWN:{
 			pointer_count = event.getPointerCount();
 			
@@ -249,6 +256,26 @@ public class MainActivity extends Activity {
 		}
 
 		return super.onTouchEvent(event);
+	}
+	
+	private long last_click_time = 0;
+	public void onClick(MotionEvent e){
+		if(e.getEventTime() - last_click_time <= 1000){
+			onDoubleClick(e);
+		}
+		last_click_time = e.getEventTime();
+	}
+	
+	public void onDoubleClick(MotionEvent e){
+		Packet packet = new Packet(Packet.Command.DOUBLE_CLICK);
+		try {
+			packet.args.put(e.getX());
+			packet.args.put(e.getY());
+
+			send_queue.offer(packet);
+		} catch (JSONException exception) {
+			
+		}
 	}
 
 	@Override

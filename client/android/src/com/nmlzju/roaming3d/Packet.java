@@ -16,6 +16,7 @@ public class Packet {
 		MOVE_CAMERA,
 		
 		CONTROL_HOTSPOTS,
+		DOUBLE_CLICK,
 		
 		length
 	};

@@ -19,6 +19,7 @@ namespace R3D{
 		MoveCamera,
 
 		ControlHotspots,
+		DoubleClick,
 
 		NumOfCommands
 	};
