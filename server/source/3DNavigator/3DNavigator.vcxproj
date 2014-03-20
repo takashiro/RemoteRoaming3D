@@ -208,6 +208,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Hotspot.cpp" />
     <ClCompile Include="IrrMemoryFile.cpp" />
     <ClCompile Include="main.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -231,6 +232,7 @@
     <ClCompile Include="ServerUserCallbacks.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Hotspot.h" />
     <ClInclude Include="IrrMemoryFile.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="Server.h" />
