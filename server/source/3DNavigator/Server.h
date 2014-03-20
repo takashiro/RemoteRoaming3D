@@ -31,6 +31,8 @@ public:
 	inline void setDriverType(irr::video::E_DRIVER_TYPE type){_driver_type = type;}
 	inline irr::video::E_DRIVER_TYPE getDriverType() const{return _driver_type;}
 
+	inline const std::list<ServerUser *> &getClients() const{return _clients;}
+
 protected:
 	SOCKET _server_socket;
 

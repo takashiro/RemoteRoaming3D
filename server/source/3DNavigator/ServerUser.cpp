@@ -90,7 +90,7 @@ void ServerUser::sendPacket(const std::string &raw)
 {
 	WaitForSingleObject(_is_sending_data, INFINITE);
 
-	size_t length = (int) raw.length();
+	size_t length = raw.length();
 	size_t y = 0;
 	const char *p = raw.c_str();
 	while(y < length)
@@ -217,7 +217,17 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	
 	IrrlichtDevice *&device = client->_device;
 
-	device = createDevice(ServerInstance->getDriverType(), core::dimension2d<u32>(client->_screen_width, client->_screen_height));	
+	SIrrlichtCreationParameters p;
+	p.DriverType = ServerInstance->getDriverType();
+	p.WindowSize = core::dimension2d<u32>(client->_screen_width, client->_screen_height);
+	p.Bits = (u8) 16U;
+	p.Fullscreen = false;
+	p.Stencilbuffer = false;
+	p.Vsync = false;
+	p.EventReceiver = NULL;
+	p.LoggingLevel = ELL_NONE;
+
+	device = createDeviceEx(p);
 	if (device == NULL)
 		return 1; // could not create selected driver.
 
@@ -233,9 +243,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 	ShowWindow(reinterpret_cast<HWND>(driver->getExposedVideoData().OpenGLWin32.HWnd), SW_HIDE);
 #endif
-
-	//Disable all logs
-	device->getLogger()->setLogLevel(irr::ELL_NONE);
 
 	/*
 	To display the Quake 3 map, we first need to load it. Quake 3 maps
