@@ -228,6 +228,7 @@
     <ClCompile Include="protocol.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerUser.cpp" />
+    <ClCompile Include="ServerUserCallbacks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IrrMemoryFile.h" />

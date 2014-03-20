@@ -193,7 +193,7 @@ public class MainActivity extends Activity {
 			float dis_x = Math.abs(old_x - new_x);
 			float dis_y = Math.abs(old_y - new_y);
 			if(dis_x < 1 && dis_y < 1 && event.getEventTime() - event.getDownTime() <= 100){
-				this.onClick(event);
+				onClick(event);
 			}
 		}
 		
@@ -262,6 +262,7 @@ public class MainActivity extends Activity {
 	public void onClick(MotionEvent e){
 		if(e.getEventTime() - last_click_time <= 1000){
 			onDoubleClick(e);
+			last_click_time = 0;
 		}
 		last_click_time = e.getEventTime();
 	}
@@ -274,7 +275,7 @@ public class MainActivity extends Activity {
 
 			send_queue.offer(packet);
 		} catch (JSONException exception) {
-			
+			Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
 		}
 	}
 

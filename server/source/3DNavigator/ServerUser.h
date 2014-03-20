@@ -5,6 +5,7 @@
 #include <irrlicht.h>
 #include <json/json.h>
 #include <map>
+#include <list>
 
 #include "protocol.h"
 
@@ -38,6 +39,7 @@ protected:
 	void _scaleCamera(const Json::Value &args);
 	void _moveCamera(const Json::Value &args);
 	void _controlHotspots(const Json::Value &args);
+	void _doubleClick(const Json::Value &args);
 
 	int _screen_width;
 	int _screen_height;
