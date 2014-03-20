@@ -17,6 +17,7 @@ console.
 #include <string>
 
 #include "Server.h"
+#include "cpanel.h"
 
 /*
 As already written in the HelloWorld example, in the Irrlicht Engine everything
@@ -85,11 +86,22 @@ int main()
 	server.listenTo(6666);
 
 	std::string cmd;
-	while(std::cin >> cmd)
+	std::map<std::string,CPanelCallback>::iterator func;
+	while(true)
 	{
+		printf("$ ");
+		std::cin >> cmd;
 		if(cmd == "quit")
 		{
 			break;
+		}
+		
+		func = CPanelCommand.find(cmd);
+		if(func != CPanelCommand.end())
+		{
+			CPanelCallback callback = func->second;
+			if(callback != NULL)
+				(*callback)();
 		}
 		else
 		{
