@@ -1,9 +1,11 @@
 #include "Server.h"
 #include "ServerUser.h"
 #include "IrrMemoryFile.h"
+#include "Hotspot.h"
 
 #include <memory.h>
 #include <iostream>
+#include <fstream>
 
 enum
 {
@@ -114,9 +116,22 @@ void ServerUser::createHotspots()
 	if(!_hotspots.empty())
 		return;
 
+	std::ifstream hotspot_file("../../media/158.txt");
+	Json::Value hotspots;
+	Json::Reader reader;
+	bool success = reader.parse(hotspot_file, hotspots);
+	hotspot_file.close();
+	if(!success)
+		return;
+
 	scene::ISceneManager *smgr = _device->getSceneManager();
-	scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, L"Head", 0, core::dimension2d<f32>(40.0, 20.0), core::vector3df(63.31f, 90.27f, -102.80f));
-	_hotspots.push_back(head_text);
+	for(Json::Value::iterator i = hotspots.begin(); i != hotspots.end(); i++)
+	{
+		Hotspot *spot = new Hotspot(*i);
+		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, str2wstr(spot->getName()).c_str(), 0, spot->getSize(), spot->getPosition());
+		spot->setNode(head_text);
+		_hotspots.push_back(spot);
+	}
 }
 
 void ServerUser::clearHotspots()
@@ -126,10 +141,13 @@ void ServerUser::clearHotspots()
 
 	static core::vector3df far_away(FLT_MIN, FLT_MIN, FLT_MIN);
 	scene::ISceneManager *smgr = _device->getSceneManager();
-	for(std::list<scene::IBillboardTextSceneNode *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++)
+	for(std::list<Hotspot *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++)
 	{
-		(*i)->setPosition(far_away);
-		smgr->addToDeletionQueue(*i);
+		Hotspot *&spot = *i;
+		scene::ISceneNode *node = spot->getNode();
+		node->setPosition(far_away);
+		smgr->addToDeletionQueue(node);
+		delete spot;
 	}
 
 	_hotspots.clear();

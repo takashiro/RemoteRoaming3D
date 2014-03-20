@@ -8,8 +8,10 @@
 #include <list>
 
 #include "protocol.h"
+#include "util.h"
 
 class Server;
+class Hotspot;
 
 class ServerUser{
 public:
@@ -48,7 +50,7 @@ protected:
 	SOCKET _socket;
 	irr::IrrlichtDevice *_device;
 	irr::video::IImage *_current_frame;
-	std::list<irr::scene::IBillboardTextSceneNode *> _hotspots;
+	std::list<Hotspot *> _hotspots;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);

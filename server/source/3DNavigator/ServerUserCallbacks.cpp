@@ -1,4 +1,5 @@
 #include "ServerUser.h"
+#include "Hotspot.h"
 
 using namespace irr;
 
@@ -151,12 +152,12 @@ void ServerUser::_doubleClick(const Json::Value &args)
 
 	//Find the nearest hotspot
 	core::vector3df pos = camera->getPosition();
-	scene::IBillboardTextSceneNode *nearest = NULL;
-	std::list<scene::IBillboardTextSceneNode *>::iterator i;
+	scene::ISceneNode *nearest = NULL;
+	std::list<Hotspot *>::iterator i;
 	f32 nearest_distance = FLT_MAX;
 	for(i = _hotspots.begin(); i != _hotspots.end(); i++)
 	{
-		scene::IBillboardTextSceneNode *&text = *i;
+		scene::ISceneNode *text = (*i)->getNode();
 		f32 distance = text->getPosition().getDistanceFrom(pos);
 		if(distance <= max_distance)
 		{
@@ -171,7 +172,7 @@ void ServerUser::_doubleClick(const Json::Value &args)
 
 	for(; i != _hotspots.end(); i++)
 	{
-		scene::IBillboardTextSceneNode *&text = *i;
+		scene::ISceneNode *text = (*i)->getNode();
 		f32 distance = text->getPosition().getDistanceFrom(pos);
 		if(distance <= max_distance)
 		{

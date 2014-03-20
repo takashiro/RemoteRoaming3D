@@ -2,39 +2,35 @@
 #define _HOTSPOT_H_
 
 #include <irrlicht.h>
+#include <json/json.h>
 #include <string>
 
 class Hotspot
 {
 public:
 	Hotspot();
-	
-	struct Position
-	{
-		float x;
-		float y;
-		float z;
-
-		Position();
-		Position(const irr::core::vector3df &pos);
-		operator irr::core::vector3df();
-	};
+	Hotspot(const std::string &json);
+	Hotspot(const Json::Value &value);
 
 	std::string toJson() const;
-	static Hotspot FromJson(const std::string &json);
 
 	inline std::string getName() const{return _name;}
 	inline void setName(const std::string &name){_name = name;}
 
-	inline Position getPosition() const{return _pos;}
-	inline void setPosition(const Position &pos){_pos = pos;}
-	inline void setPositionX(float x){_pos.x = x;}
-	inline void setPositionY(float y){_pos.y = y;}
-	inline void setPositionZ(float z){_pos.z = z;}
+	inline irr::core::vector3df getPosition() const{return _pos;}
+	inline void setPosition(const irr::core::vector3df &pos){_pos = pos;}
 
-protected:	
-	Position _pos;
+	inline irr::core::dimension2d<irr::f32> getSize() const{return _size;}
+	inline void setSize(const irr::core::dimension2d<irr::f32> &size){_size = size;}
+
+	inline void setNode(irr::scene::ISceneNode *node){_node = node;}
+	inline irr::scene::ISceneNode *getNode() const{return _node;}
+
+protected:
+	irr::core::vector3df _pos;
+	irr::core::dimension2d<irr::f32> _size;
 	std::string _name;
+	irr::scene::ISceneNode *_node;
 };
 
 #endif

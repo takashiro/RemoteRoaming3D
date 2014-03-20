@@ -230,6 +230,7 @@
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerUser.cpp" />
     <ClCompile Include="ServerUserCallbacks.cpp" />
+    <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Hotspot.h" />
@@ -237,6 +238,7 @@
     <ClInclude Include="protocol.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="ServerUser.h" />
+    <ClInclude Include="util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
