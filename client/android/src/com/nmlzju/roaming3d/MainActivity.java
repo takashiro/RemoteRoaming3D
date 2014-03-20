@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 	private static short server_port = 6666;
 	private static int bitmap_size = 1;
 
-	private ImageView image;
+	private ImageView scene;
 
 	private int screen_width;
 	private int screen_height;
@@ -121,7 +121,7 @@ public class MainActivity extends Activity {
 		receive_buffer = new byte[bitmap_size];
 
 		setContentView(R.layout.activity_main);
-		image = (ImageView) findViewById(R.id.image);
+		scene = (ImageView) findViewById(R.id.image);
 		
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
 			.detectDiskReads()
@@ -393,7 +393,7 @@ public class MainActivity extends Activity {
 		
 		public void handleMessage(Message msg){
 			MainActivity activity = this.activity.get();
-			activity.image.setImageBitmap((Bitmap) msg.obj);
+			activity.scene.setImageBitmap((Bitmap) msg.obj);
 		}
 	}
 }

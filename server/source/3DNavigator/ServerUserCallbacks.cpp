@@ -102,9 +102,8 @@ void ServerUser::_scaleCamera(const Json::Value &args)
 }
 
 void ServerUser::_moveCamera(const Json::Value &args){
-	if(_device == NULL){
+	if(_device == NULL)
 		return;
-	}
 
 	float deltaX = args[0].asFloat();
 	float deltaY = args[1].asFloat();
@@ -139,7 +138,50 @@ void ServerUser::_controlHotspots(const Json::Value &)
 
 void ServerUser::_doubleClick(const Json::Value &args)
 {
+	if(_device == NULL)
+		return;
+
 	float pos_x = args[0].asFloat();
 	float pos_y = args[1].asFloat();
-	printf("double click: %.3f, %.3f\n", pos_x, pos_y);
+	static f32 max_distance = 60.0f;
+	
+	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
+	if(camera == NULL)
+		return;
+
+	//Find the nearest hotspot
+	core::vector3df pos = camera->getPosition();
+	scene::IBillboardTextSceneNode *nearest = NULL;
+	std::list<scene::IBillboardTextSceneNode *>::iterator i;
+	f32 nearest_distance = FLT_MAX;
+	for(i = _hotspots.begin(); i != _hotspots.end(); i++)
+	{
+		scene::IBillboardTextSceneNode *&text = *i;
+		f32 distance = text->getPosition().getDistanceFrom(pos);
+		if(distance <= max_distance)
+		{
+			nearest = text;
+			nearest_distance = distance;
+			break;
+		}
+	}
+	
+	if(nearest == NULL)
+		return;
+
+	for(; i != _hotspots.end(); i++)
+	{
+		scene::IBillboardTextSceneNode *&text = *i;
+		f32 distance = text->getPosition().getDistanceFrom(pos);
+		if(distance <= max_distance)
+		{
+			if(distance < nearest_distance)
+			{
+				nearest = text;
+				nearest_distance = distance;
+			}
+		}
+	}
+
+	//Enter the hotspot
 }
