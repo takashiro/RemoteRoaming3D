@@ -15,7 +15,8 @@ Server::~Server()
 		CloseHandle(_server_thread);
 	}
 
-	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++){
+	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++)
+	{
 		(*i)->disconnect();
 	}
 }

@@ -7,6 +7,7 @@ public class Packet {
 
 		//Server to Client
 		UPDATE_VIDEO_FRAME,
+		MAKE_TOAST_TEXT,
 		QUIT,
 
 		//Client to Server

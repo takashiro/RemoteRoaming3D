@@ -111,6 +111,20 @@ public class MainActivity extends Activity {
 			}
 		};
 		
+		callbacks[Packet.Command.MAKE_TOAST_TEXT.ordinal()] = new Callback(){
+			@Override
+			public void handle(JSONArray args){
+				String text;
+				try {
+					text = args.getString(0);
+				} catch (JSONException e) {
+					text = "Unknown Server Message";
+				}
+				
+				Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+			}
+		};
+		
 		//get the screen size
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);

@@ -9,6 +9,7 @@ namespace R3D{
 
 		//Server to Client
 		UpdateVideoFrame,
+		MakeToastText,
 		Quit,
 
 		//Client to Server
