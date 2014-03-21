@@ -26,8 +26,10 @@ void show_client_info(ServerUser *user)
 	scene::ICameraSceneNode *camera = device->getSceneManager()->getActiveCamera();
 	if(camera != NULL)
 	{
-		const core::vector3df pos = camera->getPosition();
+		const core::vector3df &pos = camera->getPosition();
 		printf("Camera Position: %.3f, %.3f, %.3f\n", pos.X, pos.Y, pos.Z);
+		const core::vector3df &target = camera->getTarget();
+		printf("Camera Target: %.3f, %.3f, %.3f\n", target.X, target.Y, target.Z);
 	}
 }
 
@@ -35,7 +37,7 @@ void client(){
 	string idstr;
 	cin >> idstr;
 
-	const std::list<ServerUser *> clients = ServerInstance->getClients();
+	const std::list<ServerUser *> &clients = ServerInstance->getClients();
 
 	if(idstr == "all")
 	{
