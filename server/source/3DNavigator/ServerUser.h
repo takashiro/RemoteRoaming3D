@@ -27,6 +27,8 @@ public:
 	void sendPacket(const std::string &raw);
 	void disconnect();
 
+	void startService();
+
 protected:
 	void sendScreenshot();
 	void handleCommand(const char *cmd);

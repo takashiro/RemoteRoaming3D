@@ -92,6 +92,7 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 		//@to-do:refuse new connections if the server reaches the maximum client number
 
 		ServerUser *client = new ServerUser(server, client_socket);
+		client->startService();
 		if(client->isValid()){
 			server->_clients.push_back(client);
 		}else{

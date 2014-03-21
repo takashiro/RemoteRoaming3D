@@ -323,7 +323,7 @@ public class MainActivity extends Activity {
 			send_queue.offer(packet);
 			return true;
 		case R.id.menu_settings:
-			startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+			startActivity(new Intent(this, SettingsActivity.class));
 			return true;
 		case R.id.menu_exit:
 			System.exit(0);

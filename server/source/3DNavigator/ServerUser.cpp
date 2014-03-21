@@ -29,7 +29,7 @@ std::map<R3D::Command, ServerUser::Callback> ServerUser::_callbacks;
 
 ServerUser::ServerUser(Server *server, SOCKET socket)
 	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
-	_current_frame(NULL)
+	_current_frame(NULL), _receive_thread(NULL)
 {
 	if(_callbacks.empty())
 	{
@@ -40,10 +40,6 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 		_callbacks[R3D::ControlHotspots] = &ServerUser::_controlHotspots;
 		_callbacks[R3D::DoubleClick] = &ServerUser::_doubleClick;
 	}
-
-	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
-	_need_update = CreateSemaphore(NULL, 1, 1, NULL);
-	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 ServerUser::~ServerUser(){
@@ -109,6 +105,13 @@ void ServerUser::disconnect()
 	}
 	WaitForSingleObject(_device_thread, INFINITE);
 	_server->disconnect(this);
+}
+
+void ServerUser::startService()
+{
+	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
+	_need_update = CreateSemaphore(NULL, 1, 1, NULL);
+	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 void ServerUser::createHotspots()
