@@ -58,6 +58,7 @@ void client(){
 				show_client_info(*i);
 				return;
 			}
+			cur++;
 		}
 
 		printf("no client %d\n", id);
