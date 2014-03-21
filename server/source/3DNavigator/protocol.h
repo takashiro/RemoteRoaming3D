@@ -33,6 +33,11 @@ namespace R3D{
 		std::string toString() const;
 		static Packet FromString(const char *str);
 	};
+
+	enum Message{
+		server_reaches_max_client_num,
+		server_is_to_be_closed
+	};
 }
 
 #endif

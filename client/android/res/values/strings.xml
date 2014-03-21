@@ -16,5 +16,7 @@
     <string name="menu_hotspot">Hotspot</string>
     <string name="toast_network_not_available">Sorry, your network is switched off now.</string>
     <string name="toast_not_on_wifi">You are not on a WiFi hotspot.</string>
+    <string name="toast_server_reaches_max_client_num">The server has already reached the maximum number of clients.</string>
+    <string name="toast_unkown_message">An unknown message is received from the server.</string>
 
 </resources>

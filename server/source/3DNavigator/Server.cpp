@@ -89,14 +89,19 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 			continue;
 		}
 
-		//@to-do:refuse new connections if the server reaches the maximum client number
-
 		ServerUser *client = new ServerUser(server, client_socket);
-		client->startService();
-		if(client->isValid()){
-			server->_clients.push_back(client);
-		}else{
+		if(server->getClients().size() >= server->getMaximumClientNum()){
+			R3D::Packet packet(R3D::MakeToastText);
+			packet.args[0] = (int) R3D::server_reaches_max_client_num;
+			client->sendPacket(packet);
 			delete client;
+		}else{
+			client->startService();
+			if(client->isValid()){
+				server->_clients.push_back(client);
+			}else{
+				delete client;
+			}
 		}
 
 		Sleep(100);
@@ -107,4 +112,5 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 
 void Server::disconnect(ServerUser *client){
 	_clients.remove(client);
+	client->disconnect();
 }

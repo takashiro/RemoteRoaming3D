@@ -58,4 +58,14 @@ public class Packet {
 		
 		return null;
 	}
+	
+	enum Message{
+		SERVER_REACHES_MAX_CLIENT_NUM,
+		SERVER_IS_TO_BE_CLOSED
+	};
+	
+	static int[] Message2Toast = new int[Message.values().length];
+	static{
+		Message2Toast[Message.SERVER_REACHES_MAX_CLIENT_NUM.ordinal()] = R.string.toast_server_reaches_max_client_num;
+	}
 }

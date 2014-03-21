@@ -43,15 +43,7 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 }
 
 ServerUser::~ServerUser(){
-	closesocket(_socket);
-
-	if(_receive_thread != NULL){
-		CloseHandle(_receive_thread);
-	}
-
-	if(_device_thread != NULL){
-		CloseHandle(_device_thread);
-	}
+	disconnect();
 
 	CloseHandle(_need_update);
 }
@@ -71,8 +63,7 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 		if (result == 0 || result == SOCKET_ERROR) 
 		{
 			//disconnect the client
-			client->disconnect();
-			delete client;
+			ServerInstance->disconnect(client);
 			break;
 		}
 
@@ -99,12 +90,24 @@ void ServerUser::sendPacket(const std::string &raw)
 
 void ServerUser::disconnect()
 {
-	if(_device){
+	closesocket(_socket);
+
+	if(_device)
+	{
 		_device->closeDevice();
 		ReleaseSemaphore(_need_update, 1, NULL);
 	}
-	WaitForSingleObject(_device_thread, INFINITE);
-	_server->disconnect(this);
+	
+	if(_device_thread != NULL)
+	{
+		WaitForSingleObject(_device_thread, INFINITE);
+		CloseHandle(_device_thread);
+	}
+
+	if(_receive_thread != NULL){
+		WaitForSingleObject(_device_thread, INFINITE);
+		CloseHandle(_receive_thread);
+	}
 }
 
 void ServerUser::startService()

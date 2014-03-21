@@ -60,6 +60,7 @@ public class MainActivity extends Activity {
 	private Socket socket = null;
 	
 	private Handler screen_handler = new ScreenHandler(this);
+	private Handler toast_handler = new ToastHandler(this);
 	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 	
 	@Override
@@ -114,14 +115,19 @@ public class MainActivity extends Activity {
 		callbacks[Packet.Command.MAKE_TOAST_TEXT.ordinal()] = new Callback(){
 			@Override
 			public void handle(JSONArray args){
-				String text;
+				String text = null;
 				try {
-					text = args.getString(0);
+					int toast_id = args.getInt(0);
+					if(toast_id >= 0 && toast_id < Packet.Message2Toast.length){
+						text = getString(Packet.Message2Toast[toast_id]);
+					}
 				} catch (JSONException e) {
-					text = "Unknown Server Message";
+					text = getString(R.string.toast_unkown_message);
 				}
 				
-				Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+				if(text != null){
+					toast_handler.obtainMessage(0, text).sendToTarget();
+				}
 			}
 		};
 		
@@ -408,6 +414,19 @@ public class MainActivity extends Activity {
 		public void handleMessage(Message msg){
 			MainActivity activity = this.activity.get();
 			activity.scene.setImageBitmap((Bitmap) msg.obj);
+		}
+	}
+	
+	static class ToastHandler extends Handler{
+		private final WeakReference<MainActivity> activity;
+		
+		public ToastHandler(MainActivity activity){
+			this.activity = new WeakReference<MainActivity>(activity);
+		}
+		
+		public void handleMessage(Message msg){
+			MainActivity activity = this.activity.get();
+			Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_LONG).show();
 		}
 	}
 }
