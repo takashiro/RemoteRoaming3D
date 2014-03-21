@@ -30,7 +30,8 @@ void server()
 	}
 	else
 	{
-		puts("unknown argument");
+		puts("info -- display server configurations");
+		puts("maxclient [int] -- set the maximum number of clients");
 	}
 }
 
@@ -81,11 +82,20 @@ void client(){
 	}
 }
 
+void help()
+{
+	puts("server  -- to configure the server");
+	puts("client  -- control clients");
+	puts("help  -- provides help information");
+	puts("quit  -- to quit the server");
+}
+
 class CommandAdder{
 public:
 	CommandAdder(){
 		CPanelCommand["server"] = &server;
 		CPanelCommand["client"] = &client;
+		CPanelCommand["help"] = &help;
 	}
 };
 
