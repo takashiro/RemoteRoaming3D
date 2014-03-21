@@ -13,9 +13,25 @@ map<string, CPanelCallback> CPanelCommand;
 
 void server()
 {
-	printf("Server IP: 0.0.0.0\n");
-	printf("Server Port: %d\n", ServerInstance->getServerPort());
-	printf("Client Number: %d / %d\n", ServerInstance->getClients().size(), ServerInstance->getMaximumClientNum());
+	string cmd;
+	cin >> cmd;
+
+	if(cmd == "info")
+	{
+		puts("Server IP: 0.0.0.0");
+		printf("Server Port: %d\n", ServerInstance->getServerPort());
+		printf("Client Number: %d / %d\n", ServerInstance->getClients().size(), ServerInstance->getMaximumClientNum());
+	}
+	else if(cmd == "maxclient")
+	{
+		int number;
+		cin >> number;
+		ServerInstance->setMaximumClientNum(number);
+	}
+	else
+	{
+		puts("unknown argument");
+	}
 }
 
 void show_client_info(ServerUser *user)
