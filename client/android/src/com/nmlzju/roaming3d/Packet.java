@@ -8,6 +8,7 @@ public class Packet {
 		//Server to Client
 		UPDATE_VIDEO_FRAME,
 		MAKE_TOAST_TEXT,
+		ENTER_HOTSPOT,
 		QUIT,
 
 		//Client to Server
@@ -49,7 +50,9 @@ public class Packet {
 			JSONArray raw = new JSONArray(json);
 			Packet packet = new Packet();
 			packet.command = Command.values()[raw.getInt(0)];
-			packet.args = raw.getJSONArray(1);
+			if(!raw.isNull(1)){
+				packet.args = raw.getJSONArray(1);
+			}
 			return packet;
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block

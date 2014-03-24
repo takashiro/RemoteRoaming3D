@@ -186,6 +186,12 @@ void ServerUser::sendScreenshot()
 	file->drop();
 }
 
+void ServerUser::enterHotspot(Hotspot *spot)
+{
+	R3D::Packet packet(R3D::EnterHotspot);
+	sendPacket(packet);
+}
+
 sockaddr_in ServerUser::getIp() const
 {
 	sockaddr_in ip;

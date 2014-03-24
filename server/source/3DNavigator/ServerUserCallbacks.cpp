@@ -152,7 +152,7 @@ void ServerUser::_doubleClick(const Json::Value &args)
 
 	//Find the nearest hotspot
 	core::vector3df pos = camera->getPosition();
-	scene::ISceneNode *nearest = NULL;
+	Hotspot *nearest = NULL;
 	std::list<Hotspot *>::iterator i;
 	f32 nearest_distance = FLT_MAX;
 	for(i = _hotspots.begin(); i != _hotspots.end(); i++)
@@ -161,7 +161,7 @@ void ServerUser::_doubleClick(const Json::Value &args)
 		f32 distance = text->getPosition().getDistanceFrom(pos);
 		if(distance <= max_distance)
 		{
-			nearest = text;
+			nearest = *i;
 			nearest_distance = distance;
 			break;
 		}
@@ -178,11 +178,12 @@ void ServerUser::_doubleClick(const Json::Value &args)
 		{
 			if(distance < nearest_distance)
 			{
-				nearest = text;
+				nearest = *i;
 				nearest_distance = distance;
 			}
 		}
 	}
 
 	//Enter the hotspot
+	enterHotspot(nearest);
 }

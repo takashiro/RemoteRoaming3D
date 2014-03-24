@@ -31,6 +31,7 @@ public:
 
 protected:
 	void sendScreenshot();
+	void enterHotspot(Hotspot *spot);
 	void handleCommand(const char *cmd);
 	void createHotspots();
 	void clearHotspots();
