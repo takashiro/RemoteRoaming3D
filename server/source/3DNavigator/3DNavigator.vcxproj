@@ -208,7 +208,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cpanel.cpp" />
+    <ClCompile Include="ControlPanel.cpp" />
     <ClCompile Include="Hotspot.cpp" />
     <ClCompile Include="IrrMemoryFile.cpp" />
     <ClCompile Include="main.cpp">
@@ -234,7 +234,7 @@
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cpanel.h" />
+    <ClInclude Include="ControlPanel.h" />
     <ClInclude Include="Hotspot.h" />
     <ClInclude Include="IrrMemoryFile.h" />
     <ClInclude Include="protocol.h" />
