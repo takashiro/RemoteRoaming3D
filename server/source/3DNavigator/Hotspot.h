@@ -13,7 +13,7 @@ public:
 	Hotspot(const std::string &json);
 	Hotspot(const Json::Value &value);
 
-	std::string toJson() const;
+	Json::Value toJson() const;
 
 	inline std::string getName() const{return _name;}
 	inline void setName(const std::string &name){_name = name;}

@@ -1,7 +1,6 @@
 package com.nmlzju.roaming3d;
 
-import java.util.Locale;
-
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -30,6 +29,8 @@ public class HotspotActivity extends FragmentActivity {
 	 * The {@link ViewPager} that will host the section contents.
 	 */
 	ViewPager mViewPager;
+	
+	Hotspot hotspot = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +44,12 @@ public class HotspotActivity extends FragmentActivity {
 		// Set up the ViewPager with the sections adapter.
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
-
+		
+		Intent intent = getIntent();
+		String spotraw = intent.getStringExtra("hotspot");
+		if(spotraw != null){
+			hotspot = new Hotspot(spotraw);
+		}
 	}
 
 	@Override
@@ -68,9 +74,24 @@ public class HotspotActivity extends FragmentActivity {
 			// getItem is called to instantiate the fragment for the given page.
 			// Return a DummySectionFragment (defined as a static inner class
 			// below) with the page number as its lone argument.
-			Fragment fragment = new DummySectionFragment();
 			Bundle args = new Bundle();
-			args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
+			args.putInt("position", position);
+			
+			switch(position){
+			case 0:	
+				args.putString("name", hotspot.getName());
+				args.putString("description", hotspot.getDescription());
+				break;
+			case 1:
+				args.putStringArray("images", hotspot.getImage().toArray(new String[0]));
+				break;
+			case 2:
+				args.putStringArray("audios", hotspot.getAudio().toArray(new String[0]));
+				args.putStringArray("videos", hotspot.getVideo().toArray(new String[0]));
+				break;
+			}
+			
+			Fragment fragment = new DummySectionFragment();
 			fragment.setArguments(args);
 			return fragment;
 		}
@@ -83,14 +104,13 @@ public class HotspotActivity extends FragmentActivity {
 
 		@Override
 		public CharSequence getPageTitle(int position) {
-			Locale l = Locale.getDefault();
 			switch (position) {
 			case 0:
-				return getString(R.string.title_section1).toUpperCase(l);
+				return getString(R.string.title_text);
 			case 1:
-				return getString(R.string.title_section2).toUpperCase(l);
+				return getString(R.string.title_gallery);
 			case 2:
-				return getString(R.string.title_section3).toUpperCase(l);
+				return getString(R.string.title_media);
 			}
 			return null;
 		}
@@ -101,20 +121,34 @@ public class HotspotActivity extends FragmentActivity {
 	 * displays dummy text.
 	 */
 	public static class DummySectionFragment extends Fragment {
-		/**
-		 * The fragment argument representing the section number for this
-		 * fragment.
-		 */
-		public static final String ARG_SECTION_NUMBER = "section_number";
 
 		public DummySectionFragment() {
 		}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_hotspot_dummy, container, false);
-			TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
-			dummyTextView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+			Bundle args = getArguments();
+			int position = args.getInt("position");
+			if(position < 0 || position > 2){
+				position = 0;
+			}
+			
+			View rootView = null;
+			switch(position){
+			case 0:
+				rootView = inflater.inflate(R.layout.fragment_hotspot_text, container, false);
+				TextView title_view = (TextView) rootView.findViewById(R.id.section_title);
+				TextView content_view = (TextView) rootView.findViewById(R.id.section_content);
+				title_view.setText(args.getString("name"));
+				content_view.setText(args.getString("description"));
+				break;
+			case 1:
+				rootView = inflater.inflate(R.layout.fragment_hotspot_gallery, container, false);
+				break;
+			case 2:
+				rootView = inflater.inflate(R.layout.fragment_hotspot_media, container, false);
+				break;
+			}
 			return rootView;
 		}
 	}

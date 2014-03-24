@@ -41,10 +41,9 @@ Hotspot::Hotspot(const Json::Value &value)
 	}
 }
 
-std::string Hotspot::toJson() const
+Json::Value Hotspot::toJson() const
 {
 	Json::Value value;
-	Json::FastWriter writer;
 
 	value[0] = _name;
 	
@@ -77,5 +76,5 @@ std::string Hotspot::toJson() const
 		video.append(*i);
 	}
 
-	return writer.write(value);
+	return value;
 }

@@ -189,6 +189,7 @@ void ServerUser::sendScreenshot()
 void ServerUser::enterHotspot(Hotspot *spot)
 {
 	R3D::Packet packet(R3D::EnterHotspot);
+	packet.args = spot->toJson();
 	sendPacket(packet);
 }
 
@@ -253,7 +254,10 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 	//hide the window
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-	ShowWindow(reinterpret_cast<HWND>(driver->getExposedVideoData().OpenGLWin32.HWnd), SW_HIDE);
+	if(p.DriverType == video::EDT_OPENGL)
+	{
+		ShowWindow(reinterpret_cast<HWND>(driver->getExposedVideoData().OpenGLWin32.HWnd), SW_HIDE);
+	}
 #endif
 
 	/*

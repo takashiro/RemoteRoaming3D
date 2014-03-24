@@ -134,7 +134,9 @@ public class MainActivity extends Activity {
 		callbacks[Packet.Command.ENTER_HOTSPOT.ordinal()] = new Callback(){
 			@Override
 			public void handle(JSONArray args){
-				startActivity(new Intent(MainActivity.this, HotspotActivity.class));
+				Intent intent = new Intent(MainActivity.this, HotspotActivity.class);
+				intent.putExtra("hotspot", args.toString());
+				startActivity(intent);
 			}
 		};
 		

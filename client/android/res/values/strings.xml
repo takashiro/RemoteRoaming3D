@@ -19,9 +19,9 @@
     <string name="toast_not_on_wifi">You are not on a WiFi hotspot.</string>
     <string name="toast_server_reaches_max_client_num">The server has already reached the maximum number of clients.</string>
     <string name="toast_unkown_message">An unknown message is received from the server.</string>
-    <string name="title_activity_hotspot">HotspotActivity</string>
-    <string name="title_section1">Section 1</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section3">Section 3</string>
+    <string name="title_activity_hotspot">Hotspot</string>
+    <string name="title_text">TEXT</string>
+    <string name="title_gallery">GALLERY</string>
+    <string name="title_media">MEDIA</string>
 
 </resources>
