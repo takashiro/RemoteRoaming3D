@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -50,13 +49,6 @@ public class HotspotActivity extends FragmentActivity {
 		if(spotraw != null){
 			hotspot = new Hotspot(spotraw);
 		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.hotspot, menu);
-		return true;
 	}
 
 	/**
@@ -133,23 +125,23 @@ public class HotspotActivity extends FragmentActivity {
 				position = 0;
 			}
 			
-			View rootView = null;
+			View root_view = null;
 			switch(position){
 			case 0:
-				rootView = inflater.inflate(R.layout.fragment_hotspot_text, container, false);
-				TextView title_view = (TextView) rootView.findViewById(R.id.section_title);
-				TextView content_view = (TextView) rootView.findViewById(R.id.section_content);
+				root_view = inflater.inflate(R.layout.fragment_hotspot_text, container, false);
+				TextView title_view = (TextView) root_view.findViewById(R.id.section_title);
+				TextView content_view = (TextView) root_view.findViewById(R.id.section_content);
 				title_view.setText(args.getString("name"));
 				content_view.setText(args.getString("description"));
 				break;
 			case 1:
-				rootView = inflater.inflate(R.layout.fragment_hotspot_gallery, container, false);
+				root_view = inflater.inflate(R.layout.fragment_hotspot_gallery, container, false);
 				break;
 			case 2:
-				rootView = inflater.inflate(R.layout.fragment_hotspot_media, container, false);
+				root_view = inflater.inflate(R.layout.fragment_hotspot_media, container, false);
 				break;
 			}
-			return rootView;
+			return root_view;
 		}
 	}
 
