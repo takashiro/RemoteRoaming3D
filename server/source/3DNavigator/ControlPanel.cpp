@@ -2,6 +2,7 @@
 #include "ControlPanel.h"
 #include "Server.h"
 #include "ServerUser.h"
+#include "Hotspot.h"
 
 #include <irrlicht.h>
 #include <iostream>
@@ -11,14 +12,16 @@ using namespace irr;
 
 map<string, ControlPanel::Callback> ControlPanel::_callbacks;
 
+#define ADD_CALLBACK(command) _callbacks[#command]=&ControlPanel::_##command;
+
 ControlPanel::ControlPanel(istream &in, ostream &out)
 	:cin(in), cout(out)
 {
 	if(_callbacks.empty())
 	{
-		_callbacks["server"] = &ControlPanel::_server;
-		_callbacks["client"] = &ControlPanel::_client;
-		_callbacks["help"] = &ControlPanel::_help;
+		ADD_CALLBACK(server);
+		ADD_CALLBACK(client);
+		ADD_CALLBACK(help);
 	}
 }
 
@@ -100,7 +103,8 @@ void show_client_info(ServerUser *user)
 	}
 }
 
-void ControlPanel::_client(){
+void ControlPanel::_client()
+{
 	string idstr;
 	cin >> idstr;
 
