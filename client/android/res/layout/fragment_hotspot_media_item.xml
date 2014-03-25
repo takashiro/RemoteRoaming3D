@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="horizontal" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+
+	<ImageView android:id="@+id/hotspot_media_thumbnail"
+	    android:contentDescription="@+string/thumbnail"
+	    android:layout_width="wrap_content"
+		android:layout_height="wrap_content" 
+		android:layout_margin="5dp"/>
+
+	<LinearLayout android:orientation="vertical"
+		android:layout_width="match_parent" 
+		android:layout_height="wrap_content">
+
+		<TextView android:id="@+id/hotspot_media_title" 
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:textColor="#FFFFFFFF"
+			android:textSize="22sp" />
+		<TextView android:id="@+id/hotspot_media_info"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" 
+			android:textColor="#FFFFFFFF"
+			android:textSize="13sp" />
+	</LinearLayout>
+
+</LinearLayout>

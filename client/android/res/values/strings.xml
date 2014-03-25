@@ -23,5 +23,6 @@
     <string name="title_text">TEXT</string>
     <string name="title_gallery">GALLERY</string>
     <string name="title_media">MEDIA</string>
+    <string name="thumbnail">Thumbnail</string>
 
 </resources>

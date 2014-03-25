@@ -6,7 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 public class Hotspot {
-	static class Dimension3D{
+	static public class Dimension3D{
 		public float X;
 		public float Y;
 		public float Z;
@@ -18,7 +18,7 @@ public class Hotspot {
 		}
 	};
 	
-	static class Dimension2D{
+	static public class Dimension2D{
 		public float X;
 		public float Y;
 		
@@ -28,18 +28,89 @@ public class Hotspot {
 		}
 	};
 	
+	static public class Resource{
+		String name;
+		String path;
+		String description;
+		
+		public Resource(){
+			
+		}
+		
+		public Resource(String json){
+			JSONArray value = null;
+			try{
+				value = new JSONArray(json);
+			}catch(JSONException e){
+				e.printStackTrace();
+			}
+			parse(value);
+		}
+		
+		public Resource(JSONArray value){
+			parse(value);
+		}
+			
+		public void parse(JSONArray value){
+			try{
+				name = value.getString(0);
+				path = value.getString(1);
+				description = value.getString(2);
+			}catch(JSONException e){
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	static public class Image extends Resource{
+		public Image(){
+			super();
+		}
+		
+		public Image(String json){
+			super(json);
+		}
+		
+		public Image(JSONArray value){
+			super(value);
+		}
+	}
+	
+	static public class Media extends Resource{
+		String thumbnail;
+		
+		public Media(){
+			super();
+		}
+		
+		public Media(String json){
+			super(json);
+		}
+		
+		public Media(JSONArray value){
+			super(value);
+		}
+		
+		public void parse(JSONArray value){
+			super.parse(value);
+			try {
+				thumbnail = value.getString(3);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	protected Dimension3D pos;
 	protected Dimension2D size;
 	protected String name;
 	protected String description;
-	protected LinkedList<String> image;
-	protected LinkedList<String> audio;
-	protected LinkedList<String> video;
+	protected LinkedList<Image> image;
+	protected LinkedList<Media> media;
 
 	public Hotspot(){
-		image = new LinkedList<String>();
-		audio = new LinkedList<String>();
-		video = new LinkedList<String>();
+		image = new LinkedList<Image>();
+		media = new LinkedList<Media>();
 	}
 	
 	public Hotspot(String json){
@@ -74,17 +145,12 @@ public class Hotspot {
 	
 			JSONArray images = value.getJSONArray(4);
 			for(int i = 0; i < images.length(); i++){
-				addImage(images.getString(i));
-			}
-	
-			JSONArray audios = value.getJSONArray(5);
-			for(int i = 0; i < audios.length(); i++){
-				addAudio(audios.getString(i));
+				addImage(new Image(images.getJSONArray(i)));
 			}
 	
 			JSONArray videos = value.getJSONArray(6);
 			for(int i = 0; i < videos.length(); i++){
-				addVideo(videos.getString(i));
+				addMedia(new Media(videos.getJSONArray(i)));
 			}
 		}catch(JSONException e){
 			e.printStackTrace();
@@ -107,28 +173,20 @@ public class Hotspot {
 		this.size = size;
 	}
 
-	public LinkedList<String> getImage() {
+	public LinkedList<Image> getImage() {
 		return image;
 	}
 
-	public void setImage(LinkedList<String> image) {
+	public void setImage(LinkedList<Image> image) {
 		this.image = image;
 	}
 
-	public LinkedList<String> getAudio() {
-		return audio;
+	public LinkedList<Media> getMedia() {
+		return media;
 	}
 
-	public void setAudio(LinkedList<String> audio) {
-		this.audio = audio;
-	}
-
-	public LinkedList<String> getVideo() {
-		return video;
-	}
-
-	public void setVideo(LinkedList<String> video) {
-		this.video = video;
+	public void setVideo(LinkedList<Media> video) {
+		this.media = video;
 	}
 
 	public void setName(String name) {
@@ -148,27 +206,19 @@ public class Hotspot {
 	}
 
 
-	public void addImage(String path){
-		image.add(path);
+	public void addImage(Image img){
+		image.add(img);
 	}
 	
-	public void removeImage(String path){
-		image.remove(path);
+	public void removeImage(Image img){
+		image.remove(img);
 	}
 	
-	public void addAudio(String path){
-		audio.add(path);
+	public void addMedia(Media md){
+		media.add(md);
 	}
 	
-	public void removeAudio(String path){
-		audio.remove(path);
-	}
-	
-	public void addVideo(String path){
-		video.add(path);
-	}
-	
-	public void removeVideo(String path){
-		video.remove(path);
+	public void removeVideo(Media md){
+		media.remove(md);
 	}
 }

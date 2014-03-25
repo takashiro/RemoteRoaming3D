@@ -1,1 +1,1 @@
-[["Head",[88.718,92.980,-87.909],[40.0,10.0],"this is the head.",[],[],[]],["Foot",[-285.506,91.937,-61.200],[40.0,10.0],"this is the feet.",[],[],[]]]
+[["Head",[88.718,92.980,-87.909],[40.0,10.0],"this is the head.",[["妙蛙种子","http://localhost:8000/pokemon/image/pokemon/1.gif","草系"],["妙蛙草","http://localhost:8000/pokemon/image/pokemon/2.gif","草系"]],[]],["Foot",[-285.506,91.937,-61.200],[40.0,10.0],"this is the feet.",[],[]]]

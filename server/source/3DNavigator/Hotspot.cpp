@@ -27,17 +27,12 @@ Hotspot::Hotspot(const Json::Value &value)
 
 	for(Json::Value::iterator i = value[4].begin(); i != value[4].end(); i++)
 	{
-		addImage((*i).asString());
-	}
-
-	for(Json::Value::iterator i = value[5].begin(); i != value[5].end(); i++)
-	{
-		addAudio((*i).asString());
+		addImage(*i);
 	}
 
 	for(Json::Value::iterator i = value[6].begin(); i != value[6].end(); i++)
 	{
-		addVideo((*i).asString());
+		addMedia(*i);
 	}
 }
 
@@ -59,22 +54,73 @@ Json::Value Hotspot::toJson() const
 	value[3] = _description;
 
 	Json::Value &image = value[4];
-	for(std::list<std::string>::const_iterator i = _image.begin(); i != _image.end(); i++)
+	for(std::list<Image>::const_iterator i = _image.begin(); i != _image.end(); i++)
 	{
-		image.append(*i);
+		image.append(i->toJson());
 	}
 
-	Json::Value &audio = value[5];
-	for(std::list<std::string>::const_iterator i = _audio.begin(); i != _audio.end(); i++)
+	Json::Value &video = value[5];
+	for(std::list<Media>::const_iterator i = _media.begin(); i != _media.end(); i++)
 	{
-		audio.append(*i);
+		video.append(i->toJson());
 	}
 
-	Json::Value &video = value[6];
-	for(std::list<std::string>::const_iterator i = _video.begin(); i != _video.end(); i++)
-	{
-		video.append(*i);
-	}
+	return value;
+}
 
+Hotspot::Resource::Resource(const std::string &json)
+{
+	Json::Value value;
+	Json::Reader reader;
+	if(reader.parse(json, value))
+	{
+		Resource(json);
+	}
+}
+
+Hotspot::Resource::Resource(const Json::Value &value)
+{
+	name = value[0].asString();
+	path = value[1].asString();
+	description = value[2].asString();
+}
+
+Json::Value Hotspot::Resource::toJson() const{
+	Json::Value value;
+	value.append(name);
+	value.append(path);
+	value.append(description);
+	return value;
+}
+
+Hotspot::Image::Image(const std::string &json)
+	:Resource(json)
+{
+}
+
+Hotspot::Image::Image(const Json::Value &value)
+	:Resource(value)
+{
+}
+
+Hotspot::Media::Media(const std::string &json)
+{
+	Json::Value value;
+	Json::Reader reader;
+	if(reader.parse(json, value))
+	{
+		Media(json);
+	}
+}
+
+Hotspot::Media::Media(const Json::Value &value)
+	:Resource(value)
+{
+	thumbnail = value[3].asString();
+}
+
+Json::Value Hotspot::Media::toJson() const{
+	Json::Value value = Resource::toJson();
+	value.append(thumbnail);
 	return value;
 }

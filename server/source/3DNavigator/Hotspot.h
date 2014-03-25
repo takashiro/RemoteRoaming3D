@@ -9,6 +9,33 @@
 class Hotspot
 {
 public:
+	struct Resource{
+		std::string name;
+		std::string path;
+		std::string description;
+
+		Resource(){};
+		Resource(const std::string &json);
+		Resource(const Json::Value &value);
+		Json::Value toJson() const;
+		friend inline bool operator==(const Resource &r1, const Resource &r2){r1.path == r2.path;}
+	};
+
+	struct Image: public Resource{
+		Image(){};
+		Image(const std::string &json);
+		Image(const Json::Value &value);
+	};
+
+	struct Media: public Resource{
+		Media(){};
+		Media(const std::string &json);
+		Media(const Json::Value &value);
+
+		std::string thumbnail;
+		Json::Value toJson() const;
+	};
+
 	Hotspot();
 	Hotspot(const std::string &json);
 	Hotspot(const Json::Value &value);
@@ -30,12 +57,10 @@ public:
 	inline std::string getDescription() const{return _description;}
 	inline void setDescription(const std::string &description){_description = description;}
 
-	inline void addImage(const std::string &path){_image.push_back(path);}
-	inline void removeImage(const std::string &path){_image.remove(path);}
-	inline void addAudio(const std::string &path){_audio.push_back(path);}
-	inline void removeAudio(const std::string &path){_audio.remove(path);}
-	inline void addVideo(const std::string &path){_video.push_back(path);}
-	inline void removeVideo(const std::string &path){_video.remove(path);}
+	inline void addImage(const Image &image){_image.push_back(image);}
+	inline void removeImage(const Image &image){_image.remove(image);}
+	inline void addMedia(const Media &media){_media.push_back(media);}
+	inline void removeMedia(const Media &media){_media.remove(media);}
 
 protected:
 	irr::core::vector3df _pos;
@@ -43,7 +68,8 @@ protected:
 	std::string _name;
 	irr::scene::ISceneNode *_node;
 	std::string _description;
-	std::list<std::string> _image, _audio, _video;
+	std::list<Image> _image;
+	std::list<Media> _media;
 };
 
 #endif

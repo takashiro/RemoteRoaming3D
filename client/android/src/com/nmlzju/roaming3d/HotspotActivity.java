@@ -1,5 +1,7 @@
 package com.nmlzju.roaming3d;
 
+import java.util.*;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,6 +12,8 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 public class HotspotActivity extends FragmentActivity {
@@ -29,7 +33,7 @@ public class HotspotActivity extends FragmentActivity {
 	 */
 	ViewPager mViewPager;
 	
-	Hotspot hotspot = null;
+	String hotspot = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,10 +49,7 @@ public class HotspotActivity extends FragmentActivity {
 		mViewPager.setAdapter(mSectionsPagerAdapter);
 		
 		Intent intent = getIntent();
-		String spotraw = intent.getStringExtra("hotspot");
-		if(spotraw != null){
-			hotspot = new Hotspot(spotraw);
-		}
+		hotspot = intent.getStringExtra("hotspot");
 	}
 
 	/**
@@ -68,20 +69,7 @@ public class HotspotActivity extends FragmentActivity {
 			// below) with the page number as its lone argument.
 			Bundle args = new Bundle();
 			args.putInt("position", position);
-			
-			switch(position){
-			case 0:	
-				args.putString("name", hotspot.getName());
-				args.putString("description", hotspot.getDescription());
-				break;
-			case 1:
-				args.putStringArray("images", hotspot.getImage().toArray(new String[0]));
-				break;
-			case 2:
-				args.putStringArray("audios", hotspot.getAudio().toArray(new String[0]));
-				args.putStringArray("videos", hotspot.getVideo().toArray(new String[0]));
-				break;
-			}
+			args.putString("hotspot", hotspot);
 			
 			Fragment fragment = new DummySectionFragment();
 			fragment.setArguments(args);
@@ -113,7 +101,6 @@ public class HotspotActivity extends FragmentActivity {
 	 * displays dummy text.
 	 */
 	public static class DummySectionFragment extends Fragment {
-
 		public DummySectionFragment() {
 		}
 
@@ -125,20 +112,30 @@ public class HotspotActivity extends FragmentActivity {
 				position = 0;
 			}
 			
+			Hotspot spot = new Hotspot(args.getString("hotspot"));
 			View root_view = null;
 			switch(position){
 			case 0:
 				root_view = inflater.inflate(R.layout.fragment_hotspot_text, container, false);
 				TextView title_view = (TextView) root_view.findViewById(R.id.section_title);
 				TextView content_view = (TextView) root_view.findViewById(R.id.section_content);
-				title_view.setText(args.getString("name"));
-				content_view.setText(args.getString("description"));
+				title_view.setText(spot.getName());
+				content_view.setText(spot.getDescription());
 				break;
 			case 1:
 				root_view = inflater.inflate(R.layout.fragment_hotspot_gallery, container, false);
 				break;
 			case 2:
 				root_view = inflater.inflate(R.layout.fragment_hotspot_media, container, false);
+				List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
+				
+				SimpleAdapter adapter = new SimpleAdapter(
+					root_view.getContext(), data, R.layout.fragment_hotspot_media_item,
+					new String[]{"title","info","img"},
+					new int[]{R.id.hotspot_media_title, R.id.hotspot_media_info, R.id.hotspot_media_thumbnail}
+				);
+				
+				((ListView) root_view).setAdapter(adapter);
 				break;
 			}
 			return root_view;
