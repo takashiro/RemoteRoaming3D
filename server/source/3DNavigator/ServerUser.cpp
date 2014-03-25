@@ -42,7 +42,8 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 	}
 }
 
-ServerUser::~ServerUser(){
+ServerUser::~ServerUser()
+{
 	disconnect();
 
 	CloseHandle(_need_update);
@@ -193,7 +194,7 @@ void ServerUser::enterHotspot(Hotspot *spot)
 	sendPacket(packet);
 }
 
-sockaddr_in ServerUser::getIp() const
+R3D::IP ServerUser::getIp() const
 {
 	sockaddr_in ip;
 	int length = sizeof(ip);
@@ -203,9 +204,9 @@ sockaddr_in ServerUser::getIp() const
 
 void ServerUser::getIp(std::wstring &wstr)
 {
-	const sockaddr_in &ip = getIp();
+	const R3D::IP &address = getIp();
 	wchar_t str[16];
-	swprintf(str, L"%d.%d.%d.%d", ip.sin_addr.S_un.S_un_b.s_b1, ip.sin_addr.S_un.S_un_b.s_b2, ip.sin_addr.S_un.S_un_b.s_b3, ip.sin_addr.S_un.S_un_b.s_b4);
+	swprintf(str, L"%d.%d.%d.%d", address.ip1, address.ip2, address.ip3, address.ip4);
 	wstr = str;
 }
 

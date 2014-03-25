@@ -85,12 +85,7 @@ void ControlPanel::_server()
 
 void show_client_info(ServerUser *user)
 {
-	sockaddr_in ip = user->getIp();
-	cout << "Client IP: "
-		<< (short) ip.sin_addr.S_un.S_un_b.s_b1 << "."
-		<< (short) ip.sin_addr.S_un.S_un_b.s_b2 << "."
-		<< (short) ip.sin_addr.S_un.S_un_b.s_b3 << "."
-		<< (short) ip.sin_addr.S_un.S_un_b.s_b4 << endl;
+	cout << "Client IP: " << user->getIp() << endl;
 	IrrlichtDevice *device = user->getDevice();
 	scene::ICameraSceneNode *camera = device->getSceneManager()->getActiveCamera();
 	if(camera != NULL)
