@@ -1,8 +1,14 @@
 package com.nmlzju.roaming3d;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -12,6 +18,9 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -113,33 +122,63 @@ public class HotspotActivity extends FragmentActivity {
 			}
 			
 			Hotspot spot = new Hotspot(args.getString("hotspot"));
-			View root_view = null;
+
 			switch(position){
-			case 0:
-				root_view = inflater.inflate(R.layout.fragment_hotspot_text, container, false);
-				TextView title_view = (TextView) root_view.findViewById(R.id.section_title);
-				TextView content_view = (TextView) root_view.findViewById(R.id.section_content);
-				title_view.setText(spot.getName());
-				content_view.setText(spot.getDescription());
-				break;
-			case 1:
-				root_view = inflater.inflate(R.layout.fragment_hotspot_gallery, container, false);
-				break;
-			case 2:
-				root_view = inflater.inflate(R.layout.fragment_hotspot_media, container, false);
-				List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
-				
-				SimpleAdapter adapter = new SimpleAdapter(
-					root_view.getContext(), data, R.layout.fragment_hotspot_media_item,
-					new String[]{"title","info","img"},
-					new int[]{R.id.hotspot_media_title, R.id.hotspot_media_info, R.id.hotspot_media_thumbnail}
-				);
-				
-				((ListView) root_view).setAdapter(adapter);
-				break;
+				case 0:{
+					View root_view = inflater.inflate(R.layout.fragment_hotspot_text, container, false);
+					TextView title_view = (TextView) root_view.findViewById(R.id.section_title);
+					TextView content_view = (TextView) root_view.findViewById(R.id.section_content);
+					title_view.setText(spot.getName());
+					content_view.setText(spot.getDescription());
+					return root_view;
+				}
+				case 1:{
+					HorizontalScrollView root_view = (HorizontalScrollView) inflater.inflate(R.layout.fragment_hotspot_gallery, container, false);
+					LinearLayout layout = (LinearLayout) root_view.findViewById(R.id.hotspot_gallery);
+					List<Hotspot.Image> images = spot.getImage();
+					Iterator<Hotspot.Image> i = images.iterator();
+					while(i.hasNext()){
+						Hotspot.Image image = i.next();
+						ImageView view = new ImageView(root_view.getContext());
+						view.setImageBitmap(getHttpBitmap(image.path));
+						layout.addView(view);
+					}
+					
+					return root_view;
+				}
+				case 2:{
+					View root_view = inflater.inflate(R.layout.fragment_hotspot_media, container, false);
+					List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
+					
+					SimpleAdapter adapter = new SimpleAdapter(
+						root_view.getContext(), data, R.layout.fragment_hotspot_media_item,
+						new String[]{"title","info","img"},
+						new int[]{R.id.hotspot_media_title, R.id.hotspot_media_info, R.id.hotspot_media_thumbnail}
+					);
+					
+					((ListView) root_view).setAdapter(adapter);
+					return root_view;
+				}
 			}
-			return root_view;
+			return null;
 		}
 	}
-
+	
+	public static Bitmap getHttpBitmap(String path) {
+		URL url = null;
+		Bitmap bitmap = null;
+		
+		try {
+			url = new URL(path);
+			InputStream is = url.openStream();
+			bitmap = BitmapFactory.decodeStream(is);
+			is.close();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return bitmap;
+	}
 }

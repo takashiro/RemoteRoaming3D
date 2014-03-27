@@ -205,7 +205,6 @@ public class Hotspot {
 		return description;
 	}
 
-
 	public void addImage(Image img){
 		image.add(img);
 	}
