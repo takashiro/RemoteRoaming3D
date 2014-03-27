@@ -27,9 +27,7 @@ using namespace irr;
 
 std::map<R3D::Command, ServerUser::Callback> ServerUser::_callbacks;
 
-ServerUser::ServerUser(Server *server, SOCKET socket)
-	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
-	_current_frame(NULL), _receive_thread(NULL)
+ServerUser::CallbackAdder::CallbackAdder()
 {
 	if(_callbacks.empty())
 	{
@@ -42,6 +40,14 @@ ServerUser::ServerUser(Server *server, SOCKET socket)
 	}
 }
 
+ServerUser::CallbackAdder adder;
+
+ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
+	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
+	_current_frame(NULL), _receive_thread(NULL)
+{
+}
+
 ServerUser::~ServerUser()
 {
 	disconnect();
@@ -51,17 +57,17 @@ ServerUser::~ServerUser()
 
 DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	ServerUser *client = (ServerUser *) pParam;
-	SOCKET &socket = client->_socket;
+	R3D::TCPSocket *&socket = client->_socket;
 
-	int result = 0;
+	bool success = true;
 	const int length = 1024;
 	char buffer[length];
 
 	while (true)
 	{
-		result = recv(socket, buffer, length, 0);
+		success = socket->receive(buffer, length);
 		
-		if (result == 0 || result == SOCKET_ERROR) 
+		if (!success) 
 		{
 			//disconnect the client
 			ServerInstance->disconnect(client);
@@ -74,24 +80,9 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	return 0;
 }
 
-void ServerUser::sendPacket(const std::string &raw)
-{
-	WaitForSingleObject(_is_sending_data, INFINITE);
-
-	size_t length = raw.length();
-	size_t y = 0;
-	const char *p = raw.c_str();
-	while(y < length)
-	{
-		y += send(_socket, p + y, int(length - y), 0);
-	}
-
-	ReleaseSemaphore(_is_sending_data, 1, NULL);
-}
-
 void ServerUser::disconnect()
 {
-	closesocket(_socket);
+	_socket->close();
 
 	if(_device)
 	{
@@ -115,7 +106,6 @@ void ServerUser::startService()
 {
 	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
 	_need_update = CreateSemaphore(NULL, 1, 1, NULL);
-	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 void ServerUser::createHotspots()
@@ -194,18 +184,10 @@ void ServerUser::enterHotspot(Hotspot *spot)
 	sendPacket(packet);
 }
 
-R3D::IP ServerUser::getIp() const
-{
-	sockaddr_in ip;
-	int length = sizeof(ip);
-	getpeername(_socket, (sockaddr *) &ip, &length);
-	return ip;
-}
-
 void ServerUser::getIp(std::wstring &wstr)
 {
+	static wchar_t str[16];
 	const R3D::IP &address = getIp();
-	wchar_t str[16];
 	swprintf(str, L"%d.%d.%d.%d", address.ip1, address.ip2, address.ip3, address.ip4);
 	wstr = str;
 }

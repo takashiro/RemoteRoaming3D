@@ -3,7 +3,8 @@
 
 #include <list>
 #include <irrlicht.h>
-#include <WinSock.h>
+
+#include "protocol.h"
 
 class ServerUser;
 
@@ -12,9 +13,8 @@ public:
 	Server();
 	~Server();
 
-	void listenTo(short port = 6666);
+	void listenTo(unsigned short port = 6666);
 
-	inline void setServerPort(short port){_server_port = port;}
 	inline short getServerPort() const{return _server_port;}
 
 	inline void setMaximumClientNum(int num){_maximum_client_num = num;}
@@ -34,10 +34,10 @@ public:
 	inline const std::list<ServerUser *> &getClients() const{return _clients;}
 
 protected:
-	SOCKET _server_socket;
+	R3D::TCPServer *_server_socket;
 
 	bool _is_listening;
-	short _server_port;
+	unsigned short _server_port;
 	int _maximum_client_num;
 	bool _is_independent_thread_enabled;
 	irr::video::E_DRIVER_TYPE _driver_type;

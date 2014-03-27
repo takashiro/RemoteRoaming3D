@@ -6,12 +6,14 @@ Server *ServerInstance = NULL;
 Server::Server()
 	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(true)
 {
+	//create a TCP server
+	_server_socket = new R3D::TCPServer();
 }
 
 Server::~Server()
 {
 	if(isListening()){
-		closesocket(_server_socket);
+		_server_socket->close();
 		CloseHandle(_server_thread);
 	}
 
@@ -19,9 +21,11 @@ Server::~Server()
 	{
 		(*i)->disconnect();
 	}
+
+	delete _server_socket;
 }
 
-void Server::listenTo(short port)
+void Server::listenTo(unsigned short port)
 {
 	if(isListening())
 	{
@@ -30,40 +34,12 @@ void Server::listenTo(short port)
 	_is_listening = true;
 
 	_server_port = port;
-
-	//start up windows socket service of the corresponding version 
-	WSADATA wsaData;
-	WORD sockVersion = MAKEWORD(2, 0);
-	if (WSAStartup(sockVersion, &wsaData))
-	{
-		return;
-	}
-	
-	//try to create a TCP socket
-	SOCKET sock_sev = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (INVALID_SOCKET == sock_sev)
-	{
-		WSACleanup();
-		return;
-	}
 	
 	//listen to any ip address of the local host
-	sockaddr_in addr_sev;
-	addr_sev.sin_family = AF_INET;
-	addr_sev.sin_port = htons(_server_port);
-	addr_sev.sin_addr.s_addr = INADDR_ANY;
-	if (SOCKET_ERROR == bind(sock_sev, (sockaddr *)&addr_sev, sizeof(addr_sev)))
+	if (!_server_socket->listen(R3D::IP::AnyHost, port))
 	{
-		WSACleanup();
 		return;
 	}
-	if (SOCKET_ERROR == listen(sock_sev, _maximum_client_num))
-	{
-		WSACleanup();
-		return;
-	}
-
-	_server_socket = sock_sev;
 
 	if(isIndependentThreadEnabled()){
 		_server_thread = CreateThread(NULL, 0, _ServerThread, (LPVOID) this, 0, NULL);
@@ -76,15 +52,12 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 {
 	Server *server = (Server *) pParam;
 
-	sockaddr_in client_addr;
-	int nAddrLen = sizeof(client_addr);
-
-	SOCKET server_socket = (SOCKET) server->_server_socket;
+	R3D::TCPServer *&server_socket = server->_server_socket;
 	
 	while(true)
 	{
-		SOCKET client_socket = accept(server_socket, (sockaddr *)&client_addr, &nAddrLen);
-		if (client_socket == INVALID_SOCKET)
+		R3D::TCPSocket *client_socket = server_socket->nextPendingConnection();
+		if (client_socket == NULL)
 		{
 			continue;
 		}

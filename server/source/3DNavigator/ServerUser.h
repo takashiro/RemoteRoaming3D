@@ -1,7 +1,6 @@
 #ifndef _SERVERUSER_H_
 #define _SERVERUSER_H_
 
-#include <WinSock.h>
 #include <irrlicht.h>
 #include <json/json.h>
 #include <map>
@@ -15,16 +14,16 @@ class Hotspot;
 
 class ServerUser{
 public:
-	ServerUser(Server *server, SOCKET socket);
+	ServerUser(Server *server, R3D::TCPSocket *socket);
 	~ServerUser();
 
 	inline bool isValid() const{return _receive_thread != NULL;}
 	inline irr::IrrlichtDevice *getDevice(){return _device;}
-	R3D::IP getIp() const;
+	inline R3D::IP getIp() const{return _socket->getPeerIp();};
 	void getIp(std::wstring &str);
 
-	inline void sendPacket(const R3D::Packet &packet){sendPacket(packet.toString());};
-	void sendPacket(const std::string &raw);
+	inline void sendPacket(const R3D::Packet &packet){_socket->send(packet);};
+	inline void sendPacket(const std::string &raw){_socket->send(raw);};
 	void disconnect();
 
 	void startService();
@@ -50,7 +49,7 @@ protected:
 	int _screen_height;
 
 	Server *_server;
-	SOCKET _socket;
+	R3D::TCPSocket *_socket;
 	irr::IrrlichtDevice *_device;
 	irr::video::IImage *_current_frame;
 	std::list<Hotspot *> _hotspots;
@@ -62,7 +61,12 @@ private:
 	static DWORD WINAPI _DeviceThread(LPVOID lpParam);
 	HANDLE _device_thread;
 	HANDLE _need_update;
-	HANDLE _is_sending_data;
+
+public:
+	class CallbackAdder{
+	public:
+		CallbackAdder();
+	};
 };
 
 #endif

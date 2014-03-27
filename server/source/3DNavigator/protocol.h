@@ -48,17 +48,47 @@ namespace R3D{
 		IP(unsigned char ip1, unsigned char ip2, unsigned char ip3, unsigned char ip4);
 		IP(const sockaddr_in &ip);
 		friend std::ostream &operator<<(std::ostream &cout, const IP &ip);
+		operator unsigned();
 
 		static const IP AnyHost;
 	};
 
-	struct SocketAddress{
-		IP ip;
-		unsigned short port;
+	class TCPSocket{
+	protected:
+		SOCKET _socket;
+		HANDLE _is_sending_data;
 
-		SocketAddress(const sockaddr_in &ip);
-		SocketAddress(const IP &ip, unsigned short port);
-		friend std::ostream &operator<<(std::ostream &cout, const SocketAddress &ip);
+	public:
+		TCPSocket(SOCKET socket);
+		~TCPSocket();
+		
+		void send(const std::string &raw);
+		inline void send(const R3D::Packet &packet){send(packet.toString());};
+		bool receive(char *buffer, int buffer_size);
+		IP getPeerIp() const;
+
+		inline void close(){::closesocket(_socket);};
+	};
+
+	class UDPSocket{
+	};
+
+	class TCPServer{
+	protected:
+		IP _ip;
+		unsigned short _port;
+		SOCKET _socket;
+		int _max_client_num;
+
+	public:
+		TCPServer();
+		~TCPServer();
+		TCPServer(const IP &ip, unsigned short port);
+		inline void setMaxClientNum(int num){_max_client_num = num;};
+		bool listen(const IP &ip, unsigned short port);
+		bool listen();
+		TCPSocket *nextPendingConnection();
+		inline void close(){closesocket(_socket);};
 	};
 }
 
