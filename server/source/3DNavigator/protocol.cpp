@@ -4,6 +4,8 @@
 namespace R3D{
 
 const IP IP::AnyHost(0, 0, 0, 0);
+const IP IP::LocalHost(127, 0, 0, 1);
+const IP IP::Broadcast(255, 255, 255, 255);
 
 std::string Packet::toString() const{
 	Json::Value packet;
@@ -142,19 +144,23 @@ TCPSocket *TCPServer::nextPendingConnection()
 	return new TCPSocket(client_socket);
 }
 
-TCPSocket::TCPSocket(SOCKET socket)
-	:_socket(socket)
+AbstractSocket::AbstractSocket()
 {
 	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
-TCPSocket::~TCPSocket()
+AbstractSocket::AbstractSocket(SOCKET socket)
+	:_socket(socket)
+{
+}
+
+AbstractSocket::~AbstractSocket()
 {
 	CloseHandle(_is_sending_data);
 	close();
 }
 
-void TCPSocket::send(const std::string &raw)
+void AbstractSocket::send(const std::string &raw)
 {
 	WaitForSingleObject(_is_sending_data, INFINITE);
 
@@ -169,6 +175,15 @@ void TCPSocket::send(const std::string &raw)
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
 }
 
+TCPSocket::TCPSocket(SOCKET socket)
+	:AbstractSocket(socket)
+{
+}
+
+TCPSocket::~TCPSocket()
+{
+}
+
 bool TCPSocket::receive(char *buffer, int buffer_size){
 	int result = recv(_socket, buffer, buffer_size, 0);
 	return result != 0 && result != SOCKET_ERROR;
@@ -179,6 +194,57 @@ IP TCPSocket::getPeerIp() const{
 	int length = sizeof(ip);
 	getpeername(_socket, (sockaddr *) &ip, &length);
 	return ip;
+}
+
+UDPSocket::UDPSocket()
+	:_ip(0, 0, 0, 0), _port(0)
+{
+}
+
+UDPSocket::UDPSocket(const IP &ip, unsigned short port)
+	:_ip(ip), _port(port)
+{
+	_bind();
+}
+
+UDPSocket::~UDPSocket()
+{
+}
+
+void UDPSocket::bind(const IP &ip, unsigned short port)
+{
+	_ip = ip;
+	_port = port;
+	_bind();
+}
+
+void UDPSocket::_bind()
+{
+	//start up windows socket service of the corresponding version 
+	WSADATA wsaData;
+	WORD sockVersion = MAKEWORD(2, 0);
+	if (WSAStartup(sockVersion, &wsaData))
+	{
+		return;
+	}
+	
+	//try to create a UDP socket
+	_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (INVALID_SOCKET == _socket)
+	{
+		WSACleanup();
+		return;
+	}
+	
+	//bind the IP and the port
+	sockaddr_in addr_sev;
+	addr_sev.sin_family = AF_INET;
+	addr_sev.sin_port = htons(_port);
+	addr_sev.sin_addr.s_addr = (unsigned int) _ip;
+	if (SOCKET_ERROR == ::bind(_socket, (sockaddr *)&addr_sev, sizeof(addr_sev)))
+	{
+		WSACleanup();
+	}
 }
 
 }

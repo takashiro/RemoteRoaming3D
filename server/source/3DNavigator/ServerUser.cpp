@@ -51,7 +51,6 @@ ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 ServerUser::~ServerUser()
 {
 	disconnect();
-
 	CloseHandle(_need_update);
 }
 

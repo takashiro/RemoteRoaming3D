@@ -51,26 +51,48 @@ namespace R3D{
 		operator unsigned();
 
 		static const IP AnyHost;
+		static const IP LocalHost;
+		static const IP Broadcast;
 	};
 
-	class TCPSocket{
+	class AbstractSocket{
 	protected:
 		SOCKET _socket;
 		HANDLE _is_sending_data;
 
 	public:
-		TCPSocket(SOCKET socket);
-		~TCPSocket();
-		
-		void send(const std::string &raw);
-		inline void send(const R3D::Packet &packet){send(packet.toString());};
-		bool receive(char *buffer, int buffer_size);
-		IP getPeerIp() const;
+		AbstractSocket();
+		AbstractSocket(SOCKET socket);
+		~AbstractSocket();
 
-		inline void close(){::closesocket(_socket);};
+		void send(const std::string &raw);
+		inline void close(){closesocket(_socket);}
 	};
 
-	class UDPSocket{
+	class TCPSocket: public AbstractSocket{
+	public:
+		TCPSocket(SOCKET socket);
+		~TCPSocket();
+		inline void send(const std::string &raw){AbstractSocket::send(raw);};
+		inline void send(const R3D::Packet &packet){AbstractSocket::send(packet.toString());};
+		bool receive(char *buffer, int buffer_size);
+		IP getPeerIp() const;
+	};
+
+	class UDPSocket: public AbstractSocket{
+	protected:
+		IP _ip;
+		unsigned short _port;
+
+	public:
+		UDPSocket();
+		UDPSocket(const IP &ip, unsigned short port);
+		~UDPSocket();
+
+		void bind(const IP &ip, unsigned short port);
+
+	protected:
+		void _bind();
 	};
 
 	class TCPServer{
