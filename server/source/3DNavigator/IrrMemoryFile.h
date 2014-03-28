@@ -2,23 +2,24 @@
 #define _IRRMEMORYFILE_H_
 
 #include <IWriteFile.h>
-#include <WinSock.h>
-#include <string>
 
 class IrrMemoryFile: public irr::io::IWriteFile{
 public:
-	IrrMemoryFile(const irr::io::path &file_name);
+	IrrMemoryFile(const irr::io::path &file_name, long buffer_size);
 	~IrrMemoryFile();
-	virtual const irr::io::path &getFileName() const;
-	virtual long getPos() const;
-	virtual bool seek(long finalPos, bool relativeMovement = false);
-	virtual irr::s32 write(const void *buffer, irr::u32 sizeToWrite);
-	const std::string &getContent() const;
+	bool seek(long finalPos, bool relativeMovement = false);
+	irr::s32 write(const void *buffer, irr::u32 sizeToWrite);
+	
+	inline const irr::io::path &getFileName() const{return _file_name;};
+	inline long getPos() const{return _pos;};
+	inline const char *getContent() const{return _content;};
+	inline void clear(){_pos = 0;};
 
 protected:
 	irr::io::path _file_name;
 	long _pos;
-	std::string _content;
+	long _buffer_size;
+	char *_content;
 };
 
 #endif

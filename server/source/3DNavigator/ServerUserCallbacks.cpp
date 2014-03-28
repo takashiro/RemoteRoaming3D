@@ -10,6 +10,8 @@ void ServerUser::_createDevice(const Json::Value &args){
 
 	_screen_width = args[0].asInt();
 	_screen_height = args[1].asInt();
+
+	_memory_file = new IrrMemoryFile("screenshot.jpg", _screen_width * _screen_height * 4);
 	
 	_device_thread = CreateThread(NULL, 0, _DeviceThread, (LPVOID) this, 0, NULL);
 }

@@ -8,6 +8,7 @@
 
 #include "protocol.h"
 #include "util.h"
+#include "IrrMemoryFile.h"
 
 class Server;
 class Hotspot;
@@ -24,6 +25,7 @@ public:
 
 	inline void sendPacket(const R3D::Packet &packet){_socket->send(packet.toString());};
 	inline void sendPacket(const std::string &raw){_socket->send(raw);};
+	inline void sendPacket(const char *raw, int length){_socket->send(raw, length);};
 	void disconnect();
 
 	void startService();
@@ -53,6 +55,7 @@ protected:
 	irr::IrrlichtDevice *_device;
 	irr::video::IImage *_current_frame;
 	std::list<Hotspot *> _hotspots;
+	IrrMemoryFile *_memory_file;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);

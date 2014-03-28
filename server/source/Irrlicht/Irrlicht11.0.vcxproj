@@ -106,7 +106,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static lib - Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
-    <PlatformToolset>Windows7.1SDK</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release - Fast FPU|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -140,7 +140,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
-    <PlatformToolset>Windows7.1SDK</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -219,7 +219,7 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release - Fast FPU|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release - Fast FPU|x64'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Static lib - Debug|Win32'">..\..\lib\Win32-VisualStudio\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Static lib - Debug|x64'">..\..\lib\Win64-VisualStudio\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Static lib - Debug|x64'">..\..\lib\debug\Win64-VisualStudio\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Static lib - Debug|Win32'">obj\$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Static lib - Debug|x64'">obj\$(Configuration)64\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Static lib - Release|Win32'">..\..\lib\Win32-VisualStudio\</OutDir>
@@ -386,7 +386,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <ImportLibrary>..\..\lib\Win64-visualstudio\Irrlicht.lib</ImportLibrary>
+      <ImportLibrary>..\..\lib\debug\Win64-visualstudio\Irrlicht.lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

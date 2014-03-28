@@ -78,7 +78,7 @@ int main()
 		case 'f': driverType = irr::video::EDT_NULL;break;
 		default: return 1;
 	}
-
+	
 	//create a server
 	Server server;
 	ServerInstance = &server;

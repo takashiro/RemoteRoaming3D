@@ -1,6 +1,5 @@
 #include "Server.h"
 #include "ServerUser.h"
-#include "IrrMemoryFile.h"
 #include "Hotspot.h"
 
 #include <memory.h>
@@ -44,7 +43,7 @@ ServerUser::CallbackAdder adder;
 
 ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
-	_current_frame(NULL), _receive_thread(NULL)
+	_current_frame(NULL), _receive_thread(NULL), _memory_file(NULL)
 {
 }
 
@@ -52,6 +51,11 @@ ServerUser::~ServerUser()
 {
 	disconnect();
 	CloseHandle(_need_update);
+
+	if(_memory_file)
+	{
+		_memory_file->drop();
+	}
 }
 
 DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
@@ -154,14 +158,14 @@ void ServerUser::sendScreenshot()
 		return;
 	}
 
-	IrrMemoryFile *file = new IrrMemoryFile("screenshot.jpg");
-	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, file))
+	_memory_file->clear();
+	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, _memory_file))
 	{
 		puts("failed to transfer video frame");
 	}
 
-	const std::string &content = file->getContent();
-	size_t length = content.size();
+	const char *content = _memory_file->getContent();
+	int length = (int) _memory_file->getPos();
 
 	//transfer screenshot length
 	R3D::Packet packet(R3D::UpdateVideoFrame);
@@ -169,9 +173,7 @@ void ServerUser::sendScreenshot()
 	sendPacket(packet);
 
 	//transfer the picture
-	sendPacket(content);
-
-	file->drop();
+	sendPacket(content, length);
 }
 
 void ServerUser::enterHotspot(Hotspot *spot)
