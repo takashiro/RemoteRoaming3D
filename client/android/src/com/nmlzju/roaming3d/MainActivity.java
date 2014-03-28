@@ -4,8 +4,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -36,8 +40,8 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	private static String server_ip = "192.168.137.1";
-	private static short server_port = 6666;
+	private static String server_ip = null;
+	private static int server_port = 0;
 	private static int bitmap_size = 1;
 
 	private ImageView scene;
@@ -75,10 +79,10 @@ public class MainActivity extends Activity {
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		server_ip = settings.getString("server_ip", server_ip);
 		try{
-			server_port = Short.parseShort(settings.getString("server_port", String.valueOf(server_port)));
+			server_port = Integer.parseInt(settings.getString("server_port", String.valueOf(server_port)));
 		}catch(NumberFormatException e){
 			Editor editor = settings.edit();
-			editor.putString("server_port", String.valueOf(server_port));
+			editor.putString("server_port", "0");
 			editor.apply();
 		}
 	
@@ -191,6 +195,44 @@ public class MainActivity extends Activity {
 		
 		if(network.getType() != ConnectivityManager.TYPE_WIFI){
 			Toast.makeText(this, getString(R.string.toast_not_on_wifi), Toast.LENGTH_LONG).show();
+		}
+		
+		if(server_port == 0 || server_ip == null || server_ip.isEmpty()){
+			Toast.makeText(this, getString(R.string.toast_detecting_server), Toast.LENGTH_LONG).show();
+			
+			DatagramSocket config_socket = null;
+			try {
+				config_socket = new DatagramSocket(null);
+				config_socket.bind(new InetSocketAddress("0.0.0.0", 5260));
+				config_socket.setBroadcast(true);
+				config_socket.setSoTimeout(2000);
+				byte[] data = new byte[]{0,0};
+				InetAddress broadcast_address = InetAddress.getByAddress(new byte[]{(byte) 255, (byte) 255, (byte) 255, (byte) 255});
+				DatagramPacket packet = new DatagramPacket(data, data.length, broadcast_address, 5261);
+				config_socket.send(packet);
+				config_socket.receive(packet);
+				
+				server_ip = packet.getAddress().getHostAddress();
+				server_port = data[1];
+				server_port <<= 8;
+				server_port |= data[0];
+
+				Toast.makeText(this, getString(R.string.toast_detected_server) + " " + server_ip + ":" + server_port, Toast.LENGTH_LONG).show();
+			} catch (SocketException e) {
+				e.printStackTrace();
+				Toast.makeText(this, getString(R.string.toast_failed_to_detect_server_config), Toast.LENGTH_LONG).show();
+			} catch (IOException e) {
+				e.printStackTrace();
+				Toast.makeText(this, getString(R.string.toast_failed_to_read_data_from_server), Toast.LENGTH_LONG).show();
+			}
+			
+			if(config_socket != null){
+				config_socket.close();
+			}
+			
+			if(server_port == 0 || server_ip == null || server_ip.isEmpty()){
+				return;
+			}
 		}
 		
 		Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();

@@ -49,7 +49,7 @@ IP::IP(const sockaddr_in &ip)
 	ip4 = ip.sin_addr.S_un.S_un_b.s_b4;
 }
 
-IP::operator unsigned()
+IP::operator unsigned() const
 {
 	unsigned ip = ip1;
 	ip <<= 8;
@@ -74,11 +74,6 @@ TCPServer::TCPServer()
 {
 	_port = 0;
 	_max_client_num = 0;
-}
-
-TCPServer::TCPServer(const IP &ip, unsigned short port)
-	:_ip(ip), _port(port)
-{	
 }
 
 TCPServer::~TCPServer()
@@ -145,6 +140,7 @@ TCPSocket *TCPServer::nextPendingConnection()
 }
 
 AbstractSocket::AbstractSocket()
+	:_socket(NULL)
 {
 	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
@@ -159,6 +155,32 @@ AbstractSocket::~AbstractSocket()
 {
 	CloseHandle(_is_sending_data);
 	close();
+}
+
+void AbstractSocket::bind(const IP &ip, unsigned short port)
+{
+	//bind the IP and the port
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = (unsigned int) ip;
+	if (SOCKET_ERROR == ::bind(_socket, (sockaddr *)&addr, sizeof(addr)))
+	{
+		WSACleanup();
+	}
+}
+
+void AbstractSocket::connect(const IP &ip, unsigned short port)
+{	
+	//connect the IP and the port
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = (unsigned int) ip;
+	if (SOCKET_ERROR == ::connect(_socket, (sockaddr *)&addr, sizeof(addr)))
+	{
+		WSACleanup();
+	}
 }
 
 void AbstractSocket::send(const std::string &raw)
@@ -197,6 +219,17 @@ void AbstractSocket::send(const char *raw, int length)
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
 }
 
+bool AbstractSocket::receive(char *buffer, int buffer_size)
+{
+	int result = recv(_socket, buffer, buffer_size, 0);
+	return result != 0 && result != SOCKET_ERROR;
+}
+
+TCPSocket::TCPSocket()
+{
+	_init();
+}
+
 TCPSocket::TCPSocket(SOCKET socket)
 	:AbstractSocket(socket)
 {
@@ -206,11 +239,6 @@ TCPSocket::~TCPSocket()
 {
 }
 
-bool TCPSocket::receive(char *buffer, int buffer_size){
-	int result = recv(_socket, buffer, buffer_size, 0);
-	return result != 0 && result != SOCKET_ERROR;
-}
-
 IP TCPSocket::getPeerIp() const{
 	sockaddr_in ip;
 	int length = sizeof(ip);
@@ -218,28 +246,70 @@ IP TCPSocket::getPeerIp() const{
 	return ip;
 }
 
-UDPSocket::UDPSocket()
-	:_ip(0, 0, 0, 0), _port(0)
+void TCPSocket::_init()
 {
-	_init();
+	//start up windows socket service of the corresponding version 
+	WSADATA wsaData;
+	WORD sockVersion = MAKEWORD(2, 0);
+	if (WSAStartup(sockVersion, &wsaData))
+	{
+		return;
+	}
+	
+	//try to create a UDP socket
+	_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (INVALID_SOCKET == _socket)
+	{
+		WSACleanup();
+		return;
+	}
 }
 
-UDPSocket::UDPSocket(const IP &ip, unsigned short port)
-	:_ip(ip), _port(port)
+UDPSocket::UDPSocket()
 {
 	_init();
-	_bind();
 }
 
 UDPSocket::~UDPSocket()
 {
 }
 
-void UDPSocket::bind(const IP &ip, unsigned short port)
+void UDPSocket::receiveFrom(char *buffer, int size, IP &ip, unsigned short &port)
 {
-	_ip = ip;
-	_port = port;
-	_bind();
+	sockaddr_in addr;
+	int addrlen = sizeof(addr);
+	recvfrom(_socket, buffer, size, 0, (sockaddr *) &addr, &addrlen);
+	ip = addr;
+	port = addr.sin_port;
+}
+
+void UDPSocket::sendTo(const char *buffer, int size, const IP &ip, unsigned short port)
+{
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.S_un.S_un_b.s_b1 = ip.ip1;
+	addr.sin_addr.S_un.S_un_b.s_b2 = ip.ip2;
+	addr.sin_addr.S_un.S_un_b.s_b3 = ip.ip3;
+	addr.sin_addr.S_un.S_un_b.s_b4 = ip.ip4;
+
+	WaitForSingleObject(_is_sending_data, INFINITE);
+
+	size_t y = 0;
+	while(y < size)
+	{
+		int result = sendto(_socket, buffer, size, 0, (const sockaddr *) &addr, sizeof(addr));
+		if(result == SOCKET_ERROR)
+		{
+			break;
+		}
+		else
+		{
+			y += result;
+		}
+	}
+
+	ReleaseSemaphore(_is_sending_data, 1, NULL);
 }
 
 void UDPSocket::setBroadcast(bool on)
@@ -267,19 +337,6 @@ void UDPSocket::_init()
 	{
 		WSACleanup();
 		return;
-	}
-}
-
-void UDPSocket::_bind()
-{	
-	//bind the IP and the port
-	sockaddr_in addr_sev;
-	addr_sev.sin_family = AF_INET;
-	addr_sev.sin_port = htons(_port);
-	addr_sev.sin_addr.s_addr = (unsigned int) _ip;
-	if (SOCKET_ERROR == ::connect(_socket, (sockaddr *)&addr_sev, sizeof(addr_sev)))
-	{
-		WSACleanup();
 	}
 }
 

@@ -64,9 +64,7 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 
 	while (true)
 	{
-		success = socket->receive(buffer, length);
-		
-		if (!success) 
+		if (!socket->receive(buffer, length)) 
 		{
 			//disconnect the client
 			ServerInstance->disconnect(client);

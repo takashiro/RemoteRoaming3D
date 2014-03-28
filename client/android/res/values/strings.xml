@@ -24,5 +24,9 @@
     <string name="title_gallery">GALLERY</string>
     <string name="title_media">MEDIA</string>
     <string name="thumbnail">Thumbnail</string>
+    <string name="toast_detecting_server">Detecting server……</string>
+    <string name="toast_failed_to_detect_server_config">Failed to detect server configuration.</string>
+    <string name="toast_failed_to_read_data_from_server">Failed to read data from the server.</string>
+    <string name="toast_detected_server">Detected a server </string>
 
 </resources>

@@ -1,6 +1,8 @@
 #include "Server.h"
 #include "ServerUser.h"
 
+#include <iostream>
+
 Server *ServerInstance = NULL;
 
 Server::Server()
@@ -8,7 +10,7 @@ Server::Server()
 	_broadcast_socket(NULL), _broadcast_thread(NULL), _broadcast_port(52600)
 {
 	//create a TCP server
-	_server_socket = new R3D::TCPServer();
+	_server_socket = new R3D::TCPServer;
 }
 
 Server::~Server()
@@ -81,8 +83,6 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 				delete client;
 			}
 		}
-
-		Sleep(100);
 	}
 
 	return 0;
@@ -101,17 +101,19 @@ DWORD WINAPI Server::_BroadcastThread(LPVOID pParam)
 {
 	Server *server = (Server *) pParam;
 	unsigned short port = server->getServerPort();
-	const char *data = (const char *) &port;
-	int length = sizeof(unsigned short) / sizeof(char);
+	const char *send_data = (const char *) &port;
+	char receive_data[2];
 
 	R3D::UDPSocket *&socket = server->_broadcast_socket;
-	socket = new R3D::UDPSocket(R3D::IP::Broadcast, server->_broadcast_port);
-	socket->setBroadcast(true);
+	socket = new R3D::UDPSocket;
+	socket->bind(R3D::IP::AnyHost, 5261);
 
+	R3D::IP client_ip;
+	unsigned short client_port;
 	while(true)
 	{
-		socket->send(data, length);
-		Sleep(1000);
+		socket->receiveFrom(receive_data, 2, client_ip, client_port);
+		socket->sendTo(send_data, 2, client_ip, 5260);
 	}
 
 	return 0;

@@ -48,7 +48,7 @@ namespace R3D{
 		IP(unsigned char ip1, unsigned char ip2, unsigned char ip3, unsigned char ip4);
 		IP(const sockaddr_in &ip);
 		friend std::ostream &operator<<(std::ostream &cout, const IP &ip);
-		operator unsigned();
+		operator unsigned() const;
 
 		static const IP AnyHost;
 		static const IP LocalHost;
@@ -65,35 +65,41 @@ namespace R3D{
 		AbstractSocket(SOCKET socket);
 		~AbstractSocket();
 
+		void bind(const IP &ip, unsigned short port);
+		void connect(const IP &ip, unsigned short port);
+
 		void send(const std::string &raw);
 		void send(const char *data, int length);
+		bool receive(char *buffer, int buffer_size);
 		inline void close(){closesocket(_socket);}
+		
+	protected:
+		virtual void _init() = 0;
 	};
 
 	class TCPSocket: public AbstractSocket{
 	public:
+		TCPSocket();
 		TCPSocket(SOCKET socket);
 		~TCPSocket();
-		bool receive(char *buffer, int buffer_size);
 		IP getPeerIp() const;
+
+	protected:
+		void _init();
 	};
 
 	class UDPSocket: public AbstractSocket{
 	protected:
-		IP _ip;
-		unsigned short _port;
-
 	public:
 		UDPSocket();
-		UDPSocket(const IP &ip, unsigned short port);
 		~UDPSocket();
 
 		void setBroadcast(bool on);
-		void bind(const IP &ip, unsigned short port);
+		void receiveFrom(char *buffer, int size, IP &ip, unsigned short &port);
+		void sendTo(const char *buffer, int size, const IP &ip, unsigned short port);
 
 	protected:
 		void _init();
-		void _bind();
 	};
 
 	class TCPServer{
@@ -106,7 +112,6 @@ namespace R3D{
 	public:
 		TCPServer();
 		~TCPServer();
-		TCPServer(const IP &ip, unsigned short port);
 		inline void setMaxClientNum(int num){_max_client_num = num;};
 		bool listen(const IP &ip, unsigned short port);
 		bool listen();
