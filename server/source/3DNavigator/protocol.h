@@ -66,6 +66,7 @@ namespace R3D{
 		~AbstractSocket();
 
 		void send(const std::string &raw);
+		void send(const char *data, int length);
 		inline void close(){closesocket(_socket);}
 	};
 
@@ -73,8 +74,6 @@ namespace R3D{
 	public:
 		TCPSocket(SOCKET socket);
 		~TCPSocket();
-		inline void send(const std::string &raw){AbstractSocket::send(raw);};
-		inline void send(const R3D::Packet &packet){AbstractSocket::send(packet.toString());};
 		bool receive(char *buffer, int buffer_size);
 		IP getPeerIp() const;
 	};
@@ -89,9 +88,11 @@ namespace R3D{
 		UDPSocket(const IP &ip, unsigned short port);
 		~UDPSocket();
 
+		void setBroadcast(bool on);
 		void bind(const IP &ip, unsigned short port);
 
 	protected:
+		void _init();
 		void _bind();
 	};
 

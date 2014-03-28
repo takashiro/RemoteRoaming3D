@@ -79,6 +79,14 @@ void ControlPanel::_server()
 		cin >> number;
 		ServerInstance->setMaximumClientNum(number);
 	}
+	else if(cmd == "listen")
+	{
+		unsigned short port;
+		cin >> port;
+		ServerInstance->listenTo(port);
+		ServerInstance->broadcastConfig();
+		cout << "server started" << endl;
+	}
 	else
 	{
 		cout << "info -- display server configurations" << endl;

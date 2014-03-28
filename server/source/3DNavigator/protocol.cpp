@@ -152,6 +152,7 @@ AbstractSocket::AbstractSocket()
 AbstractSocket::AbstractSocket(SOCKET socket)
 	:_socket(socket)
 {
+	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 AbstractSocket::~AbstractSocket()
@@ -170,6 +171,27 @@ void AbstractSocket::send(const std::string &raw)
 	while(y < length)
 	{
 		y += ::send(_socket, p + y, int(length - y), 0);
+	}
+
+	ReleaseSemaphore(_is_sending_data, 1, NULL);
+}
+
+void AbstractSocket::send(const char *raw, int length)
+{
+	WaitForSingleObject(_is_sending_data, INFINITE);
+
+	size_t y = 0;
+	while(y < length)
+	{
+		int result = ::send(_socket, raw + y, int(length - y), 0);
+		if(result == SOCKET_ERROR)
+		{
+			break;
+		}
+		else
+		{
+			y += result;
+		}
 	}
 
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
@@ -199,11 +221,13 @@ IP TCPSocket::getPeerIp() const{
 UDPSocket::UDPSocket()
 	:_ip(0, 0, 0, 0), _port(0)
 {
+	_init();
 }
 
 UDPSocket::UDPSocket(const IP &ip, unsigned short port)
 	:_ip(ip), _port(port)
 {
+	_init();
 	_bind();
 }
 
@@ -218,7 +242,16 @@ void UDPSocket::bind(const IP &ip, unsigned short port)
 	_bind();
 }
 
-void UDPSocket::_bind()
+void UDPSocket::setBroadcast(bool on)
+{
+	if(SOCKET_ERROR == setsockopt(_socket, SOL_SOCKET, SO_BROADCAST, (char FAR *)&on, sizeof(on)))
+	{
+		puts("setsockopt failed");
+		return;
+	}
+}
+
+void UDPSocket::_init()
 {
 	//start up windows socket service of the corresponding version 
 	WSADATA wsaData;
@@ -235,13 +268,16 @@ void UDPSocket::_bind()
 		WSACleanup();
 		return;
 	}
-	
+}
+
+void UDPSocket::_bind()
+{	
 	//bind the IP and the port
 	sockaddr_in addr_sev;
 	addr_sev.sin_family = AF_INET;
 	addr_sev.sin_port = htons(_port);
 	addr_sev.sin_addr.s_addr = (unsigned int) _ip;
-	if (SOCKET_ERROR == ::bind(_socket, (sockaddr *)&addr_sev, sizeof(addr_sev)))
+	if (SOCKET_ERROR == ::connect(_socket, (sockaddr *)&addr_sev, sizeof(addr_sev)))
 	{
 		WSACleanup();
 	}

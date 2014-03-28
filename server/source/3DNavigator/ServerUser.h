@@ -22,7 +22,7 @@ public:
 	inline R3D::IP getIp() const{return _socket->getPeerIp();};
 	void getIp(std::wstring &str);
 
-	inline void sendPacket(const R3D::Packet &packet){_socket->send(packet);};
+	inline void sendPacket(const R3D::Packet &packet){_socket->send(packet.toString());};
 	inline void sendPacket(const std::string &raw){_socket->send(raw);};
 	void disconnect();
 
