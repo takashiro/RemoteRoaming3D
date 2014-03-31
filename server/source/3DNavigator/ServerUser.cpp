@@ -114,6 +114,7 @@ void ServerUser::createHotspots()
 	if(!_hotspots.empty())
 		return;
 
+	std::wstring name;
 	std::ifstream hotspot_file("../../media/158.txt");
 	Json::Value hotspots;
 	Json::Reader reader;
@@ -126,7 +127,8 @@ void ServerUser::createHotspots()
 	for(Json::Value::iterator i = hotspots.begin(); i != hotspots.end(); i++)
 	{
 		Hotspot *spot = new Hotspot(*i);
-		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, str2wstr(spot->getName()).c_str(), 0, spot->getSize(), spot->getPosition());
+		copy_string(name, spot->getName());
+		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, name.c_str(), 0, spot->getSize(), spot->getPosition());
 		spot->setNode(head_text);
 		_hotspots.push_back(spot);
 	}

@@ -3,7 +3,7 @@
 
 #include <string>
 
-std::string wstr2str(const std::wstring &wstr);
-std::wstring str2wstr(const std::string &str);
+void copy_string(std::string &str, const std::wstring &wstr);
+void copy_string(std::wstring &wstr, const std::string &str);
 
 #endif
