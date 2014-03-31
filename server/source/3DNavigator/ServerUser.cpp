@@ -221,11 +221,47 @@ void ServerUser::handleCommand(const char *cmd)
 	puts(cmd);
 }
 
+#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+	case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			BeginPaint(hWnd, &ps);
+			EndPaint(hWnd, &ps);
+		}
+		return 0;
+
+	case WM_ERASEBKGND:
+		return 0;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+	case WM_SYSCOMMAND:
+		// prevent screensaver or monitor powersave mode from starting
+		if ((wParam & 0xFFF0) == SC_SCREENSAVE ||
+			(wParam & 0xFFF0) == SC_MONITORPOWER ||
+			(wParam & 0xFFF0) == SC_KEYMENU
+			)
+			return 0;
+
+		break;
+	}
+	return DefWindowProc(hWnd, message, wParam, lParam);
+};
+
+#endif //if compiled with windows
+
 DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	ServerUser *client = (ServerUser *) lpParam;
-	
 	IrrlichtDevice *&device = client->_device;
 
+	//set up creation parameters
 	SIrrlichtCreationParameters p;
 	p.DriverType = ServerInstance->getDriverType();
 	p.WindowSize = core::dimension2d<u32>(client->_screen_width, client->_screen_height);
@@ -235,6 +271,64 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	p.Vsync = false;
 	p.EventReceiver = NULL;
 	p.LoggingLevel = ELL_NONE;
+
+#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+	//create a default hidden window to render the scene
+	const fschar_t* ClassName = __TEXT("CIrrDeviceWin32");
+
+	// Register Class
+	WNDCLASSEX wcex;
+	wcex.cbSize			= sizeof(WNDCLASSEX);
+	wcex.style			= CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc	= WndProc;
+	wcex.cbClsExtra		= 0;
+	wcex.cbWndExtra		= 0;
+	wcex.hInstance		= GetModuleHandle(0);
+	wcex.hIcon			= NULL;
+	wcex.hCursor		= 0;
+	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	wcex.lpszMenuName	= 0;
+	wcex.lpszClassName	= ClassName;
+	wcex.hIconSm		= 0;
+
+	// if there is an icon, load it
+	wcex.hIcon = (HICON)LoadImage(wcex.hInstance, __TEXT("irrlicht.ico"), IMAGE_ICON, 0,0, LR_LOADFROMFILE);
+
+	RegisterClassEx(&wcex);
+
+	// calculate client size
+	RECT clientSize;
+	clientSize.top = 0;
+	clientSize.left = 0;
+	clientSize.right = client->_screen_width;
+	clientSize.bottom = client->_screen_height;
+
+	DWORD style = WS_POPUP;//WS_SYSMENU | WS_BORDER | WS_CAPTION | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+
+	AdjustWindowRect(&clientSize, style, FALSE);
+
+	const s32 realWidth = clientSize.right - clientSize.left;
+	const s32 realHeight = clientSize.bottom - clientSize.top;
+
+	s32 windowLeft = (GetSystemMetrics(SM_CXSCREEN) - realWidth) / 2;
+	s32 windowTop = (GetSystemMetrics(SM_CYSCREEN) - realHeight) / 2;
+
+	if ( windowLeft < 0 )
+		windowLeft = 0;
+	if ( windowTop < 0 )
+		windowTop = 0;	// make sure window menus are in screen on creation
+
+	// create window
+	HWND HWnd = CreateWindow( ClassName, __TEXT(""), style, windowLeft, windowTop, realWidth, realHeight, NULL, NULL, wcex.hInstance, NULL);
+
+	ShowWindow(HWnd, SW_HIDE);
+	UpdateWindow(HWnd);
+
+	// fix ugly ATI driver bugs. Thanks to ariaci
+	MoveWindow(HWnd, windowLeft, windowTop, realWidth, realHeight, TRUE);
+
+	p.WindowId = HWnd;
+#endif
 
 	device = createDeviceEx(p);
 	if (device == NULL)
@@ -247,14 +341,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	*/
 	video::IVideoDriver* driver = device->getVideoDriver();
 	scene::ISceneManager* smgr = device->getSceneManager();
-
-	//hide the window
-#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-	if(p.DriverType == video::EDT_OPENGL)
-	{
-		ShowWindow(reinterpret_cast<HWND>(driver->getExposedVideoData().OpenGLWin32.HWnd), SW_HIDE);
-	}
-#endif
 
 	/*
 	To display the Quake 3 map, we first need to load it. Quake 3 maps
