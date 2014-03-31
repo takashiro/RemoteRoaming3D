@@ -17,7 +17,10 @@ public:
 		Resource(){};
 		Resource(const std::string &json);
 		Resource(const Json::Value &value);
+		
+		void parseJson(const Json::Value &value);
 		Json::Value toJson() const;
+		
 		friend inline bool operator==(const Resource &r1, const Resource &r2){r1.path == r2.path;}
 	};
 
@@ -28,11 +31,13 @@ public:
 	};
 
 	struct Media: public Resource{
+		std::string thumbnail;
+		
 		Media(){};
 		Media(const std::string &json);
 		Media(const Json::Value &value);
 
-		std::string thumbnail;
+		void parseJson(const Json::Value &value);
 		Json::Value toJson() const;
 	};
 
@@ -40,6 +45,7 @@ public:
 	Hotspot(const std::string &json);
 	Hotspot(const Json::Value &value);
 
+	void parseJson(const Json::Value &value);
 	Json::Value toJson() const;
 
 	inline std::string getName() const{return _name;}

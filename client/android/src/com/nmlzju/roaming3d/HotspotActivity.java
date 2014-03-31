@@ -9,6 +9,7 @@ import java.util.*;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -18,6 +19,8 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -147,16 +150,25 @@ public class HotspotActivity extends FragmentActivity {
 					return root_view;
 				}
 				case 2:{
-					View root_view = inflater.inflate(R.layout.fragment_hotspot_media, container, false);
-					List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
+					ListView root_view = (ListView) inflater.inflate(R.layout.fragment_hotspot_media, container, false);
+					List<Map<String, Object>> data = spot.getMediaModel();
 					
 					SimpleAdapter adapter = new SimpleAdapter(
 						root_view.getContext(), data, R.layout.fragment_hotspot_media_item,
-						new String[]{"title","info","img"},
-						new int[]{R.id.hotspot_media_title, R.id.hotspot_media_info, R.id.hotspot_media_thumbnail}
+						new String[]{"name","path","description","thumbnail"},
+						new int[]{R.id.hotspot_media_title, R.id.hotspot_media_path, R.id.hotspot_media_description, R.id.hotspot_media_thumbnail}
 					);
 					
-					((ListView) root_view).setAdapter(adapter);
+					root_view.setAdapter(adapter);
+					root_view.setOnItemClickListener(new OnItemClickListener(){
+						public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+							TextView url_view = (TextView) view.findViewById(R.id.hotspot_media_path);
+							if(url_view != null){
+								Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(url_view.getText().toString()));
+								startActivity(browser);
+							}
+						}
+					});
 					return root_view;
 				}
 			}

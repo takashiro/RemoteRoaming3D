@@ -30,7 +30,7 @@ Hotspot::Hotspot(const Json::Value &value)
 		addImage(*i);
 	}
 
-	for(Json::Value::iterator i = value[6].begin(); i != value[6].end(); i++)
+	for(Json::Value::iterator i = value[5].begin(); i != value[5].end(); i++)
 	{
 		addMedia(*i);
 	}
@@ -74,11 +74,17 @@ Hotspot::Resource::Resource(const std::string &json)
 	Json::Reader reader;
 	if(reader.parse(json, value))
 	{
-		Resource(json);
+		parseJson(json);
 	}
 }
 
 Hotspot::Resource::Resource(const Json::Value &value)
+{
+	parseJson(value);
+}
+
+
+void Hotspot::Resource::parseJson(const Json::Value &value)
 {
 	name = value[0].asString();
 	path = value[1].asString();
@@ -109,13 +115,18 @@ Hotspot::Media::Media(const std::string &json)
 	Json::Reader reader;
 	if(reader.parse(json, value))
 	{
-		Media(json);
+		parseJson(value);
 	}
 }
 
 Hotspot::Media::Media(const Json::Value &value)
-	:Resource(value)
 {
+	parseJson(value);
+}
+
+void Hotspot::Media::parseJson(const Json::Value &value)
+{
+	Resource::parseJson(value);
 	thumbnail = value[3].asString();
 }
 

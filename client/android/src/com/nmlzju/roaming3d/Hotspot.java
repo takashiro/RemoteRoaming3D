@@ -1,6 +1,10 @@
 package com.nmlzju.roaming3d;
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -148,9 +152,9 @@ public class Hotspot {
 				addImage(new Image(images.getJSONArray(i)));
 			}
 	
-			JSONArray videos = value.getJSONArray(6);
-			for(int i = 0; i < videos.length(); i++){
-				addMedia(new Media(videos.getJSONArray(i)));
+			JSONArray media = value.getJSONArray(5);
+			for(int i = 0; i < media.length(); i++){
+				addMedia(new Media(media.getJSONArray(i)));
 			}
 		}catch(JSONException e){
 			e.printStackTrace();
@@ -176,6 +180,22 @@ public class Hotspot {
 	public LinkedList<Image> getImage() {
 		return image;
 	}
+	
+	public List<Map<String,Object>> getImageModel() {
+		List<Map<String,Object>> model = new LinkedList<Map<String,Object>>();
+		
+		Iterator<Image> iter = image.iterator();
+		while(iter.hasNext()){
+			Image img = iter.next();
+			Map<String, Object> attr = new LinkedHashMap<String, Object>();
+			attr.put("name", img.name);
+			attr.put("path", img.path);
+			attr.put("description", img.description);
+			model.add(attr);
+		}
+		
+		return model;
+	}
 
 	public void setImage(LinkedList<Image> image) {
 		this.image = image;
@@ -184,9 +204,27 @@ public class Hotspot {
 	public LinkedList<Media> getMedia() {
 		return media;
 	}
+	
+	public List<Map<String,Object>> getMediaModel() {
+		List<Map<String,Object>> model = new LinkedList<Map<String,Object>>();
+		
+		Iterator<Media> iter = media.iterator();
+		while(iter.hasNext()){
+			Media md = iter.next();
+			Map<String, Object> attr = new LinkedHashMap<String, Object>();
+			attr.put("name", md.name);
+			System.out.println("media name:" + md.name);
+			attr.put("path", md.path);
+			attr.put("description", md.description);
+			attr.put("thumbnail", md.thumbnail);
+			model.add(attr);
+		}
+		
+		return model;
+	}
 
-	public void setVideo(LinkedList<Media> video) {
-		this.media = video;
+	public void setMedia(LinkedList<Media> media) {
+		this.media = media;
 	}
 
 	public void setName(String name) {
