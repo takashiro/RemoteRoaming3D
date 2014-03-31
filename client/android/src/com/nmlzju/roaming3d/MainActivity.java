@@ -180,77 +180,83 @@ public class MainActivity extends Activity {
 		if(socket != null){
 			return;
 		}
-		
-		Context context = getApplicationContext();
-		ConnectivityManager cmgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		if(cmgr == null){
-			return;
-		}
-		
-		NetworkInfo network = cmgr.getActiveNetworkInfo();
-		if(network == null || !network.isConnected()){
-			Toast.makeText(this, getString(R.string.toast_network_not_available), Toast.LENGTH_LONG).show();
-			return;
-		}
-		
-		if(network.getType() != ConnectivityManager.TYPE_WIFI){
-			Toast.makeText(this, getString(R.string.toast_not_on_wifi), Toast.LENGTH_LONG).show();
-		}
-		
-		if(server_port == 0 || server_ip == null || server_ip.isEmpty()){
-			Toast.makeText(this, getString(R.string.toast_detecting_server), Toast.LENGTH_LONG).show();
+
+		Thread connect_thread = new Thread(){
 			
-			DatagramSocket config_socket = null;
-			try {
-				config_socket = new DatagramSocket(null);
-				config_socket.bind(new InetSocketAddress("0.0.0.0", 5260));
-				config_socket.setBroadcast(true);
-				config_socket.setSoTimeout(2000);
-				byte[] data = new byte[]{0,0};
-				InetAddress broadcast_address = InetAddress.getByAddress(new byte[]{(byte) 255, (byte) 255, (byte) 255, (byte) 255});
-				DatagramPacket packet = new DatagramPacket(data, data.length, broadcast_address, 5261);
-				config_socket.send(packet);
-				config_socket.receive(packet);
+			@Override
+			public void run(){
+				ConnectivityManager cmgr = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+				if(cmgr == null){
+					return;
+				}
+				NetworkInfo network = cmgr.getActiveNetworkInfo();
+				if(network == null || !network.isConnected()){
+					toast_handler.obtainMessage(0, getString(R.string.toast_network_not_available)).sendToTarget();
+					return;
+				}
 				
-				server_ip = packet.getAddress().getHostAddress();
-				server_port = 0x0000FF00 & (data[1] << 8);
-				server_port |= 0x000000FF & data[0];
+				if(network.getType() != ConnectivityManager.TYPE_WIFI){
+					toast_handler.obtainMessage(0, getString(R.string.toast_not_on_wifi)).sendToTarget();
+				}
 				
-				Toast.makeText(this, getString(R.string.toast_detected_server) + " " + server_ip + ":" + server_port, Toast.LENGTH_LONG).show();
-			} catch (SocketException e) {
-				e.printStackTrace();
-				Toast.makeText(this, getString(R.string.toast_socket_exception) + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-			} catch (IOException e) {
-				e.printStackTrace();
-				Toast.makeText(this, getString(R.string.toast_io_exception) + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+				if(server_port == 0 || server_ip == null || server_ip.isEmpty()){
+					toast_handler.obtainMessage(0, getString(R.string.toast_detecting_server)).sendToTarget();
+					
+					DatagramSocket config_socket = null;
+					try {
+						config_socket = new DatagramSocket(null);
+						config_socket.bind(new InetSocketAddress("0.0.0.0", 5260));
+						config_socket.setBroadcast(true);
+						config_socket.setSoTimeout(2000);
+						byte[] data = new byte[]{0,0};
+						InetAddress broadcast_address = InetAddress.getByAddress(new byte[]{(byte) 255, (byte) 255, (byte) 255, (byte) 255});
+						DatagramPacket packet = new DatagramPacket(data, data.length, broadcast_address, 5261);
+						config_socket.send(packet);
+						config_socket.receive(packet);
+						
+						server_ip = packet.getAddress().getHostAddress();
+						server_port = 0x0000FF00 & (data[1] << 8);
+						server_port |= 0x000000FF & data[0];
+						
+						toast_handler.obtainMessage(0, getString(R.string.toast_detected_server) + " " + server_ip + ":" + server_port).sendToTarget();
+					} catch (SocketException e) {
+						e.printStackTrace();
+						toast_handler.obtainMessage(0, getString(R.string.toast_socket_exception) + e.getLocalizedMessage()).sendToTarget();
+					} catch (IOException e) {
+						e.printStackTrace();
+						toast_handler.obtainMessage(0, getString(R.string.toast_io_exception) + e.getLocalizedMessage()).sendToTarget();
+					}
+					
+					if(config_socket != null){
+						config_socket.close();
+					}
+					
+					if(server_port == 0 || server_ip == null || server_ip.isEmpty()){
+						return;
+					}
+					
+					toast_handler.obtainMessage(0, getString(R.string.toast_start_connecting)).sendToTarget();
+					try {
+						socket = new Socket();
+						socket.connect(new InetSocketAddress(server_ip, server_port), 3000);
+						
+						send_queue.clear();
+						Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
+						packet.args.put(screen_width);
+						packet.args.put(screen_height);
+						send_queue.offer(packet);
+					
+						new SendThread().start();
+						new ReceiveThread().start();
+					} catch (Exception e) {
+						toast_handler.obtainMessage(0, getString(R.string.toast_failed_to_connect_to_server)).sendToTarget();
+						socket = null;
+					}
+				}
 			}
-			
-			if(config_socket != null){
-				config_socket.close();
-			}
-			
-			if(server_port == 0 || server_ip == null || server_ip.isEmpty()){
-				return;
-			}
-		}
+		};
 		
-		Toast.makeText(this, getString(R.string.toast_start_connecting), Toast.LENGTH_LONG).show();
-		try {
-			socket = new Socket();
-			socket.connect(new InetSocketAddress(server_ip, server_port), 3000);
-			
-			send_queue.clear();
-			Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
-			packet.args.put(screen_width);
-			packet.args.put(screen_height);
-			send_queue.offer(packet);
-		
-			new SendThread().start();
-			new ReceiveThread().start();
-		} catch (Exception e) {
-			Toast.makeText(this, getString(R.string.toast_failed_to_connect_to_server), Toast.LENGTH_LONG).show();
-			socket = null;
-		}
+		connect_thread.start();
 	}
 
 	@Override
@@ -469,14 +475,20 @@ public class MainActivity extends Activity {
 	
 	static class ToastHandler extends Handler{
 		private final WeakReference<MainActivity> activity;
+		private Toast toast = null;
 		
 		public ToastHandler(MainActivity activity){
 			this.activity = new WeakReference<MainActivity>(activity);
 		}
 		
 		public void handleMessage(Message msg){
+			if(toast != null){
+				toast.cancel();
+			}
+			
 			MainActivity activity = this.activity.get();
-			Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_LONG).show();
+			toast = Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_LONG);
+			toast.show();
 		}
 	}
 }
