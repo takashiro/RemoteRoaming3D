@@ -213,7 +213,6 @@ public class Hotspot {
 			Media md = iter.next();
 			Map<String, Object> attr = new LinkedHashMap<String, Object>();
 			attr.put("name", md.name);
-			System.out.println("media name:" + md.name);
 			attr.put("path", md.path);
 			attr.put("description", md.description);
 			attr.put("thumbnail", md.thumbnail);

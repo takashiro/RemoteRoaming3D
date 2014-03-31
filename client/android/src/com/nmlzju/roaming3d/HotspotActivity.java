@@ -1,15 +1,14 @@
 package com.nmlzju.roaming3d;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -143,7 +142,7 @@ public class HotspotActivity extends FragmentActivity {
 					while(i.hasNext()){
 						Hotspot.Image image = i.next();
 						ImageView view = new ImageView(root_view.getContext());
-						view.setImageBitmap(getHttpBitmap(image.path));
+						new DownloadImageTask(view).execute(image.path);
 						layout.addView(view);
 					}
 					
@@ -153,13 +152,12 @@ public class HotspotActivity extends FragmentActivity {
 					ListView root_view = (ListView) inflater.inflate(R.layout.fragment_hotspot_media, container, false);
 					List<Map<String, Object>> data = spot.getMediaModel();
 					
-					SimpleAdapter adapter = new SimpleAdapter(
+					root_view.setAdapter(new MediaListAdapter(
 						root_view.getContext(), data, R.layout.fragment_hotspot_media_item,
 						new String[]{"name","path","description","thumbnail"},
 						new int[]{R.id.hotspot_media_title, R.id.hotspot_media_path, R.id.hotspot_media_description, R.id.hotspot_media_thumbnail}
-					);
+					));
 					
-					root_view.setAdapter(adapter);
 					root_view.setOnItemClickListener(new OnItemClickListener(){
 						public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 							TextView url_view = (TextView) view.findViewById(R.id.hotspot_media_path);
@@ -169,6 +167,7 @@ public class HotspotActivity extends FragmentActivity {
 							}
 						}
 					});
+
 					return root_view;
 				}
 			}
@@ -176,21 +175,46 @@ public class HotspotActivity extends FragmentActivity {
 		}
 	}
 	
-	public static Bitmap getHttpBitmap(String path) {
-		URL url = null;
-		Bitmap bitmap = null;
-		
-		try {
-			url = new URL(path);
-			InputStream is = url.openStream();
-			bitmap = BitmapFactory.decodeStream(is);
-			is.close();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+	private static class MediaListAdapter extends SimpleAdapter{
+
+		public MediaListAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
+			super(context, data, resource, from, to);
 		}
 		
-		return bitmap;
+		@Override
+		public void setViewImage(ImageView view, String path){
+			if(path.startsWith("http://") || path.startsWith("https://")){
+				new DownloadImageTask(view).execute(path);
+			}else{
+				super.setViewImage(view, path);
+			}
+		}
+		
+	}
+	
+	private static class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+		ImageView view;
+
+		public DownloadImageTask(ImageView image_view) {
+			this.view = image_view;
+		}
+
+		protected Bitmap doInBackground(String... urls) {
+			String urldisplay = urls[0];
+			Bitmap bitmap = null;
+			
+			try {
+				InputStream in = new java.net.URL(urldisplay).openStream();
+				bitmap = BitmapFactory.decodeStream(in);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			return bitmap;
+		}
+
+		protected void onPostExecute(Bitmap result) {
+			view.setImageBitmap(result);
+		}
 	}
 }
