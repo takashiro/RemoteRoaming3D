@@ -83,8 +83,6 @@ int main()
 	Server server;
 	ServerInstance = &server;
 	server.setDriverType(driverType);
-	server.listenTo(6666);
-	server.broadcastConfig();
 
 	ControlPanel cpanel(std::cin, std::cout);
 	return cpanel.exec();

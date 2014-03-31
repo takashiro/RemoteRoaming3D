@@ -87,6 +87,12 @@ void ControlPanel::_server()
 		ServerInstance->broadcastConfig();
 		cout << "server started" << endl;
 	}
+	else if(cmd == "start")
+	{
+		ServerInstance->listenTo();
+		ServerInstance->broadcastConfig();
+		cout << "server started" << endl;
+	}
 	else
 	{
 		cout << "info -- display server configurations" << endl;
@@ -128,7 +134,7 @@ void ControlPanel::_client()
 	}
 	else
 	{
-		int id = atoi(idstr.c_str());
+		int id = stoi(idstr);
 		int cur = 1;
 		for(std::list<ServerUser *>::const_iterator i = clients.begin(); i != clients.end(); i++)
 		{

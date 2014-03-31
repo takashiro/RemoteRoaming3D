@@ -213,17 +213,16 @@ public class MainActivity extends Activity {
 				config_socket.receive(packet);
 				
 				server_ip = packet.getAddress().getHostAddress();
-				server_port = data[1];
-				server_port <<= 8;
-				server_port |= data[0];
-
+				server_port = 0x0000FF00 & (data[1] << 8);
+				server_port |= 0x000000FF & data[0];
+				
 				Toast.makeText(this, getString(R.string.toast_detected_server) + " " + server_ip + ":" + server_port, Toast.LENGTH_LONG).show();
 			} catch (SocketException e) {
 				e.printStackTrace();
-				Toast.makeText(this, getString(R.string.toast_failed_to_detect_server_config), Toast.LENGTH_LONG).show();
+				Toast.makeText(this, getString(R.string.toast_socket_exception) + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
 			} catch (IOException e) {
 				e.printStackTrace();
-				Toast.makeText(this, getString(R.string.toast_failed_to_read_data_from_server), Toast.LENGTH_LONG).show();
+				Toast.makeText(this, getString(R.string.toast_io_exception) + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
 			}
 			
 			if(config_socket != null){
