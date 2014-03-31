@@ -13,7 +13,7 @@ public:
 	Server();
 	~Server();
 
-	void listenTo(unsigned short port = 6666);
+	void listenTo(unsigned short port = 52600);
 
 	inline unsigned short getServerPort() const{return _server_port;}
 
