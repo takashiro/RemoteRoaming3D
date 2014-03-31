@@ -231,6 +231,7 @@
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerUser.cpp" />
     <ClCompile Include="ServerUserCallbacks.cpp" />
+    <ClCompile Include="ServerUserDevice.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>

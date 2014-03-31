@@ -3,6 +3,23 @@
 
 using namespace irr;
 
+std::map<R3D::Command, ServerUser::Callback> ServerUser::_callbacks;
+
+ServerUser::CallbackAdder::CallbackAdder()
+{
+	if(_callbacks.empty())
+	{
+		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
+		_callbacks[R3D::RotateCamera] = &ServerUser::_rotateCamera;
+		_callbacks[R3D::ScaleCamera] = &ServerUser::_scaleCamera;
+		_callbacks[R3D::MoveCamera] = &ServerUser::_moveCamera;
+		_callbacks[R3D::ControlHotspots] = &ServerUser::_controlHotspots;
+		_callbacks[R3D::DoubleClick] = &ServerUser::_doubleClick;
+	}
+}
+
+ServerUser::CallbackAdder adder;
+
 void ServerUser::_createDevice(const Json::Value &args){
 	if(_device != NULL){
 		return;
