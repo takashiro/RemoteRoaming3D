@@ -115,7 +115,19 @@ void ServerUser::createHotspots()
 		return;
 
 	std::wstring name;
-	std::ifstream hotspot_file("../../media/158.txt");
+	
+	char buffer[3];
+	std::ifstream hotspot_file("../../media/158.txt", std::ios::binary);
+	hotspot_file.read(buffer, 3);
+
+	//Handle UTF-8 BOM
+	if(buffer[0] != '\xEF' || buffer[1] != '\xBB' || buffer[2] != '\xBF')
+	{
+		hotspot_file.putback(buffer[2]);
+		hotspot_file.putback(buffer[1]);
+		hotspot_file.putback(buffer[0]);
+	}
+
 	Json::Value hotspots;
 	Json::Reader reader;
 	bool success = reader.parse(hotspot_file, hotspots);
