@@ -8,7 +8,7 @@ Server *ServerInstance = NULL;
 
 Server::Server()
 	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(true),
-	_broadcast_socket(NULL), _broadcast_thread(NULL), _broadcast_port(52600)
+	_broadcast_socket(NULL), _broadcast_thread(NULL), _broadcast_port(52600), _is_broadcasting_config(false)
 {
 	ServerInstance = this;
 
@@ -98,10 +98,24 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 
 void Server::broadcastConfig(unsigned short port)
 {
-	_broadcast_port = port;
-	if(_broadcast_thread == NULL)
+	if(port != 0)
 	{
-		_broadcast_thread = CreateThread(NULL, 0, _BroadcastThread, (LPVOID) this, 0, NULL);
+		_broadcast_port = port;
+		_is_broadcasting_config = true;
+		if(_broadcast_thread == NULL)
+		{
+			_broadcast_thread = CreateThread(NULL, 0, _BroadcastThread, (LPVOID) this, 0, NULL);
+		}
+	}
+	else
+	{
+		_is_broadcasting_config = false;
+		if(_broadcast_thread != NULL)
+		{
+			WaitForSingleObject(_broadcast_thread, INFINITE);
+			CloseHandle(_broadcast_thread);
+			_broadcast_thread = NULL;
+		}
 	}
 }
 
@@ -118,7 +132,7 @@ DWORD WINAPI Server::_BroadcastThread(LPVOID pParam)
 
 	R3D::IP client_ip;
 	unsigned short client_port;
-	while(true)
+	while(server->_is_broadcasting_config)
 	{
 		socket->receiveFrom(receive_data, 2, client_ip, client_port);
 		socket->sendTo(send_data, 2, client_ip, 5260);

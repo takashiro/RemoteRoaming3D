@@ -46,6 +46,7 @@ protected:
 	R3D::UDPSocket *_broadcast_socket;
 
 	bool _is_listening;
+	bool _is_broadcasting_config;
 	unsigned short _server_port;
 	unsigned short _broadcast_port;
 	int _maximum_client_num;
