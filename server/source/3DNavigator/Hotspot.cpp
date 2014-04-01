@@ -68,37 +68,6 @@ Json::Value Hotspot::toJson() const
 	return value;
 }
 
-Hotspot::Resource::Resource(const std::string &json)
-{
-	Json::Value value;
-	Json::Reader reader;
-	if(reader.parse(json, value))
-	{
-		parseJson(json);
-	}
-}
-
-Hotspot::Resource::Resource(const Json::Value &value)
-{
-	parseJson(value);
-}
-
-
-void Hotspot::Resource::parseJson(const Json::Value &value)
-{
-	name = value[0].asString();
-	path = value[1].asString();
-	description = value[2].asString();
-}
-
-Json::Value Hotspot::Resource::toJson() const{
-	Json::Value value;
-	value.append(name);
-	value.append(path);
-	value.append(description);
-	return value;
-}
-
 Hotspot::Image::Image(const std::string &json)
 	:Resource(json)
 {

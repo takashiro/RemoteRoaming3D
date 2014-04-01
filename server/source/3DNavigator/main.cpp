@@ -81,8 +81,9 @@ int main()
 	
 	//create a server
 	Server server;
-	ServerInstance = &server;
 	server.setDriverType(driverType);
+
+	server.loadSceneMap("scenemap.json");
 
 	ControlPanel cpanel(std::cin, std::cout);
 	return cpanel.exec();

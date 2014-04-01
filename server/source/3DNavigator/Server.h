@@ -2,9 +2,11 @@
 #define _SERVER_H_
 
 #include <list>
+#include <vector>
 #include <irrlicht.h>
 
 #include "protocol.h"
+#include "Resource.h"
 
 class ServerUser;
 
@@ -32,6 +34,10 @@ public:
 	inline irr::video::E_DRIVER_TYPE getDriverType() const{return _driver_type;}
 
 	inline const std::list<ServerUser *> &getClients() const{return _clients;}
+	
+	inline const std::vector<Resource *> &getSceneMaps() const{return _scenemaps;};
+	void loadSceneMap(const std::string &config_path);
+	inline Resource *getSceneMapAt(int i){return _scenemaps.at(i);};
 
 	void broadcastConfig(unsigned short port = 5261);
 
@@ -45,6 +51,8 @@ protected:
 	int _maximum_client_num;
 	bool _is_independent_thread_enabled;
 	irr::video::E_DRIVER_TYPE _driver_type;
+	std::list<ServerUser *> _clients;
+	std::vector<Resource *> _scenemaps;
 
 private:
 	static DWORD WINAPI _ServerThread(LPVOID lpParam);
@@ -52,7 +60,6 @@ private:
 
 	HANDLE _server_thread;
 	HANDLE _broadcast_thread;
-	std::list<ServerUser *> _clients;
 };
 
 extern Server *ServerInstance;

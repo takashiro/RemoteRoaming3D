@@ -16,7 +16,7 @@ namespace R3D{
 		Quit,
 
 		//Client to Server
-		SetResolution,
+		CreateDevice,
 
 		RotateCamera,
 		ScaleCamera,

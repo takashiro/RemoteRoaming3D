@@ -2,6 +2,7 @@
 #include "ServerUser.h"
 
 #include <iostream>
+#include <fstream>
 
 Server *ServerInstance = NULL;
 
@@ -9,6 +10,8 @@ Server::Server()
 	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(true),
 	_broadcast_socket(NULL), _broadcast_thread(NULL), _broadcast_port(52600)
 {
+	ServerInstance = this;
+
 	//create a TCP server
 	_server_socket = new R3D::TCPServer;
 }
@@ -27,6 +30,11 @@ Server::~Server()
 	for(std::list<ServerUser *>::iterator i = _clients.begin(); i != _clients.end(); i++)
 	{
 		(*i)->disconnect();
+	}
+
+	for(std::vector<Resource *>::iterator i = _scenemaps.begin(); i != _scenemaps.end(); i++)
+	{
+		delete *i;
 	}
 
 	delete _server_socket;
@@ -123,4 +131,18 @@ void Server::disconnect(ServerUser *client)
 {
 	_clients.remove(client);
 	client->disconnect();
+}
+
+void Server::loadSceneMap(const std::string &config_path)
+{
+	std::ifstream config(config_path, std::ios::binary);
+	Json::Value value;
+	Json::Reader reader;
+	if(!reader.parse(config, value))
+		return;
+
+	for(Json::Value::iterator i = value.begin(); i != value.end(); i++)
+	{
+		_scenemaps.push_back(new Resource(*i));
+	}
 }

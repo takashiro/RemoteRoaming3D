@@ -241,7 +241,7 @@ public class MainActivity extends Activity {
 						socket.connect(new InetSocketAddress(server_ip, server_port), 3000);
 						
 						send_queue.clear();
-						Packet packet = new Packet(Packet.Command.SET_RESOLUTION);
+						Packet packet = new Packet(Packet.Command.CREATE_DEVICE);
 						packet.args.put(screen_width);
 						packet.args.put(screen_height);
 						send_queue.offer(packet);

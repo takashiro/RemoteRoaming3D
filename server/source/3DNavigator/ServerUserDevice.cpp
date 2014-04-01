@@ -60,6 +60,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	ServerUser *client = (ServerUser *) lpParam;
+
+	Resource *scene_map = ServerInstance->getSceneMapAt(0);
+	if(scene_map == NULL)
+		return 1;
+
 	IrrlichtDevice *&device = client->_device;
 
 	//set up creation parameters
@@ -150,8 +155,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	we are able to read from the files in that archive as if they are
 	directly stored on the disk.
 	*/
-
-	device->getFileSystem()->addFileArchive("../../media/158.zip");
+	device->getFileSystem()->addFileArchive(scene_map->path.c_str());
 	
 	/*
 	Now we can load the mesh by calling

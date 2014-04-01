@@ -228,6 +228,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="protocol.cpp" />
+    <ClCompile Include="Resource.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerUser.cpp" />
     <ClCompile Include="ServerUserCallbacks.cpp" />
@@ -235,6 +236,7 @@
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="ControlPanel.h" />
     <ClInclude Include="Hotspot.h" />
     <ClInclude Include="IrrMemoryFile.h" />

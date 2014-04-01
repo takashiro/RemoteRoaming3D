@@ -12,7 +12,7 @@ public class Packet {
 		QUIT,
 
 		//Client to Server
-		SET_RESOLUTION,
+		CREATE_DEVICE,
 		ROTATE_CAMERA,
 		SCALE_CAMERA,
 		MOVE_CAMERA,

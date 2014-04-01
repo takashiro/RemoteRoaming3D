@@ -9,7 +9,7 @@ ServerUser::CallbackAdder::CallbackAdder()
 {
 	if(_callbacks.empty())
 	{
-		_callbacks[R3D::SetResolution] = &ServerUser::_createDevice;
+		_callbacks[R3D::CreateDevice] = &ServerUser::_createDevice;
 		_callbacks[R3D::RotateCamera] = &ServerUser::_rotateCamera;
 		_callbacks[R3D::ScaleCamera] = &ServerUser::_scaleCamera;
 		_callbacks[R3D::MoveCamera] = &ServerUser::_moveCamera;
