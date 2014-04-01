@@ -26,16 +26,20 @@ using namespace irr;
 
 ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
-	_current_frame(NULL), _receive_thread(NULL), _memory_file(NULL)
+	_current_frame(NULL), _receive_thread(NULL), _memory_file(NULL), _need_update(NULL)
 {
 }
 
 ServerUser::~ServerUser()
 {
 	disconnect();
-	CloseHandle(_need_update);
 
-	if(_memory_file)
+	if(_need_update != NULL)
+	{
+		CloseHandle(_need_update);
+	}
+
+	if(_memory_file != NULL)
 	{
 		_memory_file->drop();
 	}
