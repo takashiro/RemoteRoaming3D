@@ -78,11 +78,14 @@ void ServerUser::disconnect()
 	{
 		WaitForSingleObject(_device_thread, INFINITE);
 		CloseHandle(_device_thread);
+		_device_thread = NULL;
 	}
 
-	if(_receive_thread != NULL){
-		WaitForSingleObject(_device_thread, INFINITE);
+	if(_receive_thread != NULL)
+	{
+		WaitForSingleObject(_receive_thread, INFINITE);
 		CloseHandle(_receive_thread);
+		_receive_thread = NULL;
 	}
 }
 
