@@ -7,6 +7,19 @@ const IP IP::AnyHost(0, 0, 0, 0);
 const IP IP::LocalHost(127, 0, 0, 1);
 const IP IP::Broadcast(255, 255, 255, 255);
 
+
+Packet::Packet(const std::string &str)
+{
+	Json::Reader reader;
+	Json::Value value;
+	if(!reader.parse(str, value)){
+		args = Json::nullValue;
+	}else{
+		command = (Command) value[0].asInt();
+		args = value[1];
+	}
+}
+
 std::string Packet::toString() const{
 	Json::Value packet;
 	packet[0] = (int) command;
@@ -14,21 +27,6 @@ std::string Packet::toString() const{
 	
 	Json::FastWriter writer;
 	return writer.write(packet);
-}
-
-Packet Packet::FromString(const char *str){
-	Packet packet;
-	
-	Json::Reader reader;
-	Json::Value value;
-	if(!reader.parse(str, value)){
-		packet.args = Json::nullValue;
-	}else{
-		packet.command = (Command) value[0].asInt();
-		packet.args = value[1];
-	}
-	
-	return packet;
 }
 
 IP::IP()

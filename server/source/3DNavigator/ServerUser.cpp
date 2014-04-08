@@ -172,7 +172,6 @@ void ServerUser::sendScreenshot()
 		puts("failed to transfer video frame");
 	}
 
-	const char *content = _memory_file->getContent();
 	int length = (int) _memory_file->getPos();
 
 	//transfer screenshot length
@@ -181,7 +180,7 @@ void ServerUser::sendScreenshot()
 	sendPacket(packet);
 
 	//transfer the picture
-	sendPacket(content, length);
+	sendPacket(_memory_file->getContent(), length);
 }
 
 void ServerUser::enterHotspot(Hotspot *spot)
@@ -201,7 +200,7 @@ void ServerUser::getIp(std::wstring &wstr)
 
 void ServerUser::handleCommand(const char *cmd)
 {
-	R3D::Packet packet = R3D::Packet::FromString(cmd);
+	R3D::Packet packet(cmd);
 	std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
 	if(iter != _callbacks.end())
 	{
@@ -211,6 +210,5 @@ void ServerUser::handleCommand(const char *cmd)
 			return;
 		}
 	}
-	printf("invalid packet:");
-	puts(cmd);
+	std::cout << "invalid packet (" << getIp() << "):" << cmd;
 }

@@ -33,8 +33,8 @@ namespace R3D{
 		Json::Value args;
 
 		inline Packet(Command command = Invalid){this->command = command;}
+		Packet(const std::string &str);
 		std::string toString() const;
-		static Packet FromString(const char *str);
 	};
 
 	enum Message{
