@@ -167,7 +167,7 @@ void ServerUser::sendScreenshot()
 	}
 
 	_memory_file->clear();
-	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, _memory_file))
+	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, _memory_file, 80))
 	{
 		puts("failed to transfer video frame");
 	}
