@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 enum
 {
@@ -192,10 +193,9 @@ void ServerUser::enterHotspot(Hotspot *spot)
 
 void ServerUser::getIp(std::wstring &wstr)
 {
-	static wchar_t str[16];
-	const R3D::IP &address = getIp();
-	swprintf(str, L"%d.%d.%d.%d", address.ip1, address.ip2, address.ip3, address.ip4);
-	wstr = str;
+	std::wstringstream buffer;
+	buffer << getIp();
+	buffer >> wstr;
 }
 
 void ServerUser::handleCommand(const char *cmd)
