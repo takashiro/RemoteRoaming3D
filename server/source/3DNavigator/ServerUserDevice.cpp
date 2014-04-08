@@ -192,7 +192,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	irr::scene::ISceneNode::setScale().
 	*/
 
-	scene::ITriangleSelector* selector = 0;
 	irr::scene::IBillboardSceneNode * bill = 0;
 	irr::scene::ILightSceneNode *light = 0;
 	if (node)
@@ -213,11 +212,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 		bill->setMaterialFlag(video::EMF_LIGHTING, false);
 		bill->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR);
 		bill->setMaterialTexture(0, driver->getTexture("../../media/particlewhite.bmp"));
-
-		selector = smgr->createOctreeTriangleSelector(
-			node->getMesh(), node, 128);
-		node->setTriangleSelector(selector);
-		// We're not done with this selector yet, so don't drop it.
 	}
 
 	/*
@@ -228,33 +222,9 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, scene_map->camera_position, scene_map->camera_target);
 	camera->setFarValue(5000.0f);
 
-	if (selector)
-	{
-		scene::ISceneNodeAnimator* anim = smgr->createCollisionResponseAnimator(
-			selector, camera, core::vector3df(6,10,6),
-			core::vector3df(0,0,0), core::vector3df(0,20,0));
-		selector->drop(); // As soon as we're done with the selector, drop it.
-		camera->addAnimator(anim);
-		anim->drop();  // And likewise, drop the animator when we're done referring to it.
-	}
-
 	/*
-	We have done everything, so lets draw it. We also write the current
-	frames per second and the primitives drawn into the caption of the
-	window. The test for irr::IrrlichtDevice::isWindowActive() is optional,
-	but prevents the engine to grab the mouse cursor after task switching
-	when other programs are active. The call to
-	irr::IrrlichtDevice::yield() will avoid the busy loop to eat up all CPU
-	cycles when the window is not active.
+	We have done everything, so lets draw it.
 	*/
-
-	video::SMaterial material;
-	material.setTexture(0,0);
-	material.Lighting = false;
-	material.Wireframe = true;
-	scene::ISceneNode* highlightedSceneNode = 0;
-	scene::ISceneCollisionManager* collMan = smgr->getSceneCollisionManager();
-
 	int lastFPS = -1;
 
 	while(device->run())
@@ -262,47 +232,6 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 		WaitForSingleObject(client->_need_update, INFINITE);
 		driver->beginScene(true, true, video::SColor(255,200,200,200));
 		smgr->drawAll();
-
-		// All intersections in this example are done with a ray cast out from the camera to
-		// a distance of 1000.  You can easily modify this to check (e.g.) a bullet
-		// trajectory or a sword's position, or create a ray from a mouse click position using
-		// ISceneCollisionManager::getRayFromScreenCoordinates()
-		core::line3d<f32> ray;
-		ray.start = camera->getPosition();
-		ray.end = ray.start + (camera->getTarget() - ray.start).normalize() * 10.0f;
-
-		// Tracks the current intersection point with the level or a mesh
-		core::vector3df intersection;
-		// Used to show with triangle has been hit
-		core::triangle3df hitTriangle;
-
-		// This call is all you need to perform ray/triangle collision on every scene node
-		// that has a triangle selector, including the Quake level mesh.  It finds the nearest
-		// collision point/triangle, and returns the scene node containing that point.
-		// Irrlicht provides other types of selection, including ray/triangle selector,
-		// ray/box and ellipse/triangle selector, plus associated helpers.
-		// See the methods of ISceneCollisionManager
-		scene::ISceneNode * selectedSceneNode =
-			collMan->getSceneNodeAndCollisionPointFromRay(
-			ray,
-			intersection, // This will be the position of the collision
-			hitTriangle, // This will be the triangle hit in the collision
-			IDFlag_IsPickable, // This ensures that only nodes that we have
-			// set up to be pickable are considered
-			0); // Check the entire scene (this is actually the implicit default)
-
-		// If the ray hit anything, move the billboard to the collision position
-		// and draw the triangle that was hit.
-		if(selectedSceneNode)
-		{
-			//	bill->setPosition(intersection);
-
-			// We need to reset the transform before doing our own rendering.
-			driver->setTransform(video::ETS_WORLD, core::matrix4());
-			driver->setMaterial(material);
-			driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
-		}
-
 		driver->endScene();
 
 		if(client->_current_frame != NULL){
