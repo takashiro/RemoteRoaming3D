@@ -6,7 +6,7 @@
 #include <irrlicht.h>
 
 #include "protocol.h"
-#include "Resource.h"
+#include "SceneMap.h"
 
 class ServerUser;
 
@@ -35,9 +35,9 @@ public:
 
 	inline const std::list<ServerUser *> &getClients() const{return _clients;}
 	
-	inline const std::vector<Resource *> &getSceneMaps() const{return _scenemaps;};
+	inline const std::vector<SceneMap *> &getSceneMaps() const{return _scenemaps;};
 	void loadSceneMap(const std::string &config_path);
-	inline Resource *getSceneMapAt(int i){return _scenemaps.at(i);};
+	inline SceneMap *getSceneMapAt(int i){return _scenemaps.at(i);};
 
 	void broadcastConfig(unsigned short port = 5261);
 
@@ -53,7 +53,7 @@ protected:
 	bool _is_independent_thread_enabled;
 	irr::video::E_DRIVER_TYPE _driver_type;
 	std::list<ServerUser *> _clients;
-	std::vector<Resource *> _scenemaps;
+	std::vector<SceneMap *> _scenemaps;
 
 private:
 	static DWORD WINAPI _ServerThread(LPVOID lpParam);

@@ -1,5 +1,6 @@
 #include "ServerUser.h"
 #include "Hotspot.h"
+#include "Server.h"
 
 using namespace irr;
 
@@ -27,6 +28,7 @@ void ServerUser::_createDevice(const Json::Value &args){
 
 	_screen_width = args[0].asInt();
 	_screen_height = args[1].asInt();
+	_scene_map = ServerInstance->getSceneMapAt(0);
 
 	_memory_file = new IrrMemoryFile("screenshot.jpg", _screen_width * _screen_height * 4);
 	

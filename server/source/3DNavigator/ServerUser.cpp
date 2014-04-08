@@ -26,7 +26,8 @@ using namespace irr;
 
 ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
-	_current_frame(NULL), _receive_thread(NULL), _memory_file(NULL), _need_update(NULL)
+	_current_frame(NULL), _receive_thread(NULL), _memory_file(NULL), _need_update(NULL),
+	_scene_map(NULL)
 {
 }
 
@@ -101,13 +102,13 @@ void ServerUser::startService()
 
 void ServerUser::createHotspots()
 {
-	if(!_hotspots.empty())
+	if(!_hotspots.empty() || _scene_map == NULL)
 		return;
 
 	std::wstring name;
 	
 	char buffer[3];
-	std::ifstream hotspot_file("../../media/158.txt", std::ios::binary);
+	std::ifstream hotspot_file(_scene_map->hotspot_path, std::ios::binary);
 	hotspot_file.read(buffer, 3);
 
 	//Handle UTF-8 BOM

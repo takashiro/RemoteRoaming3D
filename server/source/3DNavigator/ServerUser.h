@@ -12,6 +12,7 @@
 
 class Server;
 class Hotspot;
+struct SceneMap;
 
 class ServerUser{
 public:
@@ -56,6 +57,7 @@ protected:
 	irr::video::IImage *_current_frame;
 	std::list<Hotspot *> _hotspots;
 	IrrMemoryFile *_memory_file;
+	SceneMap *_scene_map;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);

@@ -61,7 +61,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	ServerUser *client = (ServerUser *) lpParam;
 
-	Resource *scene_map = ServerInstance->getSceneMapAt(0);
+	SceneMap *&scene_map = client->_scene_map;
 	if(scene_map == NULL)
 		return 1;
 
@@ -225,8 +225,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	Set a jump speed of 3 units per second, which gives a fairly realistic jump
 	when used with the gravity of (0, -10, 0) in the collision response animator.
 	*/
-	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode();
-	camera->setPosition(core::vector3df(0,20,-5));
+	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, scene_map->camera_position, scene_map->camera_target);
 	camera->setFarValue(5000.0f);
 
 	if (selector)

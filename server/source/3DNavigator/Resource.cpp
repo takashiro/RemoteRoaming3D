@@ -15,7 +15,6 @@ Resource::Resource(const Json::Value &value)
 	parseJson(value);
 }
 
-
 void Resource::parseJson(const Json::Value &value)
 {
 	name = value[0].asString();

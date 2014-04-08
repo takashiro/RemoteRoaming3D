@@ -32,7 +32,7 @@ Server::~Server()
 		(*i)->disconnect();
 	}
 
-	for(std::vector<Resource *>::iterator i = _scenemaps.begin(); i != _scenemaps.end(); i++)
+	for(std::vector<SceneMap *>::iterator i = _scenemaps.begin(); i != _scenemaps.end(); i++)
 	{
 		delete *i;
 	}
@@ -157,6 +157,6 @@ void Server::loadSceneMap(const std::string &config_path)
 
 	for(Json::Value::iterator i = value.begin(); i != value.end(); i++)
 	{
-		_scenemaps.push_back(new Resource(*i));
+		_scenemaps.push_back(new SceneMap(*i));
 	}
 }

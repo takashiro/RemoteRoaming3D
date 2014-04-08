@@ -229,6 +229,7 @@
     </ClCompile>
     <ClCompile Include="protocol.cpp" />
     <ClCompile Include="Resource.cpp" />
+    <ClCompile Include="SceneMap.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerUser.cpp" />
     <ClCompile Include="ServerUserCallbacks.cpp" />
@@ -241,6 +242,7 @@
     <ClInclude Include="Hotspot.h" />
     <ClInclude Include="IrrMemoryFile.h" />
     <ClInclude Include="protocol.h" />
+    <ClInclude Include="SceneMap.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="ServerUser.h" />
     <ClInclude Include="util.h" />
