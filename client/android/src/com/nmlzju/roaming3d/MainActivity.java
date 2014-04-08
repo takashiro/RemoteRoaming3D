@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -22,6 +23,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.*;
 import android.preference.PreferenceManager;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +32,7 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -67,6 +70,7 @@ public class MainActivity extends Activity {
 	private Handler toast_handler = new ToastHandler(this);
 	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 	
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// Set full screen, no Status-Bar or anything except the Activity window!
@@ -145,10 +149,27 @@ public class MainActivity extends Activity {
 		};
 		
 		//get the screen size
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-		screen_width = displayMetrics.widthPixels;
-		screen_height = displayMetrics.heightPixels;
+		Display display = getWindowManager().getDefaultDisplay();     
+	    if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN){
+	    	DisplayMetrics metrics = new DisplayMetrics();
+	    	display.getRealMetrics(metrics);
+            screen_width = metrics.widthPixels;
+            screen_height = metrics.heightPixels;
+        }else{
+            try {
+            	Method mGetRawH = Display.class.getMethod("getRawHeight");
+            	Method mGetRawW = Display.class.getMethod("getRawWidth");
+            	screen_width = (Integer) mGetRawW.invoke(display);
+            	screen_height = (Integer) mGetRawH.invoke(display);
+            } catch (Exception e) {
+            	DisplayMetrics metrics = new DisplayMetrics();
+    	    	display.getMetrics(metrics);
+                screen_width = metrics.widthPixels;
+                screen_height = metrics.heightPixels;
+            }
+        }
+		//screen_width = displayMetrics.widthPixels;
+		//screen_height = displayMetrics.heightPixels;
 		
 		bitmap_size = screen_width * screen_height * 4;
 		receive_buffer = new byte[bitmap_size];
