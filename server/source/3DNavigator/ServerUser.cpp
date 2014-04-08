@@ -27,7 +27,7 @@ using namespace irr;
 ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
 	_current_frame(NULL), _receive_thread(NULL), _memory_file(NULL), _need_update(NULL),
-	_scene_map(NULL)
+	_scene_map(NULL), _hotspot_root(NULL)
 {
 }
 
@@ -127,11 +127,13 @@ void ServerUser::createHotspots()
 		return;
 
 	scene::ISceneManager *smgr = _device->getSceneManager();
+	_hotspot_root = smgr->addEmptySceneNode();
+
 	for(Json::Value::iterator i = hotspots.begin(); i != hotspots.end(); i++)
 	{
 		Hotspot *spot = new Hotspot(*i);
 		copy_string(name, spot->getName());
-		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, name.c_str(), 0, spot->getSize(), spot->getPosition());
+		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, name.c_str(), _hotspot_root, spot->getSize(), spot->getPosition());
 		spot->setNode(head_text);
 		_hotspots.push_back(spot);
 	}
@@ -139,7 +141,7 @@ void ServerUser::createHotspots()
 
 void ServerUser::clearHotspots()
 {
-	if(_hotspots.empty())
+	if(_hotspot_root == NULL || _hotspots.empty())
 		return;
 
 	static core::vector3df far_away(FLT_MIN, FLT_MIN, FLT_MIN);
@@ -149,11 +151,12 @@ void ServerUser::clearHotspots()
 		Hotspot *&spot = *i;
 		scene::ISceneNode *node = spot->getNode();
 		node->setPosition(far_away);
-		smgr->addToDeletionQueue(node);
 		delete spot;
 	}
 
 	_hotspots.clear();
+	smgr->addToDeletionQueue(_hotspot_root);
+	_hotspot_root = NULL;
 }
 
 void ServerUser::sendScreenshot()

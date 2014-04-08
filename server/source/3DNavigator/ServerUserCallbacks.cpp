@@ -163,48 +163,27 @@ void ServerUser::_doubleClick(const Json::Value &args)
 	if(_device == NULL)
 		return;
 
-	float pos_x = args[0].asFloat();
-	float pos_y = args[1].asFloat();
-	static f32 max_distance = 60.0f;
-	
-	scene::ICameraSceneNode *camera = _device->getSceneManager()->getActiveCamera();
+	core::vector2d<irr::s32> pos;
+	pos.X = args[0].asInt();
+	pos.Y = args[1].asInt();
+
+	scene::ISceneManager *smgr = _device->getSceneManager();
+	scene::ICameraSceneNode *camera = smgr->getActiveCamera();
 	if(camera == NULL)
 		return;
 
-	//Find the nearest hotspot
-	core::vector3df pos = camera->getPosition();
-	Hotspot *nearest = NULL;
-	std::list<Hotspot *>::iterator i;
-	f32 nearest_distance = FLT_MAX;
-	for(i = _hotspots.begin(); i != _hotspots.end(); i++)
+	//Find the clicked object
+	scene::ISceneCollisionManager *cmgr = smgr->getSceneCollisionManager();
+	scene::ISceneNode *clicked = cmgr->getSceneNodeFromScreenCoordinatesBB(pos, 0, true, _hotspot_root);
+
+	//Find the corresponding hotspot
+	for(std::list<Hotspot *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++)
 	{
-		scene::ISceneNode *text = (*i)->getNode();
-		f32 distance = text->getPosition().getDistanceFrom(pos);
-		if(distance <= max_distance)
+		Hotspot *&hotspot = *i;
+		if(hotspot->getNode() == clicked)
 		{
-			nearest = *i;
-			nearest_distance = distance;
+			enterHotspot(hotspot);
 			break;
 		}
 	}
-	
-	if(nearest == NULL)
-		return;
-
-	for(; i != _hotspots.end(); i++)
-	{
-		scene::ISceneNode *text = (*i)->getNode();
-		f32 distance = text->getPosition().getDistanceFrom(pos);
-		if(distance <= max_distance)
-		{
-			if(distance < nearest_distance)
-			{
-				nearest = *i;
-				nearest_distance = distance;
-			}
-		}
-	}
-
-	//Enter the hotspot
-	enterHotspot(nearest);
 }

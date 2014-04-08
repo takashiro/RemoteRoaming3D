@@ -58,6 +58,7 @@ protected:
 	std::list<Hotspot *> _hotspots;
 	IrrMemoryFile *_memory_file;
 	SceneMap *_scene_map;
+	irr::scene::ISceneNode *_hotspot_root;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);
