@@ -87,6 +87,9 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 			client->startService();
 			if(client->isValid()){
 				server->_clients.push_back(client);
+				R3D::Packet packet(R3D::MakeToastText);
+				packet.args[0] = (int) R3D::loading_map;
+				client->sendPacket(packet);
 			}else{
 				delete client;
 			}

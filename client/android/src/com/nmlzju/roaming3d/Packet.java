@@ -64,11 +64,13 @@ public class Packet {
 	
 	enum Message{
 		SERVER_REACHES_MAX_CLIENT_NUM,
-		SERVER_IS_TO_BE_CLOSED
+		SERVER_IS_TO_BE_CLOSED,
+		LOADING_MAP
 	};
 	
 	static int[] Message2Toast = new int[Message.values().length];
 	static{
 		Message2Toast[Message.SERVER_REACHES_MAX_CLIENT_NUM.ordinal()] = R.string.toast_server_reaches_max_client_num;
+		Message2Toast[Message.LOADING_MAP.ordinal()] = R.string.toast_loading_map;
 	}
 }

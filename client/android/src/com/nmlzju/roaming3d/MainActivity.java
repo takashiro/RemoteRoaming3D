@@ -68,9 +68,11 @@ public class MainActivity extends Activity {
 	private Handler toast_handler = new ToastHandler(this);
 	private Callback[] callbacks = new Callback[Packet.Command.length.ordinal()];
 	
+	private boolean is_running = true;
+	
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		//Get default settings
@@ -162,8 +164,6 @@ public class MainActivity extends Activity {
                 screen_height = metrics.heightPixels;
             }
         }
-		//screen_width = displayMetrics.widthPixels;
-		//screen_height = displayMetrics.heightPixels;
 		
 		bitmap_size = screen_width * screen_height * 4;
 		receive_buffer = new byte[bitmap_size];
@@ -185,19 +185,33 @@ public class MainActivity extends Activity {
 			.penaltyDeath()
 			.build()
 		);
-		
+
 		if(settings.getBoolean("auto_connect_on_start", false)){
 			connectToServer();
 		}
 	}
 	
-	private void connectToServer(){
+	@Override
+	protected void onDestroy() {
+		is_running = false;
+		
+		if(socket != null){
+			try {
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		super.onDestroy();
+	}
+	
+	protected void connectToServer(){
 		if(socket != null){
 			return;
 		}
 
-		Thread connect_thread = new Thread(){
-			
+		Thread connect_thread = new Thread(){	
 			@Override
 			public void run(){
 				ConnectivityManager cmgr = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -369,19 +383,6 @@ public class MainActivity extends Activity {
 			Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
 		}
 	}
-
-	@Override
-	public void onDestroy() {
-		if(socket != null){
-			try {
-				socket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		super.onDestroy();
-	}
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -420,7 +421,7 @@ public class MainActivity extends Activity {
 			DataOutputStream dos = null;
 			try {
 				dos = new DataOutputStream(socket.getOutputStream());
-				while (true) {
+				while (is_running) {
 					if (send_queue.isEmpty()){
 						continue;
 					}
@@ -449,7 +450,7 @@ public class MainActivity extends Activity {
 			int offset;
 			try {
 				stream = new DataInputStream(socket.getInputStream());
-				while (true) {
+				while (is_running) {
 					offset = 0;
 					do{
 						stream.readFully(receive_buffer, offset, 1);

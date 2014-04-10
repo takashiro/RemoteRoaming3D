@@ -39,7 +39,8 @@ namespace R3D{
 
 	enum Message{
 		server_reaches_max_client_num,
-		server_is_to_be_closed
+		server_is_to_be_closed,
+		loading_map
 	};
 
 	struct IP{

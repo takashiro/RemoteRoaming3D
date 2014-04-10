@@ -28,5 +28,6 @@
     <string name="toast_socket_exception">Socket Exception:</string>
     <string name="toast_io_exception">I/O Exception:</string>
     <string name="toast_detected_server">Detected a server </string>
+    <string name="toast_loading_map">Loading Map……</string>
 
 </resources>
