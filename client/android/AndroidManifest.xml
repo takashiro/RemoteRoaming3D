@@ -25,6 +25,7 @@
         <activity
             android:name="com.nmlzju.roaming3d.MainActivity"
             android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.FullScreen"
             android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

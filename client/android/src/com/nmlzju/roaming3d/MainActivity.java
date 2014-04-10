@@ -36,8 +36,6 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -73,12 +71,8 @@ public class MainActivity extends Activity {
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		// Set full screen, no Status-Bar or anything except the Activity window!
-		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
 		super.onCreate(savedInstanceState);
-		
+
 		//Get default settings
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		server_ip = settings.getString("server_ip", server_ip);
@@ -378,7 +372,7 @@ public class MainActivity extends Activity {
 
 	@Override
 	public void onDestroy() {
-		if(socket != null && !socket.isClosed()){
+		if(socket != null){
 			try {
 				socket.close();
 			} catch (IOException e) {
