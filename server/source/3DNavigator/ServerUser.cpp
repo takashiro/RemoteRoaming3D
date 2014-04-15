@@ -55,17 +55,29 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	const int length = 1024;
 	char buffer[length];
 
-	while (true)
+	int cur = 0;
+	while (socket->receive(buffer + cur, 1)) 
 	{
-		if (!socket->receive(buffer, length)) 
+		if(buffer[cur] == '\n')
 		{
-			//disconnect the client
-			ServerInstance->disconnect(client);
-			break;
+			buffer[cur] = 0;
+			cur = 0;
+			//puts(buffer);
+			client->handleCommand(buffer);
 		}
-
-		client->handleCommand(buffer);
+		else
+		{
+			cur++;
+			if(cur >= length)
+			{
+				cur = 0;
+				puts("The packet is too long!");
+			}
+		}
 	}
+
+	//disconnect the client
+	ServerInstance->disconnect(client);
 
 	return 0;
 }

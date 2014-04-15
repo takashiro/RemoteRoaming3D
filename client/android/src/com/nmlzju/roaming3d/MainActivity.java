@@ -428,7 +428,8 @@ public class MainActivity extends Activity {
 					
 					Packet packet = send_queue.poll();
 					StringBuilder sendString = new StringBuilder(packet.toString());
-					dos.write(sendString.toString().getBytes());
+					dos.writeBytes(sendString.toString());
+					dos.writeByte('\n');
 					dos.flush();
 				}
 
