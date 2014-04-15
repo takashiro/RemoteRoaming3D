@@ -63,7 +63,7 @@ void ServerUser::_rotateCamera(const Json::Value &args){
 	// Update rotation
 	core::vector3df target = (camera->getTarget() - camera->getAbsolutePosition());
 	core::vector3df relativeRotation = target.getHorizontalAngle();
-	core::vector2df CursorPos(args[0].asFloat(), args[1].asFloat());
+	core::vector2df CursorPos(float(args[0].asInt64() / 100.0), float(args[1].asInt64() / 100.0));
 
 	relativeRotation.Y -= CursorPos.X * RotateSpeed;
 	relativeRotation.X -= CursorPos.Y * RotateSpeed;
@@ -112,7 +112,7 @@ void ServerUser::_scaleCamera(const Json::Value &args)
 	
 	core::vector3df look_at = target - position;
 	look_at.normalize();
-	f32 delta = args[0].asFloat() * 0.1f;
+	f32 delta = float(args[0].asInt64() / 1000.0);
 	look_at *= delta;
 
 	position += look_at;

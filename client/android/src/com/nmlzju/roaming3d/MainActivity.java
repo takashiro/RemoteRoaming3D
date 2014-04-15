@@ -325,36 +325,31 @@ public class MainActivity extends Activity {
 				break;
 			}
 			
-			try {
-				if (pointer_count == 1) {
-					delta_x = new_x - old_x;
-					delta_y = new_y - old_y;
-					old_x = new_x;
-					old_y = new_y;
-					
-					if(delta_x * delta_x + delta_y * delta_y < 8)
-						break;
+			if (pointer_count == 1) {
+				delta_x = new_x - old_x;
+				delta_y = new_y - old_y;
+				old_x = new_x;
+				old_y = new_y;
+				
+				if(delta_x * delta_x + delta_y * delta_y < 8)
+					break;
 
-					Packet packet = new Packet(Packet.Command.ROTATE_CAMERA);
-					packet.args.put(delta_x);
-					packet.args.put(delta_y);
-					send_queue.offer(packet);
+				Packet packet = new Packet(Packet.Command.ROTATE_CAMERA);
+				packet.args.put((long)(delta_x * 100));
+				packet.args.put((long)(delta_y * 100));
+				send_queue.offer(packet);
 
-				} else if (pointer_count == 2) {
-					float disX = event.getX(0) - event.getX(1);
-					float disY = event.getY(0) - event.getY(1);
-					new_distance = disX * disX + disY * disY;
-					float deltaDistance = (float) (Math.sqrt(new_distance) - Math.sqrt(old_distance));
-					
-					Packet packet = new Packet(Packet.Command.SCALE_CAMERA);
-					packet.args.put(deltaDistance);
-					send_queue.offer(packet);
-					
-					old_distance = new_distance;
-				}
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} else if (pointer_count == 2) {
+				float disX = event.getX(0) - event.getX(1);
+				float disY = event.getY(0) - event.getY(1);
+				new_distance = disX * disX + disY * disY;
+				float deltaDistance = (float) (Math.sqrt(new_distance) - Math.sqrt(old_distance));
+				
+				Packet packet = new Packet(Packet.Command.SCALE_CAMERA);
+				packet.args.put((long)(deltaDistance * 100));
+				send_queue.offer(packet);
+				
+				old_distance = new_distance;
 			}
 			
 			break;
