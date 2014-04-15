@@ -71,7 +71,7 @@ namespace R3D{
 
 		void send(const std::string &raw);
 		void send(const char *data, int length);
-		bool receive(char *buffer, int buffer_size);
+		int receive(char *buffer, int buffer_size);
 		inline void close(){closesocket(_socket);}
 		
 	protected:

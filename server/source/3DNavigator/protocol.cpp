@@ -217,10 +217,9 @@ void AbstractSocket::send(const char *raw, int length)
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
 }
 
-bool AbstractSocket::receive(char *buffer, int buffer_size)
+int AbstractSocket::receive(char *buffer, int buffer_size)
 {
-	int result = recv(_socket, buffer, buffer_size, 0);
-	return result != 0 && result != SOCKET_ERROR;
+	return recv(_socket, buffer, buffer_size, 0);
 }
 
 TCPSocket::TCPSocket()

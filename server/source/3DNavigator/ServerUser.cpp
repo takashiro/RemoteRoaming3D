@@ -7,22 +7,6 @@
 #include <fstream>
 #include <sstream>
 
-enum
-{
-	// I use this ISceneNode ID to indicate a scene node that is
-	// not pickable by getSceneNodeAndCollisionPointFromRay()
-	ID_IsNotPickable = 0,
-
-	// I use this flag in ISceneNode IDs to indicate that the
-	// scene node can be picked by ray selection.
-	IDFlag_IsPickable = 1 << 0,
-	
-	// I use this flag in ISceneNode IDs to indicate that the
-	// scene node can be highlighted.  In this example, the
-	// homonids can be highlighted, but the level mesh can't.
-	IDFlag_IsHighlightable = 1 << 1
-};
-
 using namespace irr;
 
 ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
@@ -51,27 +35,56 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	ServerUser *client = (ServerUser *) pParam;
 	R3D::TCPSocket *&socket = client->_socket;
 
-	bool success = true;
-	const int length = 1024;
-	char buffer[length];
+	const static int buffer_size = 96;
+	const static int buffer_capacity = 128;
+	char buffer[buffer_capacity];
+	char *buffer_end = NULL;
+	char *begin = NULL;
+	char *end = NULL;
+	int length = 0;
 
-	int cur = 0;
-	while (socket->receive(buffer + cur, 1)) 
+	while ((length = socket->receive(buffer, buffer_size)) > 0)
 	{
-		if(buffer[cur] == '\n')
+		buffer_end = buffer + length;
+		begin = buffer;
+		while(true)
 		{
-			buffer[cur] = 0;
-			cur = 0;
-			//puts(buffer);
-			client->handleCommand(buffer);
-		}
-		else
-		{
-			cur++;
-			if(cur >= length)
+			//find the end of the current line
+			end = begin;
+			while(*end != '\n' && end < buffer_end)
 			{
-				cur = 0;
-				puts("The packet is too long!");
+				end++;
+			}
+
+			if(*end == '\n')
+			{
+				//we find a whole line, handle it
+				*end = 0;
+				client->handleCommand(begin);
+				begin = end + 1;
+				
+				//if there's no more lines, go to receive data again
+				if(begin >= buffer_end)
+				{
+					break;
+				}
+			}
+			else
+			{
+				//only a left section is received, so we try to fill it
+				buffer_end = buffer + buffer_capacity;
+				while(end < buffer_end && socket->receive(end, 1) == 1 && *end != '\n')
+				{
+					end++;
+				}
+
+				if(*end == '\n')
+				{
+					*end = 0;
+					client->handleCommand(begin);
+				}
+
+				break;
 			}
 		}
 	}
