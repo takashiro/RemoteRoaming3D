@@ -12,7 +12,7 @@ using namespace irr;
 
 map<string, ControlPanel::Callback> ControlPanel::_callbacks;
 
-#define ADD_CALLBACK(command) _callbacks[#command]=&ControlPanel::_##command;
+#define ADD_CALLBACK(command) _callbacks[#command]=&ControlPanel::_##command
 
 ControlPanel::ControlPanel(istream &in, ostream &out)
 	:cin(in), cout(out)
