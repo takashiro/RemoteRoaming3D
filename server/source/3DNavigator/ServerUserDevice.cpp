@@ -177,7 +177,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	optimization with the Octree is only useful when drawing huge meshes
 	consisting of lots of geometry.
 	*/
-	scene::IAnimatedMesh* mesh = smgr->getMesh("MG158_52.obj");
+	scene::IAnimatedMesh* mesh = smgr->getMesh(scene_map->mesh_path.c_str());
 	scene::IMeshSceneNode* node = 0;
 
 	if (mesh)

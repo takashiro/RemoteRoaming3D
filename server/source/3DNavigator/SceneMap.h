@@ -9,6 +9,7 @@ struct SceneMap: public Resource{
 	irr::core::vector3df camera_position;
 	irr::core::vector3df camera_target;
 	std::string hotspot_path;
+	std::string mesh_path;
 
 	SceneMap(){};
 	SceneMap(const std::string &json);

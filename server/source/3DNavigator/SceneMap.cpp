@@ -30,6 +30,7 @@ void SceneMap::parseJson(const Json::Value &value)
 	camera_target.Z = look_at[2].asFloat();
 
 	hotspot_path = value[5].asString();
+	mesh_path = value[6].asString();
 }
 
 Json::Value SceneMap::toJson() const
@@ -49,6 +50,7 @@ Json::Value SceneMap::toJson() const
 	value.append(target);
 
 	value.append(hotspot_path);
+	value.append(mesh_path);
 	
 	return value;
 }

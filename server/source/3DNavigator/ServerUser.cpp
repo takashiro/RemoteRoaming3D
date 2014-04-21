@@ -131,7 +131,8 @@ void ServerUser::createHotspots()
 	if(!_hotspots.empty() || _scene_map == NULL)
 		return;
 
-	std::wstring name;
+	if(_scene_map->hotspot_path.empty())
+		return;
 	
 	char buffer[3];
 	std::ifstream hotspot_file(_scene_map->hotspot_path, std::ios::binary);
@@ -155,6 +156,7 @@ void ServerUser::createHotspots()
 	scene::ISceneManager *smgr = _device->getSceneManager();
 	_hotspot_root = smgr->addEmptySceneNode();
 
+	std::wstring name;
 	for(Json::Value::iterator i = hotspots.begin(); i != hotspots.end(); i++)
 	{
 		Hotspot *spot = new Hotspot(*i);
