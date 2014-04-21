@@ -200,7 +200,7 @@ void AbstractSocket::send(const char *raw, int length)
 {
 	WaitForSingleObject(_is_sending_data, INFINITE);
 
-	size_t y = 0;
+	int y = 0;
 	while(y < length)
 	{
 		int result = ::send(_socket, raw + y, int(length - y), 0);
@@ -292,7 +292,7 @@ void UDPSocket::sendTo(const char *buffer, int size, const IP &ip, unsigned shor
 
 	WaitForSingleObject(_is_sending_data, INFINITE);
 
-	size_t y = 0;
+	int y = 0;
 	while(y < size)
 	{
 		int result = sendto(_socket, buffer, size, 0, (const sockaddr *) &addr, sizeof(addr));
