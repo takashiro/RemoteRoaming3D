@@ -10,9 +10,17 @@
 using namespace irr;
 
 ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
-	:_server(server), _socket(socket), _device(NULL), _device_thread(NULL),
-	_current_frame(NULL), _receive_thread(NULL), _memory_file(NULL), _need_update(NULL),
-	_scene_map(NULL), _hotspot_root(NULL)
+	: _server(server)
+	, _socket(socket)
+	, _device(NULL)
+	, _device_thread(NULL)
+	, _current_frame(NULL)
+	, _receive_thread(NULL)
+	, _memory_file(NULL)
+	, _need_update(NULL)
+	, _scene_map(NULL)
+	, _hotspot_root(NULL)
+	, _is_http_request(false)
 {
 }
 
@@ -195,17 +203,29 @@ void ServerUser::sendScreenshot()
 	}
 
 	_memory_file->clear();
-	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, _memory_file, 80))
+	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, _memory_file, 50))
 	{
 		puts("failed to transfer video frame");
 	}
 
 	int length = (int) _memory_file->getPos();
 
-	//transfer screenshot length
-	R3D::Packet packet(R3D::UpdateVideoFrame);
-	packet.args[0] = length;
-	sendPacket(packet);
+	if (_is_http_request) {
+		sendPacket("HTTP/1.1 200 OK\n");
+		sendPacket("Content-Type: image/jpeg\n");
+
+		std::stringstream ss;
+		ss << "Content-Length: " << length << "\n";
+		sendPacket(ss.str());
+		sendPacket("Connection : close\n\n");
+		sendPacket(_memory_file->getContent(), length);
+		return;
+	} else {
+		//transfer screenshot length
+		R3D::Packet packet(R3D::UpdateVideoFrame);
+		packet.args[0] = length;
+		sendPacket(packet);
+	}
 
 	//transfer the picture
 	sendPacket(_memory_file->getContent(), length);
@@ -225,17 +245,45 @@ void ServerUser::getIp(std::wstring &wstr)
 	buffer >> wstr;
 }
 
+void ServerUser::makeToast(int toastId)
+{
+	if (!_is_http_request) {
+		R3D::Packet packet(R3D::MakeToastText);
+		packet.args[0] = toastId;
+		sendPacket(packet);
+	}
+}
+
 void ServerUser::handleCommand(const char *cmd)
 {
-	R3D::Packet packet(cmd);
-	std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
-	if(iter != _callbacks.end())
-	{
-		Callback func = iter->second;
-		if(func != NULL){
-			(this->*func)(packet.args);
-			return;
+	if (_is_http_request) {
+		if (*cmd == '\n') {
+			_is_http_request = false;
 		}
 	}
-	std::cout << "invalid packet (" << getIp() << "):" << cmd;
+	else {
+		std::string url;
+		if (strncmp(cmd, "GET ", 4) == 0){
+			_is_http_request = true;
+			std::stringstream ss;
+			ss << cmd;
+			std::string command;
+			ss >> command >> url;
+			url.erase(url.begin());
+			urldecode(url);
+			cmd = url.data();
+		}
+
+		R3D::Packet packet(cmd);
+		std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
+		if (iter != _callbacks.end())
+		{
+			Callback func = iter->second;
+			if (func != NULL){
+				(this->*func)(packet.args);
+				return;
+			}
+		}
+		std::cout << "invalid packet (" << getIp() << "):" << cmd;
+	}
 }

@@ -79,17 +79,12 @@ DWORD WINAPI Server::_ServerThread(LPVOID pParam)
 
 		ServerUser *client = new ServerUser(server, client_socket);
 		if(server->getClients().size() >= server->getMaximumClientNum()){
-			R3D::Packet packet(R3D::MakeToastText);
-			packet.args[0] = (int) R3D::server_reaches_max_client_num;
-			client->sendPacket(packet);
+			client->makeToast(R3D::server_reaches_max_client_num);
 			delete client;
 		}else{
 			client->startService();
 			if(client->isValid()){
 				server->_clients.push_back(client);
-				R3D::Packet packet(R3D::MakeToastText);
-				packet.args[0] = (int) R3D::loading_map;
-				client->sendPacket(packet);
 			}else{
 				delete client;
 			}
