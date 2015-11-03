@@ -6,4 +6,6 @@
 void copy_string(std::string &str, const std::wstring &wstr);
 void copy_string(std::wstring &wstr, const std::string &str);
 
+void urldecode(std::string &str);
+
 #endif
