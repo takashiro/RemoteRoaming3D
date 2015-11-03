@@ -88,7 +88,6 @@ public class MainActivity extends Activity {
 	
 		//initialize callback functions
 		callbacks[Packet.Command.UPDATE_VIDEO_FRAME.ordinal()] = new Callback(){
-			@Override
 			public void handle(JSONArray args){
 				try{
 					int allLength = args.getInt(0);
@@ -110,14 +109,12 @@ public class MainActivity extends Activity {
 		};
 		
 		callbacks[Packet.Command.QUIT.ordinal()] = new Callback(){
-			@Override
 			public void handle(JSONArray args){
 				System.exit(0);
 			}
 		};
 		
 		callbacks[Packet.Command.MAKE_TOAST_TEXT.ordinal()] = new Callback(){
-			@Override
 			public void handle(JSONArray args){
 				String text = null;
 				try {
@@ -136,7 +133,6 @@ public class MainActivity extends Activity {
 		};
 		
 		callbacks[Packet.Command.ENTER_HOTSPOT.ordinal()] = new Callback(){
-			@Override
 			public void handle(JSONArray args){
 				Intent intent = new Intent(MainActivity.this, HotspotActivity.class);
 				intent.putExtra("hotspot", args.toString());
@@ -186,7 +182,7 @@ public class MainActivity extends Activity {
 			.build()
 		);
 
-		if(settings.getBoolean("auto_connect_on_start", false)){
+		if(settings.getBoolean("auto_connect_on_start", true)){
 			connectToServer();
 		}
 	}
@@ -481,7 +477,13 @@ public class MainActivity extends Activity {
 		
 		public void handleMessage(Message msg){
 			MainActivity activity = this.activity.get();
-			activity.scene.setImageBitmap((Bitmap) msg.obj);
+			Bitmap bitmap = (Bitmap) msg.obj;
+			int width = activity.scene.getWidth();
+			int height = activity.scene.getHeight();
+			if (width != bitmap.getWidth() || height != bitmap.getHeight()) {
+				bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+			}
+			activity.scene.setImageBitmap(bitmap);
 		}
 	}
 	
