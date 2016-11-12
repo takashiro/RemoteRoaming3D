@@ -12,3 +12,5 @@ ipch/
 *.lib
 *.exp
 /media/
+*.db
+*.opendb
