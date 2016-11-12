@@ -27,7 +27,8 @@ void copy_string(std::string &str, std::wstring &wstr)
 	delete[] bytes;
 }
 
-static char hextonumber(char ch){
+static char hextonumber(char ch)
+{
 	return '0' <= ch && ch <= '9' ? ch - '0' : 'A' <= ch && ch <= 'F' ? ch - 'A' + 10 : 0;
 }
 
@@ -44,4 +45,32 @@ void urldecode(std::string &str)
 			limit -= 2;
 		}
 	}
+}
+
+std::string base64_encode(const std::string &str)
+{
+	const char *index_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
+	std::string base64;
+	int i, max;
+	for (i = 2, max = str.size(); i < max; i += 3) {
+		base64 += index_table[str[i - 2] >> 2];
+		base64 += index_table[((str[i - 2] & 0x3) << 4) | ((str[i - 1] & 0xF0) >> 4)];
+		base64 += index_table[((str[i - 1] & 0xF) << 2) | ((str[i] & 0xC0) >> 6)];
+		base64 += index_table[str[i] & 0x3F];
+	}
+
+	i -= 2;
+	if (i + 1 < max) {
+		base64 += index_table[str[i] >> 2];
+		base64 += index_table[((str[i] & 0x3) << 4) | ((str[i + 1] & 0xF0) >> 4)];
+		base64 += index_table[(str[i + 1] & 0xF) << 2];
+		base64 += '=';
+	}
+	else if (i < max) {
+		base64 += index_table[str[i] >> 2];
+		base64 += index_table[(str[i] & 0x3) << 4];
+		base64 += '=';
+		base64 += '=';
+	}
+	return base64;
 }
