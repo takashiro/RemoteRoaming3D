@@ -35,6 +35,8 @@ void ControlPanel::_help()
 
 int ControlPanel::exec()
 {
+	cout << "Welcome to Remote Roaming 3D Server!" << endl;
+
 	string cmd;
 	map<string,Callback>::iterator func;
 	while(true)
@@ -104,16 +106,21 @@ void show_client_info(ServerUser *user)
 {
 	cout << "Client IP: " << user->getIp() << endl;
 	IrrlichtDevice *device = user->getDevice();
-	scene::ICameraSceneNode *camera = device->getSceneManager()->getActiveCamera();
-	if(camera != NULL)
-	{
-		cout.setf(ios::fixed, ios::floatfield);
-		cout.precision(3);
+	if (device) {
+		scene::ICameraSceneNode *camera = device->getSceneManager()->getActiveCamera();
+		if (camera)
+		{
+			cout.setf(ios::fixed, ios::floatfield);
+			cout.precision(3);
 
-		const core::vector3df &pos = camera->getPosition();
-		cout << "Camera Position: " << pos.X << ", " << pos.Y << ", " << pos.Z << endl;
-		const core::vector3df &target = camera->getTarget();
-		cout <<"Camera Target: "<< target.X << ", " << target.Y << ", " << target.Z << endl;
+			const core::vector3df &pos = camera->getPosition();
+			cout << "Camera Position: " << pos.X << ", " << pos.Y << ", " << pos.Z << endl;
+			const core::vector3df &target = camera->getTarget();
+			cout << "Camera Target: " << target.X << ", " << target.Y << ", " << target.Z << endl;
+		}
+	}
+	else {
+		cout << "No Device" << endl;
 	}
 }
 
@@ -126,9 +133,9 @@ void ControlPanel::_client()
 
 	if(idstr == "all")
 	{
-		for(std::list<ServerUser *>::const_iterator i = clients.begin(); i != clients.end(); i++)
+		for (ServerUser *client : clients)
 		{
-			show_client_info(*i);
+			show_client_info(client);
 			cout << endl;
 		}
 	}
@@ -136,11 +143,11 @@ void ControlPanel::_client()
 	{
 		int id = stoi(idstr);
 		int cur = 1;
-		for(std::list<ServerUser *>::const_iterator i = clients.begin(); i != clients.end(); i++)
+		for (ServerUser *client : clients)
 		{
 			if(id == cur)
 			{
-				show_client_info(*i);
+				show_client_info(client);
 				return;
 			}
 			cur++;
