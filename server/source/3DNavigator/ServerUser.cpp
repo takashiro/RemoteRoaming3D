@@ -20,7 +20,7 @@ ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	, _need_update(NULL)
 	, _scene_map(NULL)
 	, _hotspot_root(NULL)
-	, _is_web_socket(false)
+	, _packet_handler(&ServerUser::handleConnection)
 {
 }
 
@@ -68,7 +68,7 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 			{
 				//we find a whole line, handle it
 				*end = 0;
-				client->handleCommand(begin);
+				(client->*(client->_packet_handler))(begin);
 				begin = end + 1;
 				
 				//if there's no more lines, go to receive data again
@@ -89,7 +89,7 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 				if(*end == '\n')
 				{
 					*end = 0;
-					client->handleCommand(begin);
+					(client->*(client->_packet_handler))(begin);
 				}
 
 				break;
@@ -232,40 +232,51 @@ void ServerUser::getIp(std::wstring &wstr)
 
 void ServerUser::makeToast(int toastId)
 {
-	if (!_is_web_socket) {
-		R3D::Packet packet(R3D::MakeToastText);
-		packet.args[0] = toastId;
-		sendPacket(packet);
+	R3D::Packet packet(R3D::MakeToastText);
+	packet.args[0] = toastId;
+	sendPacket(packet);
+}
+
+void ServerUser::handleConnection(const char *cmd)
+{
+	if (*cmd == '[') {
+		_packet_handler = &ServerUser::handleCommand;
+		handleCommand(cmd);
+	}
+	else {
+		if (strnicmp(cmd, "GET ", 4) != 0) {
+			_packet_handler = &ServerUser::handleWebSocket;
+		}
+	}
+}
+
+void ServerUser::handleWebSocket(const char *cmd)
+{
+	if (strnicmp(cmd, "Sec-WebSocket-Key: ", 19) == 0) {
+		const char *key = cmd + 19;
+		std::string sec_key;
+		while (*key != '\n' && *key != '\r') {
+			sec_key += *key;
+			key++;
+		}
+		sec_key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+
+		std::string key_accept = base64_encode(sha1(sec_key));
+
+		_socket->write("HTTP/1.1 101 Switching Protocols\n");
+		_socket->write("Upgrade: websocket\n");
+		_socket->write("Connection: Upgrade\n");
+		_socket->write("Sec-WebSocket-Accept: ");
+		_socket->write(key_accept);
+		_socket->write("\n\n");
+
+		_packet_handler = &ServerUser::handleCommand;
 	}
 }
 
 void ServerUser::handleCommand(const char *cmd)
 {
-	std::string url;
-	if (strnicmp(cmd, "GET ", 4) == 0) {
-		_is_web_socket = true;
-		return;
-	}
-
 	if (*cmd != '[') {
-		if (_is_web_socket && strnicmp(cmd, "Sec-WebSocket-Key: ", 19) == 0) {
-			const char *key = cmd + 19;
-			std::string sec_key;
-			while (*key != '\n' && *key != '\r') {
-				sec_key += *key;
-				key++;
-			}
-			sec_key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-
-			std::string key_accept = base64_encode(sha1(sec_key));
-
-			_socket->write("HTTP/1.1 101 Switching Protocols\n");
-			_socket->write("Upgrade: websocket\n");
-			_socket->write("Connection: Upgrade\n");
-			_socket->write("Sec-WebSocket-Accept: ");
-			_socket->write(key_accept);
-			_socket->write("\n\n");
-		}
 		return;
 	}
 

@@ -32,11 +32,11 @@ public:
 	void startService();
 	void makeToast(int toastId);
 
-	bool isWebSocket() const { return _is_web_socket; }
-
 protected:
 	void sendScreenshot();
 	void enterHotspot(Hotspot *spot);
+	void handleConnection(const char *cmd);
+	void handleWebSocket(const char *cmd);
 	void handleCommand(const char *cmd);
 	void createHotspots();
 	void clearHotspots();
@@ -62,7 +62,7 @@ protected:
 	IrrMemoryFile *_memory_file;
 	SceneMap *_scene_map;
 	irr::scene::ISceneNode *_hotspot_root;
-	bool _is_web_socket;
+	void(ServerUser::*_packet_handler)(const char *);
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);
