@@ -7,7 +7,7 @@
 Server *ServerInstance = NULL;
 
 Server::Server()
-	:_server_port(6666), _maximum_client_num(1), _is_listening(false), _is_independent_thread_enabled(true),
+	:_server_port(6666), _maximum_client_num(10), _is_listening(false), _is_independent_thread_enabled(true),
 	_broadcast_socket(NULL), _broadcast_thread(NULL), _broadcast_port(52600), _is_broadcasting_config(false)
 {
 	ServerInstance = this;

@@ -181,7 +181,7 @@ void AbstractSocket::connect(const IP &ip, unsigned short port)
 	}
 }
 
-void AbstractSocket::send(const std::string &raw)
+void AbstractSocket::write(const std::string &raw)
 {
 	WaitForSingleObject(_is_sending_data, INFINITE);
 
@@ -196,7 +196,7 @@ void AbstractSocket::send(const std::string &raw)
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
 }
 
-void AbstractSocket::send(const char *raw, int length)
+void AbstractSocket::write(const char *raw, int length)
 {
 	WaitForSingleObject(_is_sending_data, INFINITE);
 
@@ -217,7 +217,7 @@ void AbstractSocket::send(const char *raw, int length)
 	ReleaseSemaphore(_is_sending_data, 1, NULL);
 }
 
-int AbstractSocket::receive(char *buffer, int buffer_size)
+int AbstractSocket::read(char *buffer, int buffer_size)
 {
 	return recv(_socket, buffer, buffer_size, 0);
 }

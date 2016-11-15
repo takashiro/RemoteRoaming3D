@@ -69,9 +69,9 @@ namespace R3D{
 		void bind(const IP &ip, unsigned short port);
 		void connect(const IP &ip, unsigned short port);
 
-		void send(const std::string &raw);
-		void send(const char *data, int length);
-		int receive(char *buffer, int buffer_size);
+		void write(const std::string &raw);
+		void write(const char *data, int length);
+		int read(char *buffer, int buffer_size);
 		inline void close(){closesocket(_socket);}
 		
 	protected:

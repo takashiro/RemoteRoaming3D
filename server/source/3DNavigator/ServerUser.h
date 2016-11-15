@@ -24,13 +24,15 @@ public:
 	inline R3D::IP getIp() const{return _socket->getPeerIp();};
 	void getIp(std::wstring &str);
 
-	inline void sendPacket(const R3D::Packet &packet){ _socket->send(packet.toString()); };
-	inline void sendPacket(const std::string &raw){_socket->send(raw);};
-	inline void sendPacket(const char *raw, int length){_socket->send(raw, length);};
+	inline void sendPacket(const R3D::Packet &packet){ _socket->write(packet.toString()); };
+	inline void sendPacket(const std::string &raw){_socket->write(raw);};
+	inline void sendPacket(const char *raw, int length){_socket->write(raw, length);};
 	void disconnect();
 
 	void startService();
 	void makeToast(int toastId);
+
+	bool isWebSocket() const { return _is_web_socket; }
 
 protected:
 	void sendScreenshot();
@@ -60,7 +62,7 @@ protected:
 	IrrMemoryFile *_memory_file;
 	SceneMap *_scene_map;
 	irr::scene::ISceneNode *_hotspot_root;
-	bool _is_http_request;
+	bool _is_web_socket;
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);

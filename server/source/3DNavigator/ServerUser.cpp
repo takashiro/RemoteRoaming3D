@@ -20,7 +20,7 @@ ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	, _need_update(NULL)
 	, _scene_map(NULL)
 	, _hotspot_root(NULL)
-	, _is_http_request(false)
+	, _is_web_socket(false)
 {
 }
 
@@ -40,7 +40,7 @@ ServerUser::~ServerUser()
 }
 
 DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
-	ServerUser *client = (ServerUser *) pParam;
+	ServerUser *client = static_cast<ServerUser *>(pParam);
 	R3D::TCPSocket *&socket = client->_socket;
 
 	const static int buffer_size = 96;
@@ -51,7 +51,7 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	char *end = NULL;
 	int length = 0;
 
-	while ((length = socket->receive(buffer, buffer_size)) > 0)
+	while ((length = socket->read(buffer, buffer_size)) > 0)
 	{
 		buffer_end = buffer + length;
 		begin = buffer;
@@ -81,7 +81,7 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 			{
 				//only a left section is received, so we try to fill it
 				buffer_end = buffer + buffer_capacity;
-				while(end < buffer_end && socket->receive(end, 1) == 1 && *end != '\n')
+				while(end < buffer_end && socket->read(end, 1) == 1 && *end != '\n')
 				{
 					end++;
 				}
@@ -210,25 +210,10 @@ void ServerUser::sendScreenshot()
 
 	int length = (int) _memory_file->getPos();
 
-	if (_is_http_request) {
-		sendPacket("HTTP/1.1 200 OK\n");
-		sendPacket("Content-Type: image/jpeg\n");
-
-		std::stringstream ss;
-		ss << "Content-Length: " << length << "\n";
-		sendPacket(ss.str());
-		sendPacket("Connection : close\n\n");
-		sendPacket(_memory_file->getContent(), length);
-		return;
-	} else {
-		//transfer screenshot length
-		R3D::Packet packet(R3D::UpdateVideoFrame);
-		packet.args[0] = length;
-		sendPacket(packet);
-	}
-
-	//transfer the picture
-	sendPacket(_memory_file->getContent(), length);
+	std::string raw(_memory_file->getContent(), length);
+	R3D::Packet packet(R3D::UpdateVideoFrame);
+	packet.args = base64_encode(raw);
+	sendPacket(packet);
 }
 
 void ServerUser::enterHotspot(Hotspot *spot)
@@ -247,7 +232,7 @@ void ServerUser::getIp(std::wstring &wstr)
 
 void ServerUser::makeToast(int toastId)
 {
-	if (!_is_http_request) {
+	if (!_is_web_socket) {
 		R3D::Packet packet(R3D::MakeToastText);
 		packet.args[0] = toastId;
 		sendPacket(packet);
@@ -256,34 +241,43 @@ void ServerUser::makeToast(int toastId)
 
 void ServerUser::handleCommand(const char *cmd)
 {
-	if (_is_http_request) {
-		if (*cmd == '\n') {
-			_is_http_request = false;
-		}
+	std::string url;
+	if (strnicmp(cmd, "GET ", 4) == 0) {
+		_is_web_socket = true;
+		return;
 	}
-	else {
-		std::string url;
-		if (strncmp(cmd, "GET ", 4) == 0){
-			_is_http_request = true;
-			std::stringstream ss;
-			ss << cmd;
-			std::string command;
-			ss >> command >> url;
-			url.erase(url.begin());
-			urldecode(url);
-			cmd = url.data();
-		}
 
-		R3D::Packet packet(cmd);
-		std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
-		if (iter != _callbacks.end())
-		{
-			Callback func = iter->second;
-			if (func != NULL){
-				(this->*func)(packet.args);
-				return;
+	if (*cmd != '[') {
+		if (_is_web_socket && strnicmp(cmd, "Sec-WebSocket-Key: ", 19) == 0) {
+			const char *key = cmd + 19;
+			std::string sec_key;
+			while (*key != '\n' && *key != '\r') {
+				sec_key += *key;
+				key++;
 			}
+			sec_key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+
+			std::string key_accept = base64_encode(sha1(sec_key));
+
+			_socket->write("HTTP/1.1 101 Switching Protocols\n");
+			_socket->write("Upgrade: websocket\n");
+			_socket->write("Connection: Upgrade\n");
+			_socket->write("Sec-WebSocket-Accept: ");
+			_socket->write(key_accept);
+			_socket->write("\n\n");
 		}
-		std::cout << "invalid packet (" << getIp() << "):" << cmd;
+		return;
 	}
+
+	R3D::Packet packet(cmd);
+	std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
+	if (iter != _callbacks.end())
+	{
+		Callback func = iter->second;
+		if (func) {
+			(this->*func)(packet.args);
+			return;
+		}
+	}
+	std::cout << "invalid packet (" << getIp() << "):" << cmd;
 }
