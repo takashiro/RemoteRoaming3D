@@ -176,6 +176,34 @@ void ServerUser::readFrame(char *buffer, int buffer_size, int length)
 	}
 }
 
+void ServerUser::sendPacket(const R3D::Packet &packet)
+{
+	char header[10] = {0x81, '\0'};
+
+	std::string data = packet.toString();
+	size_t length = data.length();
+	if (length < 126) {
+		header[1] = static_cast<char>(length);
+		_socket->write(header, 2);
+	}
+	else if (length <= 0xFFFF) {
+		header[1] = 126;
+		const char *bytes = reinterpret_cast<const char *>(&length);
+		header[2] = bytes[1];
+		header[3] = bytes[0];
+		_socket->write(header, 4);
+	}
+	else {
+		header[1] = 127;
+		const char *bytes = reinterpret_cast<const char *>(&length);
+		for (int i = 0; i < 8; i++) {
+			header[2 + i] = bytes[7 - i];
+		}
+		_socket->write(header, 10);
+	}
+	_socket->write(data);
+}
+
 void ServerUser::disconnect()
 {
 	_socket->close();
