@@ -89,4 +89,9 @@ $(function(){
 			Server.request(Command.RotateCamera, [deltaX * 100, deltaY * 100]);
 		}
 	});
+
+	screen.mousewheel(function(e){
+		e.preventDefault();
+		Server.request(Command.ScaleCamera, [-e.deltaY * 2000]);
+	});
 });
