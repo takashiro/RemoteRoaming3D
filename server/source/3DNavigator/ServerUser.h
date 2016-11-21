@@ -35,11 +35,15 @@ public:
 protected:
 	void sendScreenshot();
 	void enterHotspot(Hotspot *spot);
+	void createHotspots();
+	void clearHotspots();
+
+	void readLine(char *buffer, int buffer_capacity, int length);
+	void readFrame(char *buffer, int buffer_capacity, int length);
+
 	void handleConnection(const char *cmd);
 	void handleWebSocket(const char *cmd);
 	void handleCommand(const char *cmd);
-	void createHotspots();
-	void clearHotspots();
 
 	typedef void (ServerUser::*Callback)(const Json::Value &args);
 	static std::map<R3D::Command, Callback> _callbacks;
@@ -62,7 +66,8 @@ protected:
 	IrrMemoryFile *_memory_file;
 	SceneMap *_scene_map;
 	irr::scene::ISceneNode *_hotspot_root;
-	void(ServerUser::*_packet_handler)(const char *);
+	void (ServerUser::*_packet_handler)(const char *);
+	void (ServerUser::*_read_socket)(char *buffer, int buffer_capacity, int length);
 
 private:
 	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);

@@ -21,6 +21,7 @@ ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	, _scene_map(NULL)
 	, _hotspot_root(NULL)
 	, _packet_handler(&ServerUser::handleConnection)
+	, _read_socket(&ServerUser::readLine)
 {
 }
 
@@ -43,64 +44,136 @@ DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
 	ServerUser *client = static_cast<ServerUser *>(pParam);
 	R3D::TCPSocket *&socket = client->_socket;
 
-	const static int buffer_size = 96;
-	const static int buffer_capacity = 128;
-	char buffer[buffer_capacity];
-	char *buffer_end = NULL;
-	char *begin = NULL;
-	char *end = NULL;
+	static int buffer_capacity = 8 * 1024;
+	char *buffer = new char[buffer_capacity + 1];
 	int length = 0;
 
-	while ((length = socket->read(buffer, buffer_size)) > 0)
+	while ((length = socket->read(buffer, buffer_capacity)) > 0)
 	{
-		buffer_end = buffer + length;
-		begin = buffer;
-		while(true)
-		{
-			//find the end of the current line
-			end = begin;
-			while(*end != '\n' && end < buffer_end)
-			{
-				end++;
-			}
-
-			if(*end == '\n')
-			{
-				//we find a whole line, handle it
-				*end = 0;
-				(client->*(client->_packet_handler))(begin);
-				begin = end + 1;
-				
-				//if there's no more lines, go to receive data again
-				if(begin >= buffer_end)
-				{
-					break;
-				}
-			}
-			else
-			{
-				//only a left section is received, so we try to fill it
-				buffer_end = buffer + buffer_capacity;
-				while(end < buffer_end && socket->read(end, 1) == 1 && *end != '\n')
-				{
-					end++;
-				}
-
-				if(*end == '\n')
-				{
-					*end = 0;
-					(client->*(client->_packet_handler))(begin);
-				}
-
-				break;
-			}
-		}
+		(client->*(client->_read_socket))(buffer, buffer_capacity, length);
 	}
 
 	//disconnect the client
 	ServerInstance->disconnect(client);
 
+	delete[] buffer;
+
 	return 0;
+}
+
+void ServerUser::readLine(char *buffer, int buffer_capacity, int length)
+{
+	char *buffer_end = buffer + length;
+	char *begin = buffer;
+	char *end = nullptr;
+	for (;;)
+	{
+		//find the end of the current line
+		end = begin;
+		while (*end != '\n' && *end != '\r' && end < buffer_end)
+		{
+			end++;
+		}
+
+		if (*end == '\n' || *end == '\r')
+		{
+			//we find a whole line, handle it
+			if (*end == '\r') {
+				*end = '\0';
+				if (end + 1 < buffer_end) {
+					if (end[1] == '\n') {
+						end++;
+						*end = '\0';
+					}
+				}
+			}
+			else {
+				*end = '\0';
+			}
+			(this->*_packet_handler)(begin);
+			begin = end + 1;
+
+			//if there's no more lines, go to receive data again
+			if (begin >= buffer_end)
+			{
+				break;
+			}
+		}
+		else
+		{
+			//only a left section is received, break it
+			break;
+		}
+	}
+}
+
+void ServerUser::readFrame(char *buffer, int buffer_size, int length)
+{
+	if (length <= 2) {
+		return;
+	}
+	char *data = buffer + 2;
+	length -= 2;
+
+	unsigned long long payload_length = buffer[1] & 0x7F;
+	if (payload_length == 126) {
+		if (length < 4) {
+			puts("Incomplete payload length");
+			return;
+		}
+		payload_length = buffer[0] << 8 | buffer[1];
+		data += 2;
+		length -= 2;
+	}
+	else if (payload_length == 127) {
+		if (length < 10) {
+			puts("Incomplete payload length");
+			return;
+		}
+		payload_length = 0;
+		for (int i = 0; i < 8; i++) {
+			payload_length <<= 8;
+			payload_length |= data[i];
+		}
+		data += 8;
+		length -= 8;
+	}
+
+	char masked = buffer[1] & 0x80;
+	char *mask = nullptr;
+	if (masked) {
+		if (length < 4) {
+			//Fatal Error
+			puts("Incomplete masked key");
+			return;
+		}
+		mask = data;
+		data += 4;
+		length -= 4;
+	}
+
+	if (length < payload_length) {
+		puts("payload length exceeds array");
+		return;
+	}
+
+	for (int i = 0, j = 0; i < payload_length; i++) {
+		data[i] ^= mask[j];
+		j++;
+		if (j == 4) {
+			j = 0;
+		}
+	}
+
+	//Final Fragment
+	//char type = buffer[0] & 0xF;
+	if (buffer[0] & 0x80) {
+		data[length] = '\0';
+		handleCommand(data);
+	}
+	else {
+		//Unsupported yet
+	}
 }
 
 void ServerUser::disconnect()
@@ -253,12 +326,7 @@ void ServerUser::handleConnection(const char *cmd)
 void ServerUser::handleWebSocket(const char *cmd)
 {
 	if (strnicmp(cmd, "Sec-WebSocket-Key: ", 19) == 0) {
-		const char *key = cmd + 19;
-		std::string sec_key;
-		while (*key != '\n' && *key != '\r') {
-			sec_key += *key;
-			key++;
-		}
+		std::string sec_key = cmd + 19;
 		sec_key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
 		std::string key_accept = base64_encode(sha1(sec_key));
@@ -269,8 +337,10 @@ void ServerUser::handleWebSocket(const char *cmd)
 		_socket->write("Sec-WebSocket-Accept: ");
 		_socket->write(key_accept);
 		_socket->write("\n\n");
-
+	}
+	else if (*cmd == '\0') {
 		_packet_handler = &ServerUser::handleCommand;
+		_read_socket = &ServerUser::readFrame;
 	}
 }
 

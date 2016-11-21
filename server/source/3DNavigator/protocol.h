@@ -86,7 +86,7 @@ namespace R3D{
 		IP getPeerIp() const;
 
 	protected:
-		void _init();
+		void _init() override;
 	};
 
 	class UDPSocket: public AbstractSocket{
@@ -100,7 +100,7 @@ namespace R3D{
 		void sendTo(const char *buffer, int size, const IP &ip, unsigned short port);
 
 	protected:
-		void _init();
+		void _init() override;
 	};
 
 	class TCPServer{
