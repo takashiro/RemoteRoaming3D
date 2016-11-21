@@ -1,0 +1,26 @@
+html{
+	user-select: none;
+	-moz-user-select: none;
+}
+
+body{
+	background: #909090;
+	text-align: center;
+	margin: 0;
+	padding: 0;
+}
+
+#screen{
+	background: black;
+	width: 960px;
+	height: 540px;
+	margin: 0 auto;
+	color: white;
+	font-size: 40pt;
+	line-height: 540px;
+}
+
+#screen > img{
+	width: 100%;
+	height: 100%;
+}
