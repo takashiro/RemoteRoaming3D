@@ -1,5 +1,4 @@
-#ifndef _HOTSPOT_H_
-#define _HOTSPOT_H_
+#pragma once
 
 #include <irrlicht.h>
 #include <json/json.h>
@@ -8,19 +7,23 @@
 
 #include "Resource.h"
 
+RD_NAMESPACE_BEGIN
+
 class Hotspot
 {
 public:
-	struct Image: public Resource{
-		Image(){};
+	struct Image : public Resource
+	{
+		Image() {};
 		Image(const std::string &json);
 		Image(const Json::Value &value);
 	};
 
-	struct Media: public Resource{
+	struct Media : public Resource
+	{
 		std::string thumbnail;
-		
-		Media(){};
+
+		Media() {};
 		Media(const std::string &json);
 		Media(const Json::Value &value);
 
@@ -35,34 +38,34 @@ public:
 	void parseJson(const Json::Value &value);
 	Json::Value toJson() const;
 
-	inline std::string getName() const{return _name;}
-	inline void setName(const std::string &name){_name = name;}
+	inline std::string getName() const { return mName; }
+	inline void setName(const std::string &name) { mName = name; }
 
-	inline irr::core::vector3df getPosition() const{return _pos;}
-	inline void setPosition(const irr::core::vector3df &pos){_pos = pos;}
+	inline irr::core::vector3df getPosition() const { return mPos; }
+	inline void setPosition(const irr::core::vector3df &pos) { mPos = pos; }
 
-	inline irr::core::dimension2d<irr::f32> getSize() const{return _size;}
-	inline void setSize(const irr::core::dimension2d<irr::f32> &size){_size = size;}
+	inline irr::core::dimension2d<irr::f32> getSize() const { return mSize; }
+	inline void setSize(const irr::core::dimension2d<irr::f32> &size) { mSize = size; }
 
-	inline void setNode(irr::scene::ISceneNode *node){_node = node;}
-	inline irr::scene::ISceneNode *getNode() const{return _node;}
+	inline void setNode(irr::scene::ISceneNode *node) { mNode = node; }
+	inline irr::scene::ISceneNode *getNode() const { return mNode; }
 
-	inline std::string getDescription() const{return _description;}
-	inline void setDescription(const std::string &description){_description = description;}
+	inline std::string getDescription() const { return mDescription; }
+	inline void setDescription(const std::string &description) { mDescription = description; }
 
-	inline void addImage(const Image &image){_image.push_back(image);}
-	inline void removeImage(const Image &image){_image.remove(image);}
-	inline void addMedia(const Media &media){_media.push_back(media);}
-	inline void removeMedia(const Media &media){_media.remove(media);}
+	inline void addImage(const Image &image) { mImage.push_back(image); }
+	inline void removeImage(const Image &image) { mImage.remove(image); }
+	inline void addMedia(const Media &media) { mMedia.push_back(media); }
+	inline void removeMedia(const Media &media) { mMedia.remove(media); }
 
 protected:
-	irr::core::vector3df _pos;
-	irr::core::dimension2d<irr::f32> _size;
-	std::string _name;
-	irr::scene::ISceneNode *_node;
-	std::string _description;
-	std::list<Image> _image;
-	std::list<Media> _media;
+	irr::core::vector3df mPos;
+	irr::core::dimension2d<irr::f32> mSize;
+	std::string mName;
+	irr::scene::ISceneNode *mNode;
+	std::string mDescription;
+	std::list<Image> mImage;
+	std::list<Media> mMedia;
 };
 
-#endif
+RD_NAMESPACE_END
