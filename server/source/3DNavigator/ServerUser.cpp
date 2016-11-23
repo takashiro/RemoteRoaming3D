@@ -240,11 +240,11 @@ void ServerUser::createHotspots()
 	if(!_hotspots.empty() || _scene_map == NULL)
 		return;
 
-	if(_scene_map->hotspot_path.empty())
+	if(_scene_map->hotspotPath.empty())
 		return;
 	
 	char buffer[3];
-	std::ifstream hotspot_file(_scene_map->hotspot_path, std::ios::binary);
+	std::ifstream hotspot_file(_scene_map->hotspotPath, std::ios::binary);
 	hotspot_file.read(buffer, 3);
 
 	//Handle UTF-8 BOM

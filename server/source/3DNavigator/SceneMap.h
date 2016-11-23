@@ -1,17 +1,21 @@
-#ifndef __SCENEMAP_H__
-#define __SCENEMAP_H__
+#pragma once
+
+#include "global.h"
 
 #include <string>
 #include "Resource.h"
 #include "irrlicht.h"
 
-struct SceneMap: public Resource{
-	irr::core::vector3df camera_position;
-	irr::core::vector3df camera_target;
-	std::string hotspot_path;
-	std::string mesh_path;
+RD_NAMESPACE_BEGIN
 
-	SceneMap(){};
+struct SceneMap : public Resource
+{
+	irr::core::vector3df cameraPosition;
+	irr::core::vector3df cameraTarget;
+	std::string hotspotPath;
+	std::string meshPath;
+
+	SceneMap() {};
 	SceneMap(const std::string &json);
 	SceneMap(const Json::Value &value);
 
@@ -19,4 +23,4 @@ struct SceneMap: public Resource{
 	Json::Value toJson() const;
 };
 
-#endif
+RD_NAMESPACE_END

@@ -177,7 +177,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	optimization with the Octree is only useful when drawing huge meshes
 	consisting of lots of geometry.
 	*/
-	scene::IAnimatedMesh* mesh = smgr->getMesh(scene_map->mesh_path.c_str());
+	scene::IAnimatedMesh* mesh = smgr->getMesh(scene_map->meshPath.c_str());
 	scene::IMeshSceneNode* node = 0;
 
 	if (mesh)
@@ -219,7 +219,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	Set a jump speed of 3 units per second, which gives a fairly realistic jump
 	when used with the gravity of (0, -10, 0) in the collision response animator.
 	*/
-	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, scene_map->camera_position, scene_map->camera_target);
+	scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, scene_map->cameraPosition, scene_map->cameraTarget);
 	camera->setFarValue(5000.0f);
 
 	/*
