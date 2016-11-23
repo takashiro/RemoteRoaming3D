@@ -13,7 +13,7 @@ enum
 	// I use this flag in ISceneNode IDs to indicate that the
 	// scene node can be picked by ray selection.
 	IDFlag_IsPickable = 1 << 0,
-	
+
 	// I use this flag in ISceneNode IDs to indicate that the
 	// scene node can be highlighted.  In this example, the
 	// homonids can be highlighted, but the level mesh can't.
@@ -26,52 +26,52 @@ using namespace irr;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	switch (message)
-	{
+	switch (message) {
 	case WM_PAINT:
-		{
-			PAINTSTRUCT ps;
-			BeginPaint(hWnd, &ps);
-			EndPaint(hWnd, &ps);
-		}
-		return 0;
+	{
+		PAINTSTRUCT ps;
+		BeginPaint(hWnd, &ps);
+		EndPaint(hWnd, &ps);
+	}
+	return 0;
 
 	case WM_ERASEBKGND:
-		return 0;
+	return 0;
 
 	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
+	PostQuitMessage(0);
+	return 0;
 
 	case WM_SYSCOMMAND:
-		// prevent screensaver or monitor powersave mode from starting
-		if ((wParam & 0xFFF0) == SC_SCREENSAVE ||
-			(wParam & 0xFFF0) == SC_MONITORPOWER ||
-			(wParam & 0xFFF0) == SC_KEYMENU
-			)
-			return 0;
+	// prevent screensaver or monitor powersave mode from starting
+	if ((wParam & 0xFFF0) == SC_SCREENSAVE ||
+		(wParam & 0xFFF0) == SC_MONITORPOWER ||
+		(wParam & 0xFFF0) == SC_KEYMENU
+		)
+		return 0;
 
-		break;
+	break;
 	}
 	return DefWindowProc(hWnd, message, wParam, lParam);
 };
 
 #endif //if compiled with windows
 
-DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
-	ServerUser *client = (ServerUser *) lpParam;
+DWORD WINAPI ServerUser::DeviceThread(LPVOID lpParam)
+{
+	ServerUser *client = (ServerUser *)lpParam;
 
-	SceneMap *&scene_map = client->_scene_map;
-	if(scene_map == NULL)
+	SceneMap *&scene_map = client->mSceneMap;
+	if (scene_map == NULL)
 		return 1;
 
-	IrrlichtDevice *&device = client->_device;
+	IrrlichtDevice *&device = client->mDevice;
 
 	//set up creation parameters
 	SIrrlichtCreationParameters p;
 	p.DriverType = ServerInstance->getDriverType();
-	p.WindowSize = core::dimension2d<u32>(client->_screen_width, client->_screen_height);
-	p.Bits = (u8) 16U;
+	p.WindowSize = core::dimension2d<u32>(client->mScreenWidth, client->mScreenHeight);
+	p.Bits = (u8)16U;
 	p.Fullscreen = false;
 	p.Stencilbuffer = false;
 	p.Vsync = false;
@@ -84,21 +84,21 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 	// Register Class
 	WNDCLASSEX wcex;
-	wcex.cbSize			= sizeof(WNDCLASSEX);
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= GetModuleHandle(0);
-	wcex.hIcon			= NULL;
-	wcex.hCursor		= 0;
-	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= 0;
-	wcex.lpszClassName	= ClassName;
-	wcex.hIconSm		= 0;
+	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.style = CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc = WndProc;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hInstance = GetModuleHandle(0);
+	wcex.hIcon = NULL;
+	wcex.hCursor = 0;
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName = 0;
+	wcex.lpszClassName = ClassName;
+	wcex.hIconSm = 0;
 
 	// if there is an icon, load it
-	wcex.hIcon = (HICON)LoadImage(wcex.hInstance, __TEXT("irrlicht.ico"), IMAGE_ICON, 0,0, LR_LOADFROMFILE);
+	wcex.hIcon = (HICON)LoadImage(wcex.hInstance, __TEXT("irrlicht.ico"), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 
 	RegisterClassEx(&wcex);
 
@@ -106,8 +106,8 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	RECT clientSize;
 	clientSize.top = 0;
 	clientSize.left = 0;
-	clientSize.right = client->_screen_width;
-	clientSize.bottom = client->_screen_height;
+	clientSize.right = client->mScreenWidth;
+	clientSize.bottom = client->mScreenHeight;
 
 	DWORD style = WS_POPUP;//WS_SYSMENU | WS_BORDER | WS_CAPTION | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
@@ -119,13 +119,13 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	s32 windowLeft = (GetSystemMetrics(SM_CXSCREEN) - realWidth) / 2;
 	s32 windowTop = (GetSystemMetrics(SM_CYSCREEN) - realHeight) / 2;
 
-	if ( windowLeft < 0 )
+	if (windowLeft < 0)
 		windowLeft = 0;
-	if ( windowTop < 0 )
+	if (windowTop < 0)
 		windowTop = 0;	// make sure window menus are in screen on creation
 
 	// create window
-	HWND HWnd = CreateWindow( ClassName, __TEXT(""), style, windowLeft, windowTop, realWidth, realHeight, NULL, NULL, wcex.hInstance, NULL);
+	HWND HWnd = CreateWindow(ClassName, __TEXT(""), style, windowLeft, windowTop, realWidth, realHeight, NULL, NULL, wcex.hInstance, NULL);
 
 	ShowWindow(HWnd, SW_HIDE);
 	UpdateWindow(HWnd);
@@ -156,7 +156,7 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	directly stored on the disk.
 	*/
 	device->getFileSystem()->addFileArchive(scene_map->path.c_str());
-	
+
 	/*
 	Now we can load the mesh by calling
 	irr::scene::ISceneManager::getMesh(). We get a pointer returned to an
@@ -194,19 +194,18 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 
 	irr::scene::IBillboardSceneNode * bill = 0;
 	irr::scene::ILightSceneNode *light = 0;
-	if (node)
-	{
-		node->setMaterialFlag(irr::video::EMF_LIGHTING,true);
+	if (node) {
+		node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
 
-		node->setScale(core::vector3df(80,80,80));
-		node->setRotation(core::vector3df(-90,0,0));
-		node->setPosition(core::vector3df(0,-40,0));
+		node->setScale(core::vector3df(80, 80, 80));
+		node->setRotation(core::vector3df(-90, 0, 0));
+		node->setPosition(core::vector3df(0, -40, 0));
 
-		node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS,true);
-		light = smgr->addLightSceneNode(0,core::vector3df(0,10,5),video::SColorf(1.0f, 1.0f, 1.0f),100);
-		smgr->setAmbientLight(video::SColor(0,160,160,160));
-		light->setPosition(core::vector3df(0,10,10));
-		
+		node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
+		light = smgr->addLightSceneNode(0, core::vector3df(0, 10, 5), video::SColorf(1.0f, 1.0f, 1.0f), 100);
+		smgr->setAmbientLight(video::SColor(0, 160, 160, 160));
+		light->setPosition(core::vector3df(0, 10, 10));
+
 		// attach billboard to light
 		bill = smgr->addBillboardSceneNode(light, core::dimension2d<f32>(30, 30));
 		bill->setMaterialFlag(video::EMF_LIGHTING, false);
@@ -227,22 +226,20 @@ DWORD WINAPI ServerUser::_DeviceThread(LPVOID lpParam){
 	*/
 	int lastFPS = -1;
 
-	while(device->run())
-	{
-		WaitForSingleObject(client->_need_update, INFINITE);
-		driver->beginScene(true, true, video::SColor(255,200,200,200));
+	while (device->run()) {
+		WaitForSingleObject(client->mNeedUpdate, INFINITE);
+		driver->beginScene(true, true, video::SColor(255, 200, 200, 200));
 		smgr->drawAll();
 		driver->endScene();
 
-		if(client->_current_frame != NULL){
-			client->_current_frame->drop();
+		if (client->mCurrentFrame != NULL) {
+			client->mCurrentFrame->drop();
 		}
-		client->_current_frame = driver->createScreenShot();
+		client->mCurrentFrame = driver->createScreenShot();
 		client->sendScreenshot();
 
 		int fps = driver->getFPS();
-		if (lastFPS != fps)
-		{
+		if (lastFPS != fps) {
 			std::wstring str;
 			client->getIp(str);
 			str += L" [";

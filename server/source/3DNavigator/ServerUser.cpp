@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "ServerUser.h"
 #include "Hotspot.h"
+#include "util.h"
 
 #include <memory.h>
 #include <iostream>
@@ -9,19 +10,21 @@
 
 using namespace irr;
 
+RD_NAMESPACE_BEGIN
+
 ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
-	: _server(server)
-	, _socket(socket)
-	, _device(NULL)
-	, _device_thread(NULL)
-	, _current_frame(NULL)
-	, _receive_thread(NULL)
-	, _memory_file(NULL)
-	, _need_update(NULL)
-	, _scene_map(NULL)
-	, _hotspot_root(NULL)
-	, _packet_handler(&ServerUser::handleConnection)
-	, _read_socket(&ServerUser::readLine)
+	: mServer(server)
+	, mSocket(socket)
+	, mDevice(nullptr)
+	, mDeviceThread(nullptr)
+	, mCurrentFrame(nullptr)
+	, mReceiveThread(nullptr)
+	, mMemoryFile(nullptr)
+	, mNeedUpdate(nullptr)
+	, mSceneMap(nullptr)
+	, mHotspotRoot(NULL)
+	, mPacketHandler(&ServerUser::handleConnection)
+	, mReadSocket(&ServerUser::readLine)
 {
 }
 
@@ -29,28 +32,26 @@ ServerUser::~ServerUser()
 {
 	disconnect();
 
-	if(_need_update != NULL)
-	{
-		CloseHandle(_need_update);
+	if (mNeedUpdate) {
+		CloseHandle(mNeedUpdate);
 	}
 
-	if(_memory_file != NULL)
-	{
-		_memory_file->drop();
+	if (mMemoryFile) {
+		mMemoryFile->drop();
 	}
 }
 
-DWORD WINAPI ServerUser::_ReceiveThread(LPVOID pParam){
+DWORD WINAPI ServerUser::ReceiveThread(LPVOID pParam)
+{
 	ServerUser *client = static_cast<ServerUser *>(pParam);
-	R3D::TCPSocket *&socket = client->_socket;
+	R3D::TCPSocket *&socket = client->mSocket;
 
 	static int buffer_capacity = 8 * 1024;
 	char *buffer = new char[buffer_capacity + 1];
 	int length = 0;
 
-	while ((length = socket->read(buffer, buffer_capacity)) > 0)
-	{
-		(client->*(client->_read_socket))(buffer, buffer_capacity, length);
+	while ((length = socket->read(buffer, buffer_capacity)) > 0) {
+		(client->*(client->mReadSocket))(buffer, buffer_capacity, length);
 	}
 
 	//disconnect the client
@@ -66,17 +67,14 @@ void ServerUser::readLine(char *buffer, int buffer_capacity, int length)
 	char *buffer_end = buffer + length;
 	char *begin = buffer;
 	char *end = nullptr;
-	for (;;)
-	{
+	for (;;) {
 		//find the end of the current line
 		end = begin;
-		while (*end != '\n' && *end != '\r' && end < buffer_end)
-		{
+		while (*end != '\n' && *end != '\r' && end < buffer_end) {
 			end++;
 		}
 
-		if (*end == '\n' || *end == '\r')
-		{
+		if (*end == '\n' || *end == '\r') {
 			//we find a whole line, handle it
 			if (*end == '\r') {
 				*end = '\0';
@@ -86,21 +84,17 @@ void ServerUser::readLine(char *buffer, int buffer_capacity, int length)
 						*end = '\0';
 					}
 				}
-			}
-			else {
+			} else {
 				*end = '\0';
 			}
-			(this->*_packet_handler)(begin);
+			(this->*mPacketHandler)(begin);
 			begin = end + 1;
 
 			//if there's no more lines, go to receive data again
-			if (begin >= buffer_end)
-			{
+			if (begin >= buffer_end) {
 				break;
 			}
-		}
-		else
-		{
+		} else {
 			//only a left section is received, break it
 			break;
 		}
@@ -124,8 +118,7 @@ void ServerUser::readFrame(char *buffer, int buffer_size, int length)
 		payload_length = buffer[0] << 8 | buffer[1];
 		data += 2;
 		length -= 2;
-	}
-	else if (payload_length == 127) {
+	} else if (payload_length == 127) {
 		if (length < 10) {
 			puts("Incomplete payload length");
 			return;
@@ -170,86 +163,79 @@ void ServerUser::readFrame(char *buffer, int buffer_size, int length)
 	if (buffer[0] & 0x80) {
 		data[length] = '\0';
 		handleCommand(data);
-	}
-	else {
+	} else {
 		//Unsupported yet
 	}
 }
 
 void ServerUser::sendPacket(const R3D::Packet &packet)
 {
-	char header[10] = {'\x81', '\0'};
+	char header[10] = { '\x81', '\0' };
 
 	std::string data = packet.toString();
 	size_t length = data.length();
 	if (length < 126) {
 		header[1] = static_cast<char>(length);
-		_socket->write(header, 2);
-	}
-	else if (length <= 0xFFFF) {
+		mSocket->write(header, 2);
+	} else if (length <= 0xFFFF) {
 		header[1] = 126;
 		const char *bytes = reinterpret_cast<const char *>(&length);
 		header[2] = bytes[1];
 		header[3] = bytes[0];
-		_socket->write(header, 4);
-	}
-	else {
+		mSocket->write(header, 4);
+	} else {
 		header[1] = 127;
 		const char *bytes = reinterpret_cast<const char *>(&length);
 		for (int i = 0; i < 8; i++) {
 			header[2 + i] = bytes[7 - i];
 		}
-		_socket->write(header, 10);
+		mSocket->write(header, 10);
 	}
-	_socket->write(data);
+	mSocket->write(data);
 }
 
 void ServerUser::disconnect()
 {
-	_socket->close();
+	mSocket->close();
 
-	if(_device)
-	{
-		_device->closeDevice();
-		ReleaseSemaphore(_need_update, 1, NULL);
-	}
-	
-	if(_device_thread != NULL)
-	{
-		WaitForSingleObject(_device_thread, INFINITE);
-		CloseHandle(_device_thread);
-		_device_thread = NULL;
+	if (mDevice) {
+		mDevice->closeDevice();
+		ReleaseSemaphore(mNeedUpdate, 1, NULL);
 	}
 
-	if(_receive_thread != NULL)
-	{
-		WaitForSingleObject(_receive_thread, INFINITE);
-		CloseHandle(_receive_thread);
-		_receive_thread = NULL;
+	if (mDeviceThread != NULL) {
+		WaitForSingleObject(mDeviceThread, INFINITE);
+		CloseHandle(mDeviceThread);
+		mDeviceThread = NULL;
+	}
+
+	if (mReceiveThread != NULL) {
+		WaitForSingleObject(mReceiveThread, INFINITE);
+		CloseHandle(mReceiveThread);
+		mReceiveThread = NULL;
 	}
 }
 
 void ServerUser::startService()
 {
-	_receive_thread = CreateThread(NULL, 0, _ReceiveThread, (LPVOID) this, 0, NULL);
-	_need_update = CreateSemaphore(NULL, 1, 1, NULL);
+	mReceiveThread = CreateThread(NULL, 0, ReceiveThread, (LPVOID) this, 0, NULL);
+	mNeedUpdate = CreateSemaphore(NULL, 1, 1, NULL);
 }
 
 void ServerUser::createHotspots()
 {
-	if(!_hotspots.empty() || _scene_map == NULL)
+	if (!mHotspots.empty() || mSceneMap == NULL)
 		return;
 
-	if(_scene_map->hotspotPath.empty())
+	if (mSceneMap->hotspotPath.empty())
 		return;
-	
+
 	char buffer[3];
-	std::ifstream hotspot_file(_scene_map->hotspotPath, std::ios::binary);
+	std::ifstream hotspot_file(mSceneMap->hotspotPath, std::ios::binary);
 	hotspot_file.read(buffer, 3);
 
 	//Handle UTF-8 BOM
-	if(buffer[0] != '\xEF' || buffer[1] != '\xBB' || buffer[2] != '\xBF')
-	{
+	if (buffer[0] != '\xEF' || buffer[1] != '\xBB' || buffer[2] != '\xBF') {
 		hotspot_file.putback(buffer[2]);
 		hotspot_file.putback(buffer[1]);
 		hotspot_file.putback(buffer[0]);
@@ -259,58 +245,54 @@ void ServerUser::createHotspots()
 	Json::Reader reader;
 	bool success = reader.parse(hotspot_file, hotspots);
 	hotspot_file.close();
-	if(!success)
+	if (!success)
 		return;
 
-	scene::ISceneManager *smgr = _device->getSceneManager();
-	_hotspot_root = smgr->addEmptySceneNode();
+	scene::ISceneManager *smgr = mDevice->getSceneManager();
+	mHotspotRoot = smgr->addEmptySceneNode();
 
-	for(const Json::Value &hotspot : hotspots)
-	{
+	for (const Json::Value &hotspot : hotspots) {
 		Hotspot *spot = new Hotspot(hotspot);
 		std::wstring name = convert_string(spot->getName());
-		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, name.c_str(), _hotspot_root, spot->getSize(), spot->getPosition());
+		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, name.c_str(), mHotspotRoot, spot->getSize(), spot->getPosition());
 		spot->setNode(head_text);
-		_hotspots.push_back(spot);
+		mHotspots.push_back(spot);
 	}
 }
 
 void ServerUser::clearHotspots()
 {
-	if(_hotspot_root == NULL || _hotspots.empty())
+	if (mHotspotRoot == NULL || mHotspots.empty())
 		return;
 
 	static core::vector3df far_away(FLT_MIN, FLT_MIN, FLT_MIN);
-	scene::ISceneManager *smgr = _device->getSceneManager();
-	for(std::list<Hotspot *>::iterator i = _hotspots.begin(); i != _hotspots.end(); i++)
-	{
+	scene::ISceneManager *smgr = mDevice->getSceneManager();
+	for (std::list<Hotspot *>::iterator i = mHotspots.begin(); i != mHotspots.end(); i++) {
 		Hotspot *&spot = *i;
 		scene::ISceneNode *node = spot->getNode();
 		node->setPosition(far_away);
 		delete spot;
 	}
 
-	_hotspots.clear();
-	smgr->addToDeletionQueue(_hotspot_root);
-	_hotspot_root = NULL;
+	mHotspots.clear();
+	smgr->addToDeletionQueue(mHotspotRoot);
+	mHotspotRoot = NULL;
 }
 
 void ServerUser::sendScreenshot()
 {
-	if(_device == NULL || _current_frame == NULL)
-	{
+	if (mDevice == NULL || mCurrentFrame == NULL) {
 		return;
 	}
 
-	_memory_file->clear();
-	if(!_device->getVideoDriver()->writeImageToFile(_current_frame, _memory_file, 50))
-	{
+	mMemoryFile->clear();
+	if (!mDevice->getVideoDriver()->writeImageToFile(mCurrentFrame, mMemoryFile, 50)) {
 		puts("failed to transfer video frame");
 	}
 
-	int length = (int) _memory_file->getPos();
+	int length = (int)mMemoryFile->getPos();
 
-	std::string raw(_memory_file->getContent(), length);
+	std::string raw(mMemoryFile->getContent(), length);
 	R3D::Packet packet(R3D::UpdateVideoFrame);
 	packet.args = base64_encode(raw);
 	sendPacket(packet);
@@ -340,12 +322,11 @@ void ServerUser::makeToast(int toastId)
 void ServerUser::handleConnection(const char *cmd)
 {
 	if (*cmd == '[') {
-		_packet_handler = &ServerUser::handleCommand;
+		mPacketHandler = &ServerUser::handleCommand;
 		handleCommand(cmd);
-	}
-	else {
+	} else {
 		if (strnicmp(cmd, "GET ", 4) != 0) {
-			_packet_handler = &ServerUser::handleWebSocket;
+			mPacketHandler = &ServerUser::handleWebSocket;
 		}
 	}
 }
@@ -358,16 +339,15 @@ void ServerUser::handleWebSocket(const char *cmd)
 
 		std::string key_accept = base64_encode(sha1(sec_key));
 
-		_socket->write("HTTP/1.1 101 Switching Protocols\n");
-		_socket->write("Upgrade: websocket\n");
-		_socket->write("Connection: Upgrade\n");
-		_socket->write("Sec-WebSocket-Accept: ");
-		_socket->write(key_accept);
-		_socket->write("\n\n");
-	}
-	else if (*cmd == '\0') {
-		_packet_handler = &ServerUser::handleCommand;
-		_read_socket = &ServerUser::readFrame;
+		mSocket->write("HTTP/1.1 101 Switching Protocols\n");
+		mSocket->write("Upgrade: websocket\n");
+		mSocket->write("Connection: Upgrade\n");
+		mSocket->write("Sec-WebSocket-Accept: ");
+		mSocket->write(key_accept);
+		mSocket->write("\n\n");
+	} else if (*cmd == '\0') {
+		mPacketHandler = &ServerUser::handleCommand;
+		mReadSocket = &ServerUser::readFrame;
 	}
 }
 
@@ -378,9 +358,8 @@ void ServerUser::handleCommand(const char *cmd)
 	}
 
 	R3D::Packet packet(cmd);
-	std::map<R3D::Command, Callback>::iterator iter = _callbacks.find(packet.command);
-	if (iter != _callbacks.end())
-	{
+	std::map<R3D::Command, Callback>::iterator iter = mCallbacks.find(packet.command);
+	if (iter != mCallbacks.end()) {
 		Callback func = iter->second;
 		if (func) {
 			(this->*func)(packet.args);
@@ -389,3 +368,5 @@ void ServerUser::handleCommand(const char *cmd)
 	}
 	std::cout << "invalid packet (" << getIp() << "):" << cmd;
 }
+
+RD_NAMESPACE_END

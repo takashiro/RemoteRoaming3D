@@ -1,5 +1,6 @@
-#ifndef _SERVERUSER_H_
-#define _SERVERUSER_H_
+#pragma once
+
+#include "global.h"
 
 #include <irrlicht.h>
 #include <json/json.h>
@@ -7,21 +8,23 @@
 #include <list>
 
 #include "protocol.h"
-#include "util.h"
 #include "IrrMemoryFile.h"
+
+RD_NAMESPACE_BEGIN
 
 class Server;
 class Hotspot;
 struct SceneMap;
 
-class ServerUser{
+class ServerUser
+{
 public:
 	ServerUser(Server *server, R3D::TCPSocket *socket);
 	~ServerUser();
 
-	inline bool isValid() const{return _receive_thread != NULL;}
-	inline irr::IrrlichtDevice *getDevice(){return _device;}
-	inline R3D::IP getIp() const{return _socket->getPeerIp();};
+	inline bool isValid() const { return mReceiveThread != NULL; }
+	inline irr::IrrlichtDevice *getDevice() { return mDevice; }
+	inline R3D::IP getIp() const { return mSocket->getPeerIp(); };
 	void getIp(std::wstring &str);
 
 	void sendPacket(const R3D::Packet &packet);
@@ -44,42 +47,43 @@ protected:
 	void handleCommand(const char *cmd);
 
 	typedef void (ServerUser::*Callback)(const Json::Value &args);
-	static std::map<R3D::Command, Callback> _callbacks;
+	static std::map<R3D::Command, Callback> mCallbacks;
 
-	void _createDevice(const Json::Value &args);
-	void _rotateCamera(const Json::Value &args);
-	void _scaleCamera(const Json::Value &args);
-	void _moveCamera(const Json::Value &args);
-	void _controlHotspots(const Json::Value &args);
-	void _doubleClick(const Json::Value &args);
+	void createDeviceCommand(const Json::Value &args);
+	void rotateCameraCommand(const Json::Value &args);
+	void scaleCameraCommand(const Json::Value &args);
+	void moveCameraCommand(const Json::Value &args);
+	void controlHotspotsCommand(const Json::Value &args);
+	void doubleClickCommand(const Json::Value &args);
 
-	int _screen_width;
-	int _screen_height;
+	int mScreenWidth;
+	int mScreenHeight;
 
-	Server *_server;
-	R3D::TCPSocket *_socket;
-	irr::IrrlichtDevice *_device;
-	irr::video::IImage *_current_frame;
-	std::list<Hotspot *> _hotspots;
-	irr::io::MemoryFile *_memory_file;
-	SceneMap *_scene_map;
-	irr::scene::ISceneNode *_hotspot_root;
-	void (ServerUser::*_packet_handler)(const char *);
-	void (ServerUser::*_read_socket)(char *buffer, int buffer_capacity, int length);
+	Server *mServer;
+	R3D::TCPSocket *mSocket;
+	irr::IrrlichtDevice *mDevice;
+	irr::video::IImage *mCurrentFrame;
+	std::list<Hotspot *> mHotspots;
+	irr::io::MemoryFile *mMemoryFile;
+	SceneMap *mSceneMap;
+	irr::scene::ISceneNode *mHotspotRoot;
+	void (ServerUser::*mPacketHandler)(const char *);
+	void (ServerUser::*mReadSocket)(char *buffer, int buffer_capacity, int length);
 
 private:
-	static DWORD WINAPI _ReceiveThread(LPVOID lpParam);
-	HANDLE _receive_thread;
+	static DWORD WINAPI ReceiveThread(LPVOID lpParam);
+	HANDLE mReceiveThread;
 
-	static DWORD WINAPI _DeviceThread(LPVOID lpParam);
-	HANDLE _device_thread;
-	HANDLE _need_update;
+	static DWORD WINAPI DeviceThread(LPVOID lpParam);
+	HANDLE mDeviceThread;
+	HANDLE mNeedUpdate;
 
 public:
-	class CallbackAdder{
+	class CallbackAdder
+	{
 	public:
 		CallbackAdder();
 	};
 };
 
-#endif
+RD_NAMESPACE_END
