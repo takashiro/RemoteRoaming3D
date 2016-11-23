@@ -17,7 +17,8 @@ map<string, ControlPanel::Callback> ControlPanel::mCallbacks;
 #define ADD_CALLBACK(command) mCallbacks[#command]=&ControlPanel::##command
 
 ControlPanel::ControlPanel(istream &in, ostream &out)
-	:cin(in), cout(out) {
+	:cin(in), cout(out)
+{
 	if (mCallbacks.empty()) {
 		ADD_CALLBACK(server);
 		ADD_CALLBACK(client);
@@ -25,14 +26,16 @@ ControlPanel::ControlPanel(istream &in, ostream &out)
 	}
 }
 
-void ControlPanel::help() {
+void ControlPanel::help()
+{
 	cout << "server  -- to configure the server" << endl;
 	cout << "client  -- control clients" << endl;
 	cout << "help  -- provides help information" << endl;
 	cout << "quit  -- to quit the server" << endl;
 }
 
-int ControlPanel::exec() {
+int ControlPanel::exec()
+{
 	cout << "Welcome to Remote Roaming 3D Server!" << endl;
 
 	string cmd;
@@ -58,7 +61,8 @@ int ControlPanel::exec() {
 	return 0;
 }
 
-void ControlPanel::server() {
+void ControlPanel::server()
+{
 	string cmd;
 	cin >> cmd;
 
@@ -86,7 +90,8 @@ void ControlPanel::server() {
 	}
 }
 
-void show_client_info(ServerUser *user) {
+void show_client_info(ServerUser *user)
+{
 	cout << "Client IP: " << user->getIp() << endl;
 	IrrlichtDevice *device = user->getDevice();
 	if (device) {
@@ -105,7 +110,8 @@ void show_client_info(ServerUser *user) {
 	}
 }
 
-void ControlPanel::client() {
+void ControlPanel::client()
+{
 	string idstr;
 	cin >> idstr;
 

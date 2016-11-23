@@ -8,10 +8,11 @@
 
 RD_NAMESPACE_BEGIN
 
-class ControlPanel{
+class ControlPanel
+{
 public:
 	typedef void (ControlPanel::*Callback)();
-	
+
 	ControlPanel(std::istream &in, std::ostream &out);
 	int exec();
 
