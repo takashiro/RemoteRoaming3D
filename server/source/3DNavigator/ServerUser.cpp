@@ -178,7 +178,7 @@ void ServerUser::readFrame(char *buffer, int buffer_size, int length)
 
 void ServerUser::sendPacket(const R3D::Packet &packet)
 {
-	char header[10] = {0x81, '\0'};
+	char header[10] = {'\x81', '\0'};
 
 	std::string data = packet.toString();
 	size_t length = data.length();
@@ -265,11 +265,10 @@ void ServerUser::createHotspots()
 	scene::ISceneManager *smgr = _device->getSceneManager();
 	_hotspot_root = smgr->addEmptySceneNode();
 
-	std::wstring name;
-	for(Json::Value::iterator i = hotspots.begin(); i != hotspots.end(); i++)
+	for(const Json::Value &hotspot : hotspots)
 	{
-		Hotspot *spot = new Hotspot(*i);
-		copy_string(name, spot->getName());
+		Hotspot *spot = new Hotspot(hotspot);
+		std::wstring name = convert_string(spot->getName());
 		scene::IBillboardTextSceneNode *head_text = smgr->addBillboardTextSceneNode(0, name.c_str(), _hotspot_root, spot->getSize(), spot->getPosition());
 		spot->setNode(head_text);
 		_hotspots.push_back(spot);

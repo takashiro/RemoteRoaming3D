@@ -6,8 +6,8 @@
 
 RD_NAMESPACE_BEGIN
 
-void copy_string(std::string &str, const std::wstring &wstr);
-void copy_string(std::wstring &wstr, const std::string &str);
+std::string convert_string(const std::wstring &wstr);
+std::wstring convert_string(const std::string &str);
 
 void urldecode(std::string &str);
 
