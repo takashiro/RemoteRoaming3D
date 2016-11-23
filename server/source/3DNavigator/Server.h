@@ -1,5 +1,4 @@
-#ifndef _SERVER_H_
-#define _SERVER_H_
+#pragma once
 
 #include <list>
 #include <vector>
@@ -8,61 +7,64 @@
 #include "protocol.h"
 #include "SceneMap.h"
 
+RD_NAMESPACE_BEGIN
+
 class ServerUser;
 
-class Server{
+class Server
+{
 public:
 	Server();
 	~Server();
 
-	void listenTo(unsigned short port = 52600);
+	void listenTo(ushort port = 52600);
 
-	inline unsigned short getServerPort() const{return _server_port;}
+	inline ushort getServerPort() const { return mServerPort; }
 
-	inline void setMaximumClientNum(int num){_maximum_client_num = num;}
-	inline int getMaximumClientNum() const{return _maximum_client_num;}
+	inline void setMaximumClientNum(int num) { mMaximumClientNum = num; }
+	inline int getMaximumClientNum() const { return mMaximumClientNum; }
 
-	inline bool isListening() const{return _is_listening;}
+	inline bool isListening() const { return mIsListening; }
 
 	void disconnect(ServerUser *client);
 
-	inline HANDLE getServerThread(){return _server_thread;}
-	inline void setIndependentThreadEnabled(bool enabled){_is_independent_thread_enabled = enabled;}
-	inline bool isIndependentThreadEnabled() const{return _is_independent_thread_enabled;}
+	inline HANDLE getServerThread() { return mServerThread; }
+	inline void setIndependentThreadEnabled(bool enabled) { mIsIndependentThreadEnabled = enabled; }
+	inline bool isIndependentThreadEnabled() const { return mIsIndependentThreadEnabled; }
 
-	inline void setDriverType(irr::video::E_DRIVER_TYPE type){_driver_type = type;}
-	inline irr::video::E_DRIVER_TYPE getDriverType() const{return _driver_type;}
+	inline void setDriverType(irr::video::E_DRIVER_TYPE type) { mDriverType = type; }
+	inline irr::video::E_DRIVER_TYPE getDriverType() const { return mDriverType; }
 
-	inline const std::list<ServerUser *> &getClients() const{return _clients;}
-	
-	inline const std::vector<SceneMap *> &getSceneMaps() const{return _scenemaps;};
+	inline const std::list<ServerUser *> &getClients() const { return mClients; }
+
+	inline const std::vector<SceneMap *> &getSceneMaps() const { return mScenemaps; };
 	void loadSceneMap(const std::string &config_path);
-	inline SceneMap *getSceneMapAt(int i){return _scenemaps.at(i);};
+	inline SceneMap *getSceneMapAt(int i) { return mScenemaps.at(i); };
 
-	void broadcastConfig(unsigned short port = 5261);
+	void broadcastConfig(ushort port = 5261);
 
 protected:
-	R3D::TCPServer *_server_socket;
-	R3D::UDPSocket *_broadcast_socket;
+	R3D::TCPServer *mServerSocket;
+	R3D::UDPSocket *mBroadcastSocket;
 
-	bool _is_listening;
-	bool _is_broadcasting_config;
-	unsigned short _server_port;
-	unsigned short _broadcast_port;
-	int _maximum_client_num;
-	bool _is_independent_thread_enabled;
-	irr::video::E_DRIVER_TYPE _driver_type;
-	std::list<ServerUser *> _clients;
-	std::vector<SceneMap *> _scenemaps;
+	bool mIsListening;
+	bool mIsBroadcastingConfig;
+	ushort mServerPort;
+	ushort mBroadcastPort;
+	int mMaximumClientNum;
+	bool mIsIndependentThreadEnabled;
+	irr::video::E_DRIVER_TYPE mDriverType;
+	std::list<ServerUser *> mClients;
+	std::vector<SceneMap *> mScenemaps;
 
 private:
-	static DWORD WINAPI _ServerThread(LPVOID lpParam);
-	static DWORD WINAPI _BroadcastThread(LPVOID lpParam);
+	static DWORD WINAPI ServerThread(LPVOID lpParam);
+	static DWORD WINAPI BroadcastThread(LPVOID lpParam);
 
-	HANDLE _server_thread;
-	HANDLE _broadcast_thread;
+	HANDLE mServerThread;
+	HANDLE mBroadcastThread;
 };
 
 extern Server *ServerInstance;
 
-#endif
+RD_NAMESPACE_END
