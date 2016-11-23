@@ -9,8 +9,6 @@ RD_NAMESPACE_BEGIN
 std::string convert_string(const std::wstring &wstr);
 std::wstring convert_string(const std::string &str);
 
-void urldecode(std::string &str);
-
 std::string base64_encode(const uchar *data, uint64 length);
 std::string base64_encode(const std::string &str);
 

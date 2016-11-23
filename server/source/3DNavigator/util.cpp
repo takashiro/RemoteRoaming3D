@@ -32,21 +32,6 @@ static char hextonumber(char ch)
 	return '0' <= ch && ch <= '9' ? ch - '0' : 'A' <= ch && ch <= 'F' ? ch - 'A' + 10 : 0;
 }
 
-void urldecode(std::string &str)
-{
-	size_t limit = str.length() - 2;
-	for (size_t i = 0; i < limit; i++) {
-		if (str[i] == '%') {
-			char ch1 = hextonumber(str[i + 1]);
-			char ch2 = hextonumber(str[i + 2]);
-			ch1 <<= 4;
-			ch1 |= ch2;
-			str.replace(i, 3, &ch1, 1);
-			limit -= 2;
-		}
-	}
-}
-
 std::string base64_encode(const uchar *data, uint64 length)
 {
 	const char *index_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
