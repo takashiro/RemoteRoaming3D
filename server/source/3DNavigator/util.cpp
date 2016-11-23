@@ -12,7 +12,7 @@ std::wstring convert_string(const std::string &str)
 	std::wstring wstr;
 	wstr.resize(str.size());
 	for (size_t i = 0, max = str.size(); i < max; i++) {
-		wstr[i] = str[i];
+		wstr[i] = static_cast<wchar_t>(str[i]);
 	}
 	return wstr;
 }
@@ -22,7 +22,7 @@ std::string convert_string(const std::wstring &str)
 	std::string wstr;
 	wstr.resize(str.size());
 	for (size_t i = 0, max = str.size(); i < max; i++) {
-		wstr[i] = str[i];
+		wstr[i] = static_cast<char>(str[i]);
 	}
 	return wstr;
 }
