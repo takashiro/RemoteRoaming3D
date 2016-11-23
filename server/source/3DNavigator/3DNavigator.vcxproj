@@ -237,6 +237,7 @@
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="global.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ControlPanel.h" />
     <ClInclude Include="Hotspot.h" />
