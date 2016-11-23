@@ -17,12 +17,21 @@ map<string, ControlPanel::Callback> ControlPanel::mCallbacks;
 #define ADD_CALLBACK(command) mCallbacks[#command]=&ControlPanel::##command
 
 ControlPanel::ControlPanel(istream &in, ostream &out)
-	:cin(in), cout(out)
+	: cin(in)
+	, cout(out)
+	, mServer(nullptr)
 {
 	if (mCallbacks.empty()) {
 		ADD_CALLBACK(server);
 		ADD_CALLBACK(client);
 		ADD_CALLBACK(help);
+	}
+}
+
+ControlPanel::~ControlPanel()
+{
+	if (mServer) {
+		delete mServer;
 	}
 }
 
@@ -67,23 +76,42 @@ void ControlPanel::server()
 	cin >> cmd;
 
 	if (cmd == "info") {
-		cout << "Server IP: 0.0.0.0" << endl;
-		cout << "Server Port: " << ServerInstance->getServerPort() << endl;
-		cout << "Client Number: " << ServerInstance->getClients().size() << " / " << ServerInstance->getMaximumClientNum() << endl;
+		if (mServer) {
+			cout << "Server IP: 0.0.0.0" << endl;
+			cout << "Server Port: " << mServer->getServerPort() << endl;
+			cout << "Client Number: " << mServer->getClients().size() << " / " << mServer->getMaximumClientNum() << endl;
+		} else {
+			cout << "Server is not running" << endl;
+		}
 	} else if (cmd == "maxclient") {
-		int number;
-		cin >> number;
-		ServerInstance->setMaximumClientNum(number);
+		if (mServer) {
+			int number;
+			cin >> number;
+			mServer->setMaximumClientNum(number);
+		} else {
+			cout << "Server is not running" << endl;
+		}
 	} else if (cmd == "listen") {
-		unsigned short port;
-		cin >> port;
-		ServerInstance->listenTo(port);
-		ServerInstance->broadcastConfig();
-		cout << "server started" << endl;
+		if (mServer) {
+			unsigned short port;
+			cin >> port;
+			mServer->listenTo(port);
+			mServer->broadcastConfig();
+			cout << "server started" << endl;
+		} else {
+			cout << "Server is not running" << endl;
+		}
 	} else if (cmd == "start") {
-		ServerInstance->listenTo();
-		ServerInstance->broadcastConfig();
-		cout << "server started" << endl;
+		if (mServer == nullptr) {
+			mServer = new Server;
+			mServer->setDriverType(irr::video::EDT_OPENGL);
+			mServer->loadSceneMap("scenemap.json");
+			mServer->listenTo();
+			mServer->broadcastConfig();
+			cout << "Server started" << endl;
+		} else {
+			cout << "Server has already started" << endl;
+		}
 	} else {
 		cout << "info -- display server configurations" << endl;
 		cout << "maxclient [int] -- set the maximum number of clients" << endl;
@@ -115,7 +143,11 @@ void ControlPanel::client()
 	string idstr;
 	cin >> idstr;
 
-	const std::list<ServerUser *> &clients = ServerInstance->getClients();
+	if (mServer == nullptr) {
+		cout << "Server is not running" << endl;
+	}
+
+	const std::list<ServerUser *> &clients = mServer->getClients();
 
 	if (idstr == "all") {
 		for (ServerUser *client : clients) {

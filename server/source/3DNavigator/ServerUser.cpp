@@ -55,7 +55,7 @@ DWORD WINAPI ServerUser::ReceiveThread(LPVOID pParam)
 	}
 
 	//disconnect the client
-	ServerInstance->disconnect(client);
+	client->mServer->disconnect(client);
 
 	delete[] buffer;
 

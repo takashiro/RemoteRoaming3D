@@ -65,6 +65,4 @@ private:
 	HANDLE mBroadcastThread;
 };
 
-extern Server *ServerInstance;
-
 RD_NAMESPACE_END

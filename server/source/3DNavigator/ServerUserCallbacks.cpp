@@ -28,7 +28,7 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 
 	mScreenWidth = args[0].asInt();
 	mScreenHeight = args[1].asInt();
-	mSceneMap = ServerInstance->getSceneMapAt(0);
+	mSceneMap = mServer->getSceneMapAt(0);
 
 	mMemoryFile = new irr::io::MemoryFile("screenshot.jpg", mScreenWidth * mScreenHeight * 4);
 

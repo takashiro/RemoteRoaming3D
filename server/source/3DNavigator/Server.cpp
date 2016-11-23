@@ -6,14 +6,10 @@
 
 RD_NAMESPACE_BEGIN
 
-Server *ServerInstance = nullptr;
-
 Server::Server()
 	:mServerPort(6666), mMaximumClientNum(10), mIsListening(false), mIsIndependentThreadEnabled(true),
 	mBroadcastSocket(nullptr), mBroadcastThread(nullptr), mBroadcastPort(52600), mIsBroadcastingConfig(false)
 {
-	ServerInstance = this;
-
 	//create a TCP server
 	mServerSocket = new R3D::TCPServer;
 }

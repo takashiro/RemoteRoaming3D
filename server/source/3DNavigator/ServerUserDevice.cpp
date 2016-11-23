@@ -61,15 +61,15 @@ DWORD WINAPI ServerUser::DeviceThread(LPVOID lpParam)
 {
 	ServerUser *client = (ServerUser *)lpParam;
 
-	SceneMap *&scene_map = client->mSceneMap;
-	if (scene_map == NULL)
+	SceneMap *scene_map = client->mSceneMap;
+	if (scene_map == nullptr)
 		return 1;
 
 	IrrlichtDevice *&device = client->mDevice;
 
 	//set up creation parameters
 	SIrrlichtCreationParameters p;
-	p.DriverType = ServerInstance->getDriverType();
+	p.DriverType = client->mServer->getDriverType();
 	p.WindowSize = core::dimension2d<u32>(client->mScreenWidth, client->mScreenHeight);
 	p.Bits = (u8)16U;
 	p.Fullscreen = false;
