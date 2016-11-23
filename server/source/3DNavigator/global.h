@@ -18,7 +18,7 @@ typedef long long llong;
 typedef unsigned long long ullong;
 
 typedef signed char int8;
-typedef uchar int8;
+typedef uchar uint8;
 typedef short int16;
 typedef ushort uint16;
 typedef llong int64;
