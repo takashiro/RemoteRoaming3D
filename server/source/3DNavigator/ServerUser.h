@@ -61,7 +61,7 @@ protected:
 	irr::IrrlichtDevice *_device;
 	irr::video::IImage *_current_frame;
 	std::list<Hotspot *> _hotspots;
-	IrrMemoryFile *_memory_file;
+	irr::io::MemoryFile *_memory_file;
 	SceneMap *_scene_map;
 	irr::scene::ISceneNode *_hotspot_root;
 	void (ServerUser::*_packet_handler)(const char *);

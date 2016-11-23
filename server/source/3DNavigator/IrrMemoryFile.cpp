@@ -2,57 +2,57 @@
 
 #include <memory.h>
 
-using namespace irr;
-using namespace io;
+namespace irr {
 
-IrrMemoryFile::IrrMemoryFile(const path &file_name, long buffer_size)
-	:_file_name(file_name), _pos(0), _buffer_size(buffer_size)
+namespace io {
+
+MemoryFile::MemoryFile(const path &fileName, long bufferSize)
+	:mFileName(fileName), mPos(0), mBufferSize(bufferSize)
 {
-	_content = new char[buffer_size];
+	mContent = new char[bufferSize];
 }
 
-IrrMemoryFile::~IrrMemoryFile(){
-	delete[] _content;
+MemoryFile::~MemoryFile()
+{
+	delete[] mContent;
 }
 
-bool IrrMemoryFile::seek(long finalPos, bool relativeMovement)
+bool MemoryFile::seek(long finalPos, bool relativeMovement)
 {
-	if(relativeMovement)
-	{
-		_pos += finalPos;
-	}else{
-		_pos = finalPos;
+	if (relativeMovement) {
+		mPos += finalPos;
+	} else {
+		mPos = finalPos;
 	}
 
-	if(_pos >= 0 && _pos < _buffer_size)
-	{
+	if (mPos >= 0 && mPos < mBufferSize) {
 		return true;
 	}
 
-	if(_pos < 0)
-	{
-		_pos = 0;
-	}
-	else
-	{
-		_pos = _buffer_size - 1;
+	if (mPos < 0) {
+		mPos = 0;
+	} else {
+		mPos = mBufferSize - 1;
 	}
 
 	return false;
 }
 
-s32 IrrMemoryFile::write(const void *buffer, u32 sizeToWrite)
+s32 MemoryFile::write(const void *buffer, u32 sizeToWrite)
 {
-	if(_pos + (long) sizeToWrite >= _buffer_size)
-	{
-		sizeToWrite = _buffer_size - _pos - 1;
-		if(sizeToWrite <= 0)
+	if (mPos + (long)sizeToWrite >= mBufferSize) {
+		sizeToWrite = mBufferSize - mPos - 1;
+		if (sizeToWrite <= 0)
 			return 0;
 	}
 
-	memcpy(_content + _pos, buffer, sizeToWrite);
-	_pos += sizeToWrite;
-	_content[_pos] = 0;
+	memcpy(mContent + mPos, buffer, sizeToWrite);
+	mPos += sizeToWrite;
+	mContent[mPos] = 0;
 
 	return sizeToWrite;
 }
+
+} //io
+
+} //irr

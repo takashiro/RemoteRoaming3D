@@ -1,25 +1,31 @@
-#ifndef _IRRMEMORYFILE_H_
-#define _IRRMEMORYFILE_H_
+#pragma once
 
 #include <IWriteFile.h>
 
-class IrrMemoryFile: public irr::io::IWriteFile{
+namespace irr {
+
+namespace io {
+
+class MemoryFile : public irr::io::IWriteFile
+{
 public:
-	IrrMemoryFile(const irr::io::path &file_name, long buffer_size);
-	~IrrMemoryFile();
+	MemoryFile(const irr::io::path &file_name, long buffer_size);
+	~MemoryFile();
 	bool seek(long finalPos, bool relativeMovement = false);
 	irr::s32 write(const void *buffer, irr::u32 sizeToWrite);
-	
-	inline const irr::io::path &getFileName() const{return _file_name;};
-	inline long getPos() const{return _pos;};
-	inline const char *getContent() const{return _content;};
-	inline void clear(){_pos = 0;};
+
+	inline const irr::io::path &getFileName() const { return mFileName; };
+	inline long getPos() const { return mPos; };
+	inline const char *getContent() const { return mContent; };
+	inline void clear() { mPos = 0; };
 
 protected:
-	irr::io::path _file_name;
-	long _pos;
-	long _buffer_size;
-	char *_content;
+	irr::io::path mFileName;
+	long mPos;
+	long mBufferSize;
+	char *mContent;
 };
 
-#endif
+}
+
+}
