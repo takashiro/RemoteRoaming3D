@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdlib.h>
 
+RD_NAMESPACE_BEGIN
+
 void copy_string(std::wstring &wstr, const std::string &str)
 {
 	const char *bytes = str.c_str();
@@ -47,11 +49,11 @@ void urldecode(std::string &str)
 	}
 }
 
-std::string base64_encode(const unsigned char *data, unsigned long long length)
+std::string base64_encode(const uchar *data, uint64 length)
 {
 	const char *index_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	std::string result;
-	unsigned long long i, max;
+	uint64 i, max;
 	for (i = 2, max = length; i < max; i += 3) {
 		result += index_table[data[i - 2] >> 2];
 		result += index_table[((data[i - 2] & 0x3) << 4) | ((data[i - 1] & 0xF0) >> 4)];
@@ -80,15 +82,15 @@ std::string base64_encode(const std::string &str)
 	return base64_encode(reinterpret_cast<const unsigned char *>(str.data()), str.size());
 }
 
-void sha1_chunk(unsigned int *h, unsigned int *words)
+void sha1_chunk(uint *h, uint *words)
 {
-	unsigned int a = h[0];
-	unsigned int b = h[1];
-	unsigned int c = h[2];
-	unsigned int d = h[3];
-	unsigned int e = h[4];
+	uint a = h[0];
+	uint b = h[1];
+	uint c = h[2];
+	uint d = h[3];
+	uint e = h[4];
 
-	unsigned int f, k;
+	uint f, k;
 	int i;
 
 	for (i = 16; i < 80; i++) {
@@ -129,15 +131,15 @@ void sha1_chunk(unsigned int *h, unsigned int *words)
 	h[4] += e;
 }
 
-std::string sha1(const char *data, unsigned long long length)
+std::string sha1(const char *data, uint64 length)
 {
-	unsigned int h[5] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
-	unsigned int words[80];
+	uint h[5] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
+	uint words[80];
 	int i = 0;
 
 	//For each 512-bit (64-byte) chunk
 	const char *chunk = data;
-	unsigned long long end;
+	uint64 end;
 	for (end = 64; end <= length; end += 64) {
 		const char *w = chunk;
 		for (i = 0; i < 16; i++) {
@@ -188,8 +190,8 @@ std::string sha1(const char *data, unsigned long long length)
 		words[i] = 0;
 	}
 
-	unsigned long long bits = length * 8;
-	const unsigned char *from = reinterpret_cast<const unsigned char *>(&bits);
+	uint64 bits = length * 8;
+	const uchar *from = reinterpret_cast<const uchar *>(&bits);
 	words[14] = (from[7] << 24) | (from[6] << 16) | (from[5] << 8) | from[4];
 	words[15] = (from[3] << 24) | (from[2] << 16) | (from[1] << 8) | from[0];
 
@@ -197,7 +199,7 @@ std::string sha1(const char *data, unsigned long long length)
 
 	std::string result;
 	result.reserve(20);
-	for (unsigned int num : h) {
+	for (uint num : h) {
 		const char *w = reinterpret_cast<const char *>(&num);
 		result.push_back(w[3]);
 		result.push_back(w[2]);
@@ -211,3 +213,5 @@ std::string sha1(const std::string &str)
 {
 	return sha1(str.data(), str.size());
 }
+
+RD_NAMESPACE_END
