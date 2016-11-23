@@ -8,6 +8,8 @@
 #define RD_NAMESPACE_END
 #endif
 
+#define forever for(;;)
+
 RD_NAMESPACE_BEGIN
 
 typedef unsigned char uchar;

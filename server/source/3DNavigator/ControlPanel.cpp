@@ -10,53 +10,47 @@
 using namespace std;
 using namespace irr;
 
-map<string, ControlPanel::Callback> ControlPanel::_callbacks;
+RD_NAMESPACE_BEGIN
 
-#define ADD_CALLBACK(command) _callbacks[#command]=&ControlPanel::_##command
+map<string, ControlPanel::Callback> ControlPanel::mCallbacks;
+
+#define ADD_CALLBACK(command) mCallbacks[#command]=&ControlPanel::##command
 
 ControlPanel::ControlPanel(istream &in, ostream &out)
-	:cin(in), cout(out)
-{
-	if(_callbacks.empty())
-	{
+	:cin(in), cout(out) {
+	if (mCallbacks.empty()) {
 		ADD_CALLBACK(server);
 		ADD_CALLBACK(client);
 		ADD_CALLBACK(help);
 	}
 }
 
-void ControlPanel::_help()
-{
+void ControlPanel::help() {
 	cout << "server  -- to configure the server" << endl;
 	cout << "client  -- control clients" << endl;
 	cout << "help  -- provides help information" << endl;
 	cout << "quit  -- to quit the server" << endl;
 }
 
-int ControlPanel::exec()
-{
+int ControlPanel::exec() {
 	cout << "Welcome to Remote Roaming 3D Server!" << endl;
 
 	string cmd;
-	map<string,Callback>::iterator func;
-	while(true)
-	{
+	map<string, Callback>::iterator func;
+	forever{
 		cout << "$ ";
 		cin >> cmd;
-		if(cmd == "quit")
-		{
+		if (cmd == "quit") {
 			return 0;
 		}
-		
-		func = _callbacks.find(cmd);
-		if(func != _callbacks.end())
-		{
+
+		func = mCallbacks.find(cmd);
+		if (func != mCallbacks.end()) {
 			Callback callback = func->second;
-			if(callback != NULL)
+			if (callback) {
 				(this->*callback)();
-		}
-		else
-		{
+			}
+		} else {
 			cout << "invalid command" << endl;
 		}
 	}
@@ -64,52 +58,40 @@ int ControlPanel::exec()
 	return 0;
 }
 
-void ControlPanel::_server()
-{
+void ControlPanel::server() {
 	string cmd;
 	cin >> cmd;
 
-	if(cmd == "info")
-	{
+	if (cmd == "info") {
 		cout << "Server IP: 0.0.0.0" << endl;
 		cout << "Server Port: " << ServerInstance->getServerPort() << endl;
 		cout << "Client Number: " << ServerInstance->getClients().size() << " / " << ServerInstance->getMaximumClientNum() << endl;
-	}
-	else if(cmd == "maxclient")
-	{
+	} else if (cmd == "maxclient") {
 		int number;
 		cin >> number;
 		ServerInstance->setMaximumClientNum(number);
-	}
-	else if(cmd == "listen")
-	{
+	} else if (cmd == "listen") {
 		unsigned short port;
 		cin >> port;
 		ServerInstance->listenTo(port);
 		ServerInstance->broadcastConfig();
 		cout << "server started" << endl;
-	}
-	else if(cmd == "start")
-	{
+	} else if (cmd == "start") {
 		ServerInstance->listenTo();
 		ServerInstance->broadcastConfig();
 		cout << "server started" << endl;
-	}
-	else
-	{
+	} else {
 		cout << "info -- display server configurations" << endl;
-		cout <<"maxclient [int] -- set the maximum number of clients" << endl;
+		cout << "maxclient [int] -- set the maximum number of clients" << endl;
 	}
 }
 
-void show_client_info(ServerUser *user)
-{
+void show_client_info(ServerUser *user) {
 	cout << "Client IP: " << user->getIp() << endl;
 	IrrlichtDevice *device = user->getDevice();
 	if (device) {
 		scene::ICameraSceneNode *camera = device->getSceneManager()->getActiveCamera();
-		if (camera)
-		{
+		if (camera) {
 			cout.setf(ios::fixed, ios::floatfield);
 			cout.precision(3);
 
@@ -118,35 +100,27 @@ void show_client_info(ServerUser *user)
 			const core::vector3df &target = camera->getTarget();
 			cout << "Camera Target: " << target.X << ", " << target.Y << ", " << target.Z << endl;
 		}
-	}
-	else {
+	} else {
 		cout << "No Device" << endl;
 	}
 }
 
-void ControlPanel::_client()
-{
+void ControlPanel::client() {
 	string idstr;
 	cin >> idstr;
 
 	const std::list<ServerUser *> &clients = ServerInstance->getClients();
 
-	if(idstr == "all")
-	{
-		for (ServerUser *client : clients)
-		{
+	if (idstr == "all") {
+		for (ServerUser *client : clients) {
 			show_client_info(client);
 			cout << endl;
 		}
-	}
-	else
-	{
+	} else {
 		int id = stoi(idstr);
 		int cur = 1;
-		for (ServerUser *client : clients)
-		{
-			if(id == cur)
-			{
+		for (ServerUser *client : clients) {
+			if (id == cur) {
 				show_client_info(client);
 				return;
 			}
@@ -156,3 +130,5 @@ void ControlPanel::_client()
 		cout << "no client " << id << endl;
 	}
 }
+
+RD_NAMESPACE_END

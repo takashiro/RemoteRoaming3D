@@ -1,9 +1,12 @@
-#ifndef _CONTROLPANEL_H_
-#define _CONTROLPANEL_H_
+#pragma once
+
+#include "global.h"
 
 #include <string>
 #include <map>
 #include <iostream>
+
+RD_NAMESPACE_BEGIN
 
 class ControlPanel{
 public:
@@ -13,15 +16,15 @@ public:
 	int exec();
 
 protected:
-	static std::map<std::string, Callback> _callbacks;
+	static std::map<std::string, Callback> mCallbacks;
 
-	void _server();
-	void _client();
-	void _help();
+	void server();
+	void client();
+	void help();
 
 private:
 	std::istream &cin;
 	std::ostream &cout;
 };
 
-#endif
+RD_NAMESPACE_END
