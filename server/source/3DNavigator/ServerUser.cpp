@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "ServerUser.h"
 #include "Hotspot.h"
+#include "Thread.h"
 #include "util.h"
 
 #include <memory.h>
@@ -22,7 +23,7 @@ ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
 	, mMemoryFile(nullptr)
 	, mNeedUpdate(nullptr)
 	, mSceneMap(nullptr)
-	, mHotspotRoot(NULL)
+	, mHotspotRoot(nullptr)
 	, mPacketHandler(&ServerUser::handleConnection)
 	, mReadSocket(&ServerUser::readLine)
 {
@@ -39,27 +40,6 @@ ServerUser::~ServerUser()
 	if (mMemoryFile) {
 		mMemoryFile->drop();
 	}
-}
-
-DWORD WINAPI ServerUser::ReceiveThread(LPVOID pParam)
-{
-	ServerUser *client = static_cast<ServerUser *>(pParam);
-	R3D::TCPSocket *&socket = client->mSocket;
-
-	static int buffer_capacity = 8 * 1024;
-	char *buffer = new char[buffer_capacity + 1];
-	int length = 0;
-
-	while ((length = socket->read(buffer, buffer_capacity)) > 0) {
-		(client->*(client->mReadSocket))(buffer, buffer_capacity, length);
-	}
-
-	//disconnect the client
-	client->mServer->disconnect(client);
-
-	delete[] buffer;
-
-	return 0;
 }
 
 void ServerUser::readLine(char *buffer, int buffer_capacity, int length)
@@ -203,22 +183,35 @@ void ServerUser::disconnect()
 		ReleaseSemaphore(mNeedUpdate, 1, NULL);
 	}
 
-	if (mDeviceThread != NULL) {
-		WaitForSingleObject(mDeviceThread, INFINITE);
-		CloseHandle(mDeviceThread);
-		mDeviceThread = NULL;
+	if (mDeviceThread) {
+		mDeviceThread->wait();
+		delete mDeviceThread;
+		mDeviceThread = nullptr;
 	}
 
-	if (mReceiveThread != NULL) {
-		WaitForSingleObject(mReceiveThread, INFINITE);
-		CloseHandle(mReceiveThread);
-		mReceiveThread = NULL;
+	if (mReceiveThread) {
+		mReceiveThread->wait();
+		delete mReceiveThread;
+		mReceiveThread = nullptr;
 	}
 }
 
 void ServerUser::startService()
 {
-	mReceiveThread = CreateThread(NULL, 0, ReceiveThread, (LPVOID) this, 0, NULL);
+	mReceiveThread = new Thread([this]() {
+		static int buffer_capacity = 8 * 1024;
+		char *buffer = new char[buffer_capacity + 1];
+		int length = 0;
+
+		while ((length = mSocket->read(buffer, buffer_capacity)) > 0) {
+			(this->*(mReadSocket))(buffer, buffer_capacity, length);
+		}
+
+		//disconnect the client
+		mServer->disconnect(this);
+
+		delete[] buffer;
+	});
 	mNeedUpdate = CreateSemaphore(NULL, 1, 1, NULL);
 }
 

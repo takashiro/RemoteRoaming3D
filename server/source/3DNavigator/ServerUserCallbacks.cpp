@@ -17,23 +17,7 @@ ServerUser::CallbackAdder::CallbackAdder()
 		mCallbacks[R3D::DoubleClick] = &ServerUser::doubleClickCommand;
 	}
 }
-
 ServerUser::CallbackAdder adder;
-
-void ServerUser::createDeviceCommand(const Json::Value &args)
-{
-	if (mDevice) {
-		return;
-	}
-
-	mScreenWidth = args[0].asInt();
-	mScreenHeight = args[1].asInt();
-	mSceneMap = mServer->getSceneMapAt(0);
-
-	mMemoryFile = new irr::io::MemoryFile("screenshot.jpg", mScreenWidth * mScreenHeight * 4);
-
-	mDeviceThread = CreateThread(NULL, 0, DeviceThread, (LPVOID) this, 0, NULL);
-}
 
 void ServerUser::rotateCameraCommand(const Json::Value &args)
 {

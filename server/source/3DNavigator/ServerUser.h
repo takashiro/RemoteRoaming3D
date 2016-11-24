@@ -14,6 +14,7 @@ RD_NAMESPACE_BEGIN
 
 class Server;
 class Hotspot;
+class Thread;
 struct SceneMap;
 
 class ServerUser
@@ -71,11 +72,8 @@ protected:
 	void (ServerUser::*mReadSocket)(char *buffer, int buffer_capacity, int length);
 
 private:
-	static DWORD WINAPI ReceiveThread(LPVOID lpParam);
-	HANDLE mReceiveThread;
-
-	static DWORD WINAPI DeviceThread(LPVOID lpParam);
-	HANDLE mDeviceThread;
+	Thread *mReceiveThread;
+	Thread *mDeviceThread;
 	HANDLE mNeedUpdate;
 
 public:
