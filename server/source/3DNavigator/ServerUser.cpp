@@ -218,7 +218,7 @@ void ServerUser::startService()
 
 void ServerUser::createHotspots()
 {
-	if (!mHotspots.empty() || mSceneMap == NULL)
+	if (!mHotspots.empty() || mSceneMap == nullptr)
 		return;
 
 	if (mSceneMap->hotspotPath.empty())

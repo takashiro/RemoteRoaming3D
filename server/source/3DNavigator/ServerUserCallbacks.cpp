@@ -153,8 +153,7 @@ void ServerUser::doubleClickCommand(const Json::Value &args)
 	scene::ISceneNode *clicked = cmgr->getSceneNodeFromScreenCoordinatesBB(pos, 0, true, mHotspotRoot);
 
 	//Find the corresponding hotspot
-	for (std::list<Hotspot *>::iterator i = mHotspots.begin(); i != mHotspots.end(); i++) {
-		Hotspot *&hotspot = *i;
+	for (Hotspot *hotspot : mHotspots) {
 		if (hotspot->getNode() == clicked) {
 			enterHotspot(hotspot);
 			break;
