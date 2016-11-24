@@ -10,6 +10,7 @@ class Thread
 {
 public:
 	Thread(const std::function<void()> &func);
+	Thread(std::function<void()> &&func);
 	~Thread();
 
 	Thread(Thread &&thread);

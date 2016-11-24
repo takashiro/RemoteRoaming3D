@@ -24,6 +24,13 @@ Thread::Thread(const std::function<void ()> &func)
 	d->handle = CreateThread(nullptr, 0, Private::ThreadFunc, static_cast<LPVOID>(d), 0, nullptr);
 }
 
+Thread::Thread(std::function<void()> &&func)
+	: d(new Private)
+{
+	d->func = std::move(func);
+	d->handle = CreateThread(nullptr, 0, Private::ThreadFunc, static_cast<LPVOID>(d), 0, nullptr);
+}
+
 Thread::~Thread()
 {
 	if (d) {

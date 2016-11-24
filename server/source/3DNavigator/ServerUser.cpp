@@ -213,7 +213,7 @@ void ServerUser::startService()
 
 		delete[] buffer;
 	});
-	mNeedUpdate = new Semaphore;
+	mNeedUpdate = new Semaphore(0, 1);
 }
 
 void ServerUser::createHotspots()

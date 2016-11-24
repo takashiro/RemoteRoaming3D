@@ -62,12 +62,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 void ServerUser::createDeviceCommand(const Json::Value &args)
 {
 	if (mDevice) {
-		return;
+		mDevice->closeDevice();
+		mClosingDevice = true;
+		mNeedUpdate->release();
+		mDeviceThread->wait();
+		mDevice->drop();
+		delete mDeviceThread;
 	}
 
 	mScreenWidth = args[0].asInt();
 	mScreenHeight = args[1].asInt();
-	mSceneMap = mServer->getSceneMapAt(0);
+	mSceneMap = mServer->getSceneMapAt(args[2].asInt());
 
 	mMemoryFile = new irr::io::MemoryFile("screenshot.jpg", mScreenWidth * mScreenHeight * 4);
 
@@ -145,14 +150,15 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 #endif
 
 		mDevice = createDeviceEx(p);
-		if (mDevice == NULL)
+		if (mDevice == nullptr) {
 			return; // could not create selected driver.
+		}
 
-					  /*
-					  Get a pointer to the video driver and the SceneManager so that
-					  we do not always have to call irr::IrrlichtDevice::getVideoDriver() and
-					  irr::IrrlichtDevice::getSceneManager().
-					  */
+		/*
+		Get a pointer to the video driver and the SceneManager so that
+		we do not always have to call irr::IrrlichtDevice::getVideoDriver() and
+		irr::IrrlichtDevice::getSceneManager().
+		*/
 		video::IVideoDriver* driver = mDevice->getVideoDriver();
 		scene::ISceneManager* smgr = mDevice->getSceneManager();
 
@@ -214,13 +220,17 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, mSceneMap->cameraPosition, mSceneMap->cameraTarget);
 		camera->setFarValue(5000.0f);
 
+		mClosingDevice = false;
 		while (mDevice->run()) {
 			mNeedUpdate->acquire();
+			if (mClosingDevice) {
+				break;
+			}
 			driver->beginScene(true, true, video::SColor(255, 200, 200, 200));
 			smgr->drawAll();
 			driver->endScene();
 
-			if (mCurrentFrame != NULL) {
+			if (mCurrentFrame) {
 				mCurrentFrame->drop();
 			}
 			mCurrentFrame = driver->createScreenShot();
@@ -230,5 +240,6 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		mDevice->drop();
 	};
 
-	mDeviceThread = new Thread(worker);
+	mDeviceThread = new Thread(std::move(worker));
+	mNeedUpdate->release();
 }

@@ -57,6 +57,7 @@ protected:
 	void moveCameraCommand(const Json::Value &args);
 	void controlHotspotsCommand(const Json::Value &args);
 	void doubleClickCommand(const Json::Value &args);
+	void listMapCommand(const Json::Value &args);
 
 	int mScreenWidth;
 	int mScreenHeight;
@@ -76,6 +77,7 @@ private:
 	Thread *mReceiveThread;
 	Thread *mDeviceThread;
 	Semaphore *mNeedUpdate;
+	bool mClosingDevice;
 
 public:
 	class CallbackAdder

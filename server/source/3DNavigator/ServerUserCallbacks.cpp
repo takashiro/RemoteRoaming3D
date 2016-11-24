@@ -16,6 +16,7 @@ ServerUser::CallbackAdder::CallbackAdder()
 		mCallbacks[MoveCamera] = &ServerUser::moveCameraCommand;
 		mCallbacks[ControlHotspots] = &ServerUser::controlHotspotsCommand;
 		mCallbacks[DoubleClick] = &ServerUser::doubleClickCommand;
+		mCallbacks[ListMap] = &ServerUser::listMapCommand;
 	}
 }
 ServerUser::CallbackAdder adder;
@@ -159,4 +160,22 @@ void ServerUser::doubleClickCommand(const Json::Value &args)
 			break;
 		}
 	}
+}
+
+void ServerUser::listMapCommand(const Json::Value &)
+{
+	const std::vector<SceneMap *> &maps = mServer->getSceneMaps();
+	Json::Value results(Json::arrayValue);
+	int id = 0;
+	for (SceneMap *map : maps) {
+		Json::Value info(Json::objectValue);
+		info["id"] = id++;
+		info["name"] = map->name;
+		info["description"] = map->description;
+		results.append(std::move(info));
+	}
+
+	Packet packet(ListMap);
+	packet.args = std::move(results);
+	sendPacket(packet);
 }

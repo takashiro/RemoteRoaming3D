@@ -13,22 +13,17 @@ class Semaphore;
 enum Command
 {
 	Invalid,
-
-	//Server to Client
 	UpdateVideoFrame,
 	MakeToastText,
 	EnterHotspot,
 	Quit,
-
-	//Client to Server
 	CreateDevice,
-
 	RotateCamera,
 	ScaleCamera,
 	MoveCamera,
-
 	ControlHotspots,
 	DoubleClick,
+	ListMap,
 
 	NumOfCommands
 };
