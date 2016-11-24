@@ -231,6 +231,7 @@
     <ClCompile Include="protocol.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="SceneMap.cpp" />
+    <ClCompile Include="Semaphore.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerUser.cpp" />
     <ClCompile Include="ServerUserCallbacks.cpp" />
@@ -240,6 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h" />
+    <ClInclude Include="Semaphore.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ControlPanel.h" />
     <ClInclude Include="Hotspot.h" />
