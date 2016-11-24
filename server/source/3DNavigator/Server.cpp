@@ -1,5 +1,6 @@
 #include "Server.h"
 #include "ServerUser.h"
+#include "Thread.h"
 
 #include <iostream>
 #include <fstream>
@@ -7,8 +8,14 @@
 RD_NAMESPACE_BEGIN
 
 Server::Server()
-	:mServerPort(6666), mMaximumClientNum(10), mIsListening(false), mIsIndependentThreadEnabled(true),
-	mBroadcastSocket(nullptr), mBroadcastThread(nullptr), mBroadcastPort(52600), mIsBroadcastingConfig(false)
+	: mServerPort(6666)
+	, mMaximumClientNum(10)
+	, mIsListening(false)
+	, mBroadcastSocket(nullptr)
+	, mBroadcastPort(52600)
+	, mIsBroadcastingConfig(false)
+	, mServerThread(nullptr)
+	, mBroadcastThread(nullptr)
 {
 	//create a TCP server
 	mServerSocket = new R3D::TCPServer;
@@ -18,11 +25,11 @@ Server::~Server()
 {
 	if (isListening()) {
 		mServerSocket->close();
-		CloseHandle(mServerThread);
+		delete mServerThread;
 	}
 
 	if (mBroadcastThread) {
-		CloseHandle(mBroadcastThread);
+		delete mBroadcastThread;
 	}
 
 	for (ServerUser *client : mClients) {
@@ -50,40 +57,27 @@ void Server::listenTo(unsigned short port)
 		return;
 	}
 
-	if (isIndependentThreadEnabled()) {
-		mServerThread = CreateThread(NULL, 0, ServerThread, (LPVOID) this, 0, NULL);
-	} else {
-		ServerThread((LPVOID) this);
-	}
-}
+	mServerThread = new Thread([this]() {
+		for (;;) {
+			R3D::TCPSocket *client_socket = mServerSocket->nextPendingConnection();
+			if (client_socket == nullptr) {
+				continue;
+			}
 
-DWORD WINAPI Server::ServerThread(LPVOID pParam)
-{
-	Server *server = (Server *)pParam;
-
-	R3D::TCPServer *&server_socket = server->mServerSocket;
-
-	while (true) {
-		R3D::TCPSocket *client_socket = server_socket->nextPendingConnection();
-		if (client_socket == nullptr) {
-			continue;
-		}
-
-		ServerUser *client = new ServerUser(server, client_socket);
-		if (server->getClients().size() >= server->getMaximumClientNum()) {
-			client->makeToast(R3D::server_reaches_max_client_num);
-			delete client;
-		} else {
-			client->startService();
-			if (client->isValid()) {
-				server->mClients.push_back(client);
-			} else {
+			ServerUser *client = new ServerUser(this, client_socket);
+			if (this->getClients().size() >= this->getMaximumClientNum()) {
+				client->makeToast(R3D::server_reaches_max_client_num);
 				delete client;
+			} else {
+				client->startService();
+				if (client->isValid()) {
+					mClients.push_back(client);
+				} else {
+					delete client;
+				}
 			}
 		}
-	}
-
-	return 0;
+	});
 }
 
 void Server::broadcastConfig(ushort port)
@@ -92,37 +86,31 @@ void Server::broadcastConfig(ushort port)
 		mBroadcastPort = port;
 		mIsBroadcastingConfig = true;
 		if (mBroadcastThread == nullptr) {
-			mBroadcastThread = CreateThread(NULL, 0, BroadcastThread, (LPVOID) this, 0, NULL);
+			mBroadcastThread = new Thread([this]() {
+				ushort port = this->getServerPort();
+				const char *send_data = reinterpret_cast<const char *>(&port);
+				char receive_data[2];
+
+				R3D::UDPSocket *&socket = mBroadcastSocket;
+				socket = new R3D::UDPSocket;
+				socket->bind(R3D::IP::AnyHost, 5261);
+
+				R3D::IP client_ip;
+				unsigned short client_port;
+				while (mIsBroadcastingConfig) {
+					socket->receiveFrom(receive_data, 2, client_ip, client_port);
+					socket->sendTo(send_data, 2, client_ip, 5260);
+				}
+			});
 		}
 	} else {
 		mIsBroadcastingConfig = false;
 		if (mBroadcastThread) {
-			WaitForSingleObject(mBroadcastThread, INFINITE);
-			CloseHandle(mBroadcastThread);
+			mBroadcastThread->wait();
+			delete mBroadcastThread;
 			mBroadcastThread = nullptr;
 		}
 	}
-}
-
-DWORD WINAPI Server::BroadcastThread(LPVOID pParam)
-{
-	Server *server = (Server *)pParam;
-	ushort port = server->getServerPort();
-	const char *send_data = reinterpret_cast<const char *>(&port);
-	char receive_data[2];
-
-	R3D::UDPSocket *&socket = server->mBroadcastSocket;
-	socket = new R3D::UDPSocket;
-	socket->bind(R3D::IP::AnyHost, 5261);
-
-	R3D::IP client_ip;
-	unsigned short client_port;
-	while (server->mIsBroadcastingConfig) {
-		socket->receiveFrom(receive_data, 2, client_ip, client_port);
-		socket->sendTo(send_data, 2, client_ip, 5260);
-	}
-
-	return 0;
 }
 
 void Server::disconnect(ServerUser *client)

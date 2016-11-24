@@ -9,6 +9,7 @@
 
 RD_NAMESPACE_BEGIN
 
+class Thread;
 class ServerUser;
 
 class Server
@@ -29,8 +30,6 @@ public:
 	void disconnect(ServerUser *client);
 
 	inline HANDLE getServerThread() { return mServerThread; }
-	inline void setIndependentThreadEnabled(bool enabled) { mIsIndependentThreadEnabled = enabled; }
-	inline bool isIndependentThreadEnabled() const { return mIsIndependentThreadEnabled; }
 
 	inline void setDriverType(irr::video::E_DRIVER_TYPE type) { mDriverType = type; }
 	inline irr::video::E_DRIVER_TYPE getDriverType() const { return mDriverType; }
@@ -52,17 +51,13 @@ protected:
 	ushort mServerPort;
 	ushort mBroadcastPort;
 	int mMaximumClientNum;
-	bool mIsIndependentThreadEnabled;
 	irr::video::E_DRIVER_TYPE mDriverType;
 	std::list<ServerUser *> mClients;
 	std::vector<SceneMap *> mScenemaps;
 
 private:
-	static DWORD WINAPI ServerThread(LPVOID lpParam);
-	static DWORD WINAPI BroadcastThread(LPVOID lpParam);
-
-	HANDLE mServerThread;
-	HANDLE mBroadcastThread;
+	Thread *mServerThread;
+	Thread *mBroadcastThread;
 };
 
 RD_NAMESPACE_END

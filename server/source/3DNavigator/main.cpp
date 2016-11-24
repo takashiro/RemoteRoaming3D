@@ -1,7 +1,5 @@
 ﻿
 #include <iostream>
-#include <string>
-
 #include "ControlPanel.h"
 
 int main()
