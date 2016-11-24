@@ -14,7 +14,7 @@ using namespace irr;
 
 RD_NAMESPACE_BEGIN
 
-ServerUser::ServerUser(Server *server, R3D::TCPSocket *socket)
+ServerUser::ServerUser(Server *server, TCPSocket *socket)
 	: mServer(server)
 	, mSocket(socket)
 	, mDevice(nullptr)
@@ -149,7 +149,7 @@ void ServerUser::readFrame(char *buffer, int buffer_size, int length)
 	}
 }
 
-void ServerUser::sendPacket(const R3D::Packet &packet)
+void ServerUser::sendPacket(const Packet &packet)
 {
 	char header[10] = { '\x81', '\0' };
 
@@ -287,14 +287,14 @@ void ServerUser::sendScreenshot()
 	int length = (int)mMemoryFile->getPos();
 
 	std::string raw(mMemoryFile->getContent(), length);
-	R3D::Packet packet(R3D::UpdateVideoFrame);
+	Packet packet(UpdateVideoFrame);
 	packet.args = base64_encode(raw);
 	sendPacket(packet);
 }
 
 void ServerUser::enterHotspot(Hotspot *spot)
 {
-	R3D::Packet packet(R3D::EnterHotspot);
+	Packet packet(EnterHotspot);
 	packet.args = spot->toJson();
 	sendPacket(packet);
 }
@@ -308,7 +308,7 @@ void ServerUser::getIp(std::wstring &wstr)
 
 void ServerUser::makeToast(int toastId)
 {
-	R3D::Packet packet(R3D::MakeToastText);
+	Packet packet(MakeToastText);
 	packet.args[0] = toastId;
 	sendPacket(packet);
 }
@@ -351,8 +351,8 @@ void ServerUser::handleCommand(const char *cmd)
 		return;
 	}
 
-	R3D::Packet packet(cmd);
-	std::map<R3D::Command, Callback>::iterator iter = mCallbacks.find(packet.command);
+	Packet packet(cmd);
+	std::map<Command, Callback>::iterator iter = mCallbacks.find(packet.command);
 	if (iter != mCallbacks.end()) {
 		Callback func = iter->second;
 		if (func) {

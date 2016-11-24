@@ -21,15 +21,15 @@ struct SceneMap;
 class ServerUser
 {
 public:
-	ServerUser(Server *server, R3D::TCPSocket *socket);
+	ServerUser(Server *server, TCPSocket *socket);
 	~ServerUser();
 
 	inline bool isValid() const { return mReceiveThread != NULL; }
 	inline irr::IrrlichtDevice *getDevice() { return mDevice; }
-	inline R3D::IP getIp() const { return mSocket->getPeerIp(); };
+	inline IP getIp() const { return mSocket->getPeerIp(); };
 	void getIp(std::wstring &str);
 
-	void sendPacket(const R3D::Packet &packet);
+	void sendPacket(const Packet &packet);
 	void disconnect();
 
 	void startService();
@@ -49,7 +49,7 @@ protected:
 	void handleCommand(const char *cmd);
 
 	typedef void (ServerUser::*Callback)(const Json::Value &args);
-	static std::map<R3D::Command, Callback> mCallbacks;
+	static std::map<Command, Callback> mCallbacks;
 
 	void createDeviceCommand(const Json::Value &args);
 	void rotateCameraCommand(const Json::Value &args);
@@ -62,7 +62,7 @@ protected:
 	int mScreenHeight;
 
 	Server *mServer;
-	R3D::TCPSocket *mSocket;
+	TCPSocket *mSocket;
 	irr::IrrlichtDevice *mDevice;
 	irr::video::IImage *mCurrentFrame;
 	std::list<Hotspot *> mHotspots;

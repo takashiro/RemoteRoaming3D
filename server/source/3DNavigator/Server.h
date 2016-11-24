@@ -43,8 +43,8 @@ public:
 	void broadcastConfig(ushort port = 5261);
 
 protected:
-	R3D::TCPServer *mServerSocket;
-	R3D::UDPSocket *mBroadcastSocket;
+	TCPServer *mServerSocket;
+	UDPSocket *mBroadcastSocket;
 
 	bool mIsListening;
 	bool mIsBroadcastingConfig;

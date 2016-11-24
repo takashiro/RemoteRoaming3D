@@ -5,17 +5,17 @@
 
 using namespace irr;
 
-std::map<R3D::Command, ServerUser::Callback> ServerUser::mCallbacks;
+std::map<Command, ServerUser::Callback> ServerUser::mCallbacks;
 
 ServerUser::CallbackAdder::CallbackAdder()
 {
 	if (mCallbacks.empty()) {
-		mCallbacks[R3D::CreateDevice] = &ServerUser::createDeviceCommand;
-		mCallbacks[R3D::RotateCamera] = &ServerUser::rotateCameraCommand;
-		mCallbacks[R3D::ScaleCamera] = &ServerUser::scaleCameraCommand;
-		mCallbacks[R3D::MoveCamera] = &ServerUser::moveCameraCommand;
-		mCallbacks[R3D::ControlHotspots] = &ServerUser::controlHotspotsCommand;
-		mCallbacks[R3D::DoubleClick] = &ServerUser::doubleClickCommand;
+		mCallbacks[CreateDevice] = &ServerUser::createDeviceCommand;
+		mCallbacks[RotateCamera] = &ServerUser::rotateCameraCommand;
+		mCallbacks[ScaleCamera] = &ServerUser::scaleCameraCommand;
+		mCallbacks[MoveCamera] = &ServerUser::moveCameraCommand;
+		mCallbacks[ControlHotspots] = &ServerUser::controlHotspotsCommand;
+		mCallbacks[DoubleClick] = &ServerUser::doubleClickCommand;
 	}
 }
 ServerUser::CallbackAdder adder;

@@ -18,7 +18,7 @@ Server::Server()
 	, mBroadcastThread(nullptr)
 {
 	//create a TCP server
-	mServerSocket = new R3D::TCPServer;
+	mServerSocket = new TCPServer;
 }
 
 Server::~Server()
@@ -53,20 +53,20 @@ void Server::listenTo(unsigned short port)
 	mServerPort = port;
 
 	//listen to any ip address of the local host
-	if (!mServerSocket->listen(R3D::IP::AnyHost, port)) {
+	if (!mServerSocket->listen(IP::AnyHost, port)) {
 		return;
 	}
 
 	mServerThread = new Thread([this]() {
 		for (;;) {
-			R3D::TCPSocket *client_socket = mServerSocket->nextPendingConnection();
+			TCPSocket *client_socket = mServerSocket->nextPendingConnection();
 			if (client_socket == nullptr) {
 				continue;
 			}
 
 			ServerUser *client = new ServerUser(this, client_socket);
 			if (this->getClients().size() >= this->getMaximumClientNum()) {
-				client->makeToast(R3D::server_reaches_max_client_num);
+				client->makeToast(server_reaches_max_client_num);
 				delete client;
 			} else {
 				client->startService();
@@ -91,11 +91,11 @@ void Server::broadcastConfig(ushort port)
 				const char *send_data = reinterpret_cast<const char *>(&port);
 				char receive_data[2];
 
-				R3D::UDPSocket *&socket = mBroadcastSocket;
-				socket = new R3D::UDPSocket;
-				socket->bind(R3D::IP::AnyHost, 5261);
+				UDPSocket *&socket = mBroadcastSocket;
+				socket = new UDPSocket;
+				socket->bind(IP::AnyHost, 5261);
 
-				R3D::IP client_ip;
+				IP client_ip;
 				unsigned short client_port;
 				while (mIsBroadcastingConfig) {
 					socket->receiveFrom(receive_data, 2, client_ip, client_port);

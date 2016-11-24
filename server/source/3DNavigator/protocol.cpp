@@ -1,30 +1,31 @@
 #include "protocol.h"
+#include "Semaphore.h"
 #include <json/json.h>
 
-namespace R3D{
+RD_NAMESPACE_BEGIN
 
 const IP IP::AnyHost(0, 0, 0, 0);
 const IP IP::LocalHost(127, 0, 0, 1);
 const IP IP::Broadcast(255, 255, 255, 255);
 
-
 Packet::Packet(const std::string &str)
 {
 	Json::Reader reader;
 	Json::Value value;
-	if(!reader.parse(str, value)){
+	if (!reader.parse(str, value)) {
 		args = Json::nullValue;
-	}else{
-		command = (Command) value[0].asInt();
+	} else {
+		command = (Command)value[0].asInt();
 		args = value[1];
 	}
 }
 
-std::string Packet::toString() const{
+std::string Packet::toString() const
+{
 	Json::Value packet;
-	packet[0] = (int) command;
+	packet[0] = static_cast<int>(command);
 	packet[1] = args;
-	
+
 	Json::FastWriter writer;
 	return writer.write(packet);
 }
@@ -34,7 +35,7 @@ IP::IP()
 	ip1 = ip2 = ip3 = ip4 = 0;
 }
 
-IP::IP(unsigned char ip1, unsigned char ip2, unsigned char ip3, unsigned char ip4)
+IP::IP(uchar ip1, uchar ip2, uchar ip3, uchar ip4)
 	:ip1(ip1), ip2(ip2), ip3(ip3), ip4(ip4)
 {
 }
@@ -47,9 +48,9 @@ IP::IP(const sockaddr_in &ip)
 	ip4 = ip.sin_addr.S_un.S_un_b.s_b4;
 }
 
-IP::operator unsigned() const
+IP::operator uint() const
 {
-	unsigned ip = ip1;
+	uint ip = ip1;
 	ip <<= 8;
 	ip |= ip2;
 	ip <<= 8;
@@ -61,17 +62,17 @@ IP::operator unsigned() const
 
 std::ostream &operator<<(std::ostream &cout, const IP &ip)
 {
-	cout << (short) ip.ip1 << "."
-		<< (short) ip.ip2 << "."
-		<< (short) ip.ip3 << "."
-		<< (short) ip.ip4;
+	cout << (short)ip.ip1 << "."
+		<< (short)ip.ip2 << "."
+		<< (short)ip.ip3 << "."
+		<< (short)ip.ip4;
 	return cout;
 };
 
 TCPServer::TCPServer()
 {
-	_port = 0;
-	_max_client_num = 0;
+	mPort = 0;
+	mMaxClientNum = 0;
 }
 
 TCPServer::~TCPServer()
@@ -79,10 +80,10 @@ TCPServer::~TCPServer()
 	close();
 }
 
-bool TCPServer::listen(const IP &ip, unsigned short port)
+bool TCPServer::listen(const IP &ip, ushort port)
 {
-	_ip = ip;
-	_port = port;
+	mIp = ip;
+	mPort = port;
 	return listen();
 }
 
@@ -91,31 +92,27 @@ bool TCPServer::listen()
 	//start up windows socket service of the corresponding version 
 	WSADATA wsaData;
 	WORD sockVersion = MAKEWORD(2, 0);
-	if (WSAStartup(sockVersion, &wsaData))
-	{
+	if (WSAStartup(sockVersion, &wsaData)) {
 		return false;
 	}
-	
+
 	//try to create a TCP socket
-	_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (INVALID_SOCKET == _socket)
-	{
+	mSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (INVALID_SOCKET == mSocket) {
 		WSACleanup();
 		return false;
 	}
-	
+
 	//listen to any ip address of the local host
 	sockaddr_in addr_sev;
 	addr_sev.sin_family = AF_INET;
-	addr_sev.sin_port = htons(_port);
-	addr_sev.sin_addr.s_addr = (unsigned int) _ip;
-	if (SOCKET_ERROR == bind(_socket, (sockaddr *)&addr_sev, sizeof(addr_sev)))
-	{
+	addr_sev.sin_port = htons(mPort);
+	addr_sev.sin_addr.s_addr = static_cast<uint>(mIp);
+	if (SOCKET_ERROR == bind(mSocket, (sockaddr *)&addr_sev, sizeof(addr_sev))) {
 		WSACleanup();
 		return false;
 	}
-	if (SOCKET_ERROR == ::listen(_socket, _max_client_num))
-	{
+	if (SOCKET_ERROR == ::listen(mSocket, mMaxClientNum)) {
 		WSACleanup();
 		return false;
 	}
@@ -128,9 +125,8 @@ TCPSocket *TCPServer::nextPendingConnection()
 	sockaddr_in client_addr;
 	int nAddrLen = sizeof(client_addr);
 
-	SOCKET client_socket = accept(_socket, (sockaddr *)&client_addr, &nAddrLen);
-	if (client_socket == INVALID_SOCKET)
-	{
+	SOCKET client_socket = accept(mSocket, (sockaddr *)&client_addr, &nAddrLen);
+	if (client_socket == INVALID_SOCKET) {
 		return NULL;
 	}
 
@@ -138,93 +134,86 @@ TCPSocket *TCPServer::nextPendingConnection()
 }
 
 AbstractSocket::AbstractSocket()
-	:_socket(NULL)
+	:mSocket(NULL)
 {
-	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
+	mIsSendingData = new Semaphore;
 }
 
 AbstractSocket::AbstractSocket(SOCKET socket)
-	:_socket(socket)
+	: mSocket(socket)
 {
-	_is_sending_data = CreateSemaphore(NULL, 1, 1, NULL);
+	mIsSendingData = new Semaphore;
 }
 
 AbstractSocket::~AbstractSocket()
 {
-	CloseHandle(_is_sending_data);
+	delete mIsSendingData;
 	close();
 }
 
-void AbstractSocket::bind(const IP &ip, unsigned short port)
+void AbstractSocket::bind(const IP &ip, ushort port)
 {
 	//bind the IP and the port
 	sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = (unsigned int) ip;
-	if (SOCKET_ERROR == ::bind(_socket, (sockaddr *)&addr, sizeof(addr)))
-	{
+	addr.sin_addr.s_addr = (unsigned int)ip;
+	if (SOCKET_ERROR == ::bind(mSocket, (sockaddr *)&addr, sizeof(addr))) {
 		WSACleanup();
 	}
 }
 
-void AbstractSocket::connect(const IP &ip, unsigned short port)
-{	
+void AbstractSocket::connect(const IP &ip, ushort port)
+{
 	//connect the IP and the port
 	sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = (unsigned int) ip;
-	if (SOCKET_ERROR == ::connect(_socket, (sockaddr *)&addr, sizeof(addr)))
-	{
+	addr.sin_addr.s_addr = (uint)ip;
+	if (SOCKET_ERROR == ::connect(mSocket, (sockaddr *)&addr, sizeof(addr))) {
 		WSACleanup();
 	}
 }
 
 void AbstractSocket::write(const std::string &raw)
 {
-	WaitForSingleObject(_is_sending_data, INFINITE);
+	mIsSendingData->acquire();
 
 	size_t length = raw.length();
 	size_t y = 0;
 	const char *p = raw.c_str();
-	while(y < length)
-	{
-		y += ::send(_socket, p + y, int(length - y), 0);
+	while (y < length) {
+		y += ::send(mSocket, p + y, int(length - y), 0);
 	}
 
-	ReleaseSemaphore(_is_sending_data, 1, NULL);
+	mIsSendingData->release();
 }
 
 void AbstractSocket::write(const char *raw, int length)
 {
-	WaitForSingleObject(_is_sending_data, INFINITE);
+	mIsSendingData->acquire();
 
 	int y = 0;
-	while(y < length)
-	{
-		int result = ::send(_socket, raw + y, int(length - y), 0);
-		if(result == SOCKET_ERROR)
-		{
+	while (y < length) {
+		int result = ::send(mSocket, raw + y, int(length - y), 0);
+		if (result == SOCKET_ERROR) {
 			break;
-		}
-		else
-		{
+		} else {
 			y += result;
 		}
 	}
 
-	ReleaseSemaphore(_is_sending_data, 1, NULL);
+	mIsSendingData->release();
 }
 
 int AbstractSocket::read(char *buffer, int buffer_size)
 {
-	return recv(_socket, buffer, buffer_size, 0);
+	return recv(mSocket, buffer, buffer_size, 0);
 }
 
 TCPSocket::TCPSocket()
 {
-	_init();
+	init();
 }
 
 TCPSocket::TCPSocket(SOCKET socket)
@@ -236,27 +225,26 @@ TCPSocket::~TCPSocket()
 {
 }
 
-IP TCPSocket::getPeerIp() const{
+IP TCPSocket::getPeerIp() const
+{
 	sockaddr_in ip;
 	int length = sizeof(ip);
-	getpeername(_socket, (sockaddr *) &ip, &length);
+	getpeername(mSocket, (sockaddr *)&ip, &length);
 	return ip;
 }
 
-void TCPSocket::_init()
+void TCPSocket::init()
 {
 	//start up windows socket service of the corresponding version 
 	WSADATA wsaData;
 	WORD sockVersion = MAKEWORD(2, 0);
-	if (WSAStartup(sockVersion, &wsaData))
-	{
+	if (WSAStartup(sockVersion, &wsaData)) {
 		return;
 	}
-	
+
 	//try to create a UDP socket
-	_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (INVALID_SOCKET == _socket)
-	{
+	mSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (INVALID_SOCKET == mSocket) {
 		WSACleanup();
 		return;
 	}
@@ -264,23 +252,23 @@ void TCPSocket::_init()
 
 UDPSocket::UDPSocket()
 {
-	_init();
+	init();
 }
 
 UDPSocket::~UDPSocket()
 {
 }
 
-void UDPSocket::receiveFrom(char *buffer, int size, IP &ip, unsigned short &port)
+void UDPSocket::receiveFrom(char *buffer, int size, IP &ip, ushort &port)
 {
 	sockaddr_in addr;
 	int addrlen = sizeof(addr);
-	recvfrom(_socket, buffer, size, 0, (sockaddr *) &addr, &addrlen);
+	recvfrom(mSocket, buffer, size, 0, (sockaddr *)&addr, &addrlen);
 	ip = addr;
 	port = addr.sin_port;
 }
 
-void UDPSocket::sendTo(const char *buffer, int size, const IP &ip, unsigned short port)
+void UDPSocket::sendTo(const char *buffer, int size, const IP &ip, ushort port)
 {
 	sockaddr_in addr;
 	addr.sin_family = AF_INET;
@@ -290,51 +278,44 @@ void UDPSocket::sendTo(const char *buffer, int size, const IP &ip, unsigned shor
 	addr.sin_addr.S_un.S_un_b.s_b3 = ip.ip3;
 	addr.sin_addr.S_un.S_un_b.s_b4 = ip.ip4;
 
-	WaitForSingleObject(_is_sending_data, INFINITE);
+	mIsSendingData->acquire();
 
 	int y = 0;
-	while(y < size)
-	{
-		int result = sendto(_socket, buffer, size, 0, (const sockaddr *) &addr, sizeof(addr));
-		if(result == SOCKET_ERROR)
-		{
+	while (y < size) {
+		int result = sendto(mSocket, buffer, size, 0, (const sockaddr *)&addr, sizeof(addr));
+		if (result == SOCKET_ERROR) {
 			break;
-		}
-		else
-		{
+		} else {
 			y += result;
 		}
 	}
 
-	ReleaseSemaphore(_is_sending_data, 1, NULL);
+	mIsSendingData->release();
 }
 
 void UDPSocket::setBroadcast(bool on)
 {
-	if(SOCKET_ERROR == setsockopt(_socket, SOL_SOCKET, SO_BROADCAST, (char FAR *)&on, sizeof(on)))
-	{
+	if (SOCKET_ERROR == setsockopt(mSocket, SOL_SOCKET, SO_BROADCAST, (char FAR *)&on, sizeof(on))) {
 		puts("setsockopt failed");
 		return;
 	}
 }
 
-void UDPSocket::_init()
+void UDPSocket::init()
 {
 	//start up windows socket service of the corresponding version 
 	WSADATA wsaData;
 	WORD sockVersion = MAKEWORD(2, 0);
-	if (WSAStartup(sockVersion, &wsaData))
-	{
+	if (WSAStartup(sockVersion, &wsaData)) {
 		return;
 	}
-	
+
 	//try to create a UDP socket
-	_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (INVALID_SOCKET == _socket)
-	{
+	mSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (INVALID_SOCKET == mSocket) {
 		WSACleanup();
 		return;
 	}
 }
 
-}
+RD_NAMESPACE_END

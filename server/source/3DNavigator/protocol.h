@@ -1,124 +1,135 @@
-#ifndef _PROTOCOL_H_
-#define _PROTOCOL_H_
+#pragma once
+
+#include "global.h"
 
 #include <json/value.h>
 #include <winsock.h>
 #include <ostream>
 
-namespace R3D{
-	enum Command{
-		Invalid,
+RD_NAMESPACE_BEGIN
 
-		//Server to Client
-		UpdateVideoFrame,
-		MakeToastText,
-		EnterHotspot,
-		Quit,
+class Semaphore;
 
-		//Client to Server
-		CreateDevice,
+enum Command
+{
+	Invalid,
 
-		RotateCamera,
-		ScaleCamera,
-		MoveCamera,
+	//Server to Client
+	UpdateVideoFrame,
+	MakeToastText,
+	EnterHotspot,
+	Quit,
 
-		ControlHotspots,
-		DoubleClick,
+	//Client to Server
+	CreateDevice,
 
-		NumOfCommands
-	};
+	RotateCamera,
+	ScaleCamera,
+	MoveCamera,
 
-	struct Packet{
-		Command command;
-		Json::Value args;
+	ControlHotspots,
+	DoubleClick,
 
-		inline Packet(Command command = Invalid){this->command = command;}
-		Packet(const std::string &str);
-		std::string toString() const;
-	};
+	NumOfCommands
+};
 
-	enum Message{
-		server_reaches_max_client_num,
-		server_is_to_be_closed,
-		loading_map
-	};
+struct Packet
+{
+	Command command;
+	Json::Value args;
 
-	struct IP{
-		unsigned char ip1, ip2, ip3, ip4;
-		IP();
-		IP(unsigned char ip1, unsigned char ip2, unsigned char ip3, unsigned char ip4);
-		IP(const sockaddr_in &ip);
-		friend std::ostream &operator<<(std::ostream &cout, const IP &ip);
-		operator unsigned() const;
+	inline Packet(Command command = Invalid) { this->command = command; }
+	Packet(const std::string &str);
+	std::string toString() const;
+};
 
-		static const IP AnyHost;
-		static const IP LocalHost;
-		static const IP Broadcast;
-	};
+enum Message
+{
+	server_reaches_max_client_num,
+	server_is_to_be_closed,
+	loading_map
+};
 
-	class AbstractSocket{
-	protected:
-		SOCKET _socket;
-		HANDLE _is_sending_data;
+struct IP
+{
+	uchar ip1, ip2, ip3, ip4;
+	IP();
+	IP(uchar ip1, uchar ip2, uchar ip3, uchar ip4);
+	IP(const sockaddr_in &ip);
+	friend std::ostream &operator<<(std::ostream &cout, const IP &ip);
+	operator uint() const;
 
-	public:
-		AbstractSocket();
-		AbstractSocket(SOCKET socket);
-		~AbstractSocket();
+	static const IP AnyHost;
+	static const IP LocalHost;
+	static const IP Broadcast;
+};
 
-		void bind(const IP &ip, unsigned short port);
-		void connect(const IP &ip, unsigned short port);
+class AbstractSocket
+{
+protected:
+	SOCKET mSocket;
+	Semaphore *mIsSendingData;
 
-		void write(const std::string &raw);
-		void write(const char *data, int length);
-		int read(char *buffer, int buffer_size);
-		inline void close(){closesocket(_socket);}
-		
-	protected:
-		virtual void _init() = 0;
-	};
+public:
+	AbstractSocket();
+	AbstractSocket(SOCKET socket);
+	~AbstractSocket();
 
-	class TCPSocket: public AbstractSocket{
-	public:
-		TCPSocket();
-		TCPSocket(SOCKET socket);
-		~TCPSocket();
-		IP getPeerIp() const;
+	void bind(const IP &ip, ushort port);
+	void connect(const IP &ip, ushort port);
 
-	protected:
-		void _init() override;
-	};
+	void write(const std::string &raw);
+	void write(const char *data, int length);
+	int read(char *buffer, int buffer_size);
+	inline void close() { closesocket(mSocket); }
 
-	class UDPSocket: public AbstractSocket{
-	protected:
-	public:
-		UDPSocket();
-		~UDPSocket();
+protected:
+	virtual void init() = 0;
+};
 
-		void setBroadcast(bool on);
-		void receiveFrom(char *buffer, int size, IP &ip, unsigned short &port);
-		void sendTo(const char *buffer, int size, const IP &ip, unsigned short port);
+class TCPSocket : public AbstractSocket
+{
+public:
+	TCPSocket();
+	TCPSocket(SOCKET socket);
+	~TCPSocket();
+	IP getPeerIp() const;
 
-	protected:
-		void _init() override;
-	};
+protected:
+	void init() override;
+};
 
-	class TCPServer{
-	protected:
-		IP _ip;
-		unsigned short _port;
-		SOCKET _socket;
-		int _max_client_num;
+class UDPSocket : public AbstractSocket
+{
+protected:
+public:
+	UDPSocket();
+	~UDPSocket();
 
-	public:
-		TCPServer();
-		~TCPServer();
-		inline void setMaxClientNum(int num){_max_client_num = num;};
-		bool listen(const IP &ip, unsigned short port);
-		bool listen();
-		TCPSocket *nextPendingConnection();
-		inline void close(){closesocket(_socket);};
-	};
-}
+	void setBroadcast(bool on);
+	void receiveFrom(char *buffer, int size, IP &ip, ushort &port);
+	void sendTo(const char *buffer, int size, const IP &ip, ushort port);
 
-#endif
+protected:
+	void init() override;
+};
+
+class TCPServer
+{
+protected:
+	IP mIp;
+	unsigned short mPort;
+	SOCKET mSocket;
+	int mMaxClientNum;
+
+public:
+	TCPServer();
+	~TCPServer();
+	inline void setMaxClientNum(int num) { mMaxClientNum = num; };
+	bool listen(const IP &ip, ushort port);
+	bool listen();
+	TCPSocket *nextPendingConnection();
+	inline void close() { closesocket(mSocket); };
+};
+
+RD_NAMESPACE_END
