@@ -118,7 +118,7 @@ class TCPServer
 {
 protected:
 	IP mIp;
-	unsigned short mPort;
+	ushort mPort;
 	SOCKET mSocket;
 	int mMaxClientNum;
 

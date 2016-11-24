@@ -186,7 +186,7 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		consisting of lots of geometry.
 		*/
 		scene::IAnimatedMesh* mesh = smgr->getMesh(mSceneMap->meshPath.c_str());
-		scene::IMeshSceneNode* node = 0;
+		scene::IMeshSceneNode* node = nullptr;
 
 		if (mesh) {
 			node = smgr->addOctreeSceneNode(mesh->getMesh(0), 0, -1, 1024);
@@ -214,11 +214,6 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, mSceneMap->cameraPosition, mSceneMap->cameraTarget);
 		camera->setFarValue(5000.0f);
 
-		/*
-		We have done everything, so lets draw it.
-		*/
-		int lastFPS = -1;
-
 		while (mDevice->run()) {
 			mNeedUpdate->acquire();
 			driver->beginScene(true, true, video::SColor(255, 200, 200, 200));
@@ -230,20 +225,6 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 			}
 			mCurrentFrame = driver->createScreenShot();
 			sendScreenshot();
-
-			int fps = driver->getFPS();
-			if (lastFPS != fps) {
-				std::wstring str;
-				getIp(str);
-				str += L" [";
-				str += driver->getName();
-				str += L"] FPS:";
-				str += fps;
-
-				mDevice->setWindowCaption(str.c_str());
-
-				lastFPS = fps;
-			}
 		}
 
 		mDevice->drop();
