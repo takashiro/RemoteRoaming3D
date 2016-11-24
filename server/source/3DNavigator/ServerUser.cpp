@@ -256,13 +256,12 @@ void ServerUser::createHotspots()
 
 void ServerUser::clearHotspots()
 {
-	if (mHotspotRoot == NULL || mHotspots.empty())
+	if (mHotspotRoot == nullptr || mHotspots.empty())
 		return;
 
 	static core::vector3df far_away(FLT_MIN, FLT_MIN, FLT_MIN);
 	scene::ISceneManager *smgr = mDevice->getSceneManager();
-	for (std::list<Hotspot *>::iterator i = mHotspots.begin(); i != mHotspots.end(); i++) {
-		Hotspot *&spot = *i;
+	for (Hotspot *spot : mHotspots) {
 		scene::ISceneNode *node = spot->getNode();
 		node->setPosition(far_away);
 		delete spot;
@@ -270,12 +269,12 @@ void ServerUser::clearHotspots()
 
 	mHotspots.clear();
 	smgr->addToDeletionQueue(mHotspotRoot);
-	mHotspotRoot = NULL;
+	mHotspotRoot = nullptr;
 }
 
 void ServerUser::sendScreenshot()
 {
-	if (mDevice == NULL || mCurrentFrame == NULL) {
+	if (mDevice == nullptr || mCurrentFrame == nullptr) {
 		return;
 	}
 
@@ -284,7 +283,7 @@ void ServerUser::sendScreenshot()
 		puts("failed to transfer video frame");
 	}
 
-	int length = (int)mMemoryFile->getPos();
+	int length = static_cast<int>(mMemoryFile->getPos());
 
 	std::string raw(mMemoryFile->getContent(), length);
 	Packet packet(UpdateVideoFrame);
