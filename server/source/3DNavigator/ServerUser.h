@@ -15,6 +15,7 @@ RD_NAMESPACE_BEGIN
 class Server;
 class Hotspot;
 class Thread;
+class Semaphore;
 struct SceneMap;
 
 class ServerUser
@@ -74,7 +75,7 @@ protected:
 private:
 	Thread *mReceiveThread;
 	Thread *mDeviceThread;
-	HANDLE mNeedUpdate;
+	Semaphore *mNeedUpdate;
 
 public:
 	class CallbackAdder

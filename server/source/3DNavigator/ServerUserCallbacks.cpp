@@ -1,6 +1,7 @@
 #include "ServerUser.h"
 #include "Hotspot.h"
 #include "Server.h"
+#include "Semaphore.h"
 
 using namespace irr;
 
@@ -70,7 +71,7 @@ void ServerUser::rotateCameraCommand(const Json::Value &args)
 	target += pos;
 	camera->setTarget(target);
 
-	ReleaseSemaphore(mNeedUpdate, 1, NULL);
+	mNeedUpdate->release();
 }
 
 void ServerUser::scaleCameraCommand(const Json::Value &args)
@@ -97,7 +98,7 @@ void ServerUser::scaleCameraCommand(const Json::Value &args)
 	camera->setTarget(target);
 	camera->setPosition(position);
 
-	ReleaseSemaphore(mNeedUpdate, 1, NULL);
+	mNeedUpdate->release();
 }
 
 void ServerUser::moveCameraCommand(const Json::Value &args)
@@ -119,7 +120,7 @@ void ServerUser::moveCameraCommand(const Json::Value &args)
 
 	camera->setPosition(pos);
 
-	ReleaseSemaphore(mNeedUpdate, 1, NULL);
+	mNeedUpdate->release();
 }
 
 void ServerUser::controlHotspotsCommand(const Json::Value &)
@@ -130,7 +131,7 @@ void ServerUser::controlHotspotsCommand(const Json::Value &)
 		clearHotspots();
 	}
 
-	ReleaseSemaphore(mNeedUpdate, 1, NULL);
+	mNeedUpdate->release();
 }
 
 void ServerUser::doubleClickCommand(const Json::Value &args)

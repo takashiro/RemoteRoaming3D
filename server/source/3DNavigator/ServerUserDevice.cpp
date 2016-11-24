@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "ServerUser.h"
 #include "Thread.h"
+#include "Semaphore.h"
 
 #include <iostream>
 #include <fstream>
@@ -219,7 +220,7 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		int lastFPS = -1;
 
 		while (mDevice->run()) {
-			WaitForSingleObject(mNeedUpdate, INFINITE);
+			mNeedUpdate->acquire();
 			driver->beginScene(true, true, video::SColor(255, 200, 200, 200));
 			smgr->drawAll();
 			driver->endScene();

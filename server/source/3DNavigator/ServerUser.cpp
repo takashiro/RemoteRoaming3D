@@ -2,6 +2,7 @@
 #include "ServerUser.h"
 #include "Hotspot.h"
 #include "Thread.h"
+#include "Semaphore.h"
 #include "util.h"
 
 #include <memory.h>
@@ -34,7 +35,7 @@ ServerUser::~ServerUser()
 	disconnect();
 
 	if (mNeedUpdate) {
-		CloseHandle(mNeedUpdate);
+		delete mNeedUpdate;
 	}
 
 	if (mMemoryFile) {
@@ -180,7 +181,7 @@ void ServerUser::disconnect()
 
 	if (mDevice) {
 		mDevice->closeDevice();
-		ReleaseSemaphore(mNeedUpdate, 1, NULL);
+		mNeedUpdate->release();
 	}
 
 	if (mDeviceThread) {
@@ -212,7 +213,7 @@ void ServerUser::startService()
 
 		delete[] buffer;
 	});
-	mNeedUpdate = CreateSemaphore(NULL, 1, 1, NULL);
+	mNeedUpdate = new Semaphore;
 }
 
 void ServerUser::createHotspots()
