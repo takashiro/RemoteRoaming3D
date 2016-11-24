@@ -9,6 +9,7 @@
 #endif
 
 #define forever for(;;)
+#define RD_DECLARE_PRIVATE struct Private; friend struct Private; Private *d
 
 RD_NAMESPACE_BEGIN
 
