@@ -26,6 +26,7 @@ body{
 	color: white;
 	font-size: 40pt;
 	line-height: 540px;
+	overflow: hidden;
 }
 
 #screen > img{
@@ -39,6 +40,7 @@ body{
 	position: absolute;
 	top: 0;
 	left: 0;
+	overflow: hidden;
 }
 
 ul{
@@ -110,4 +112,15 @@ button{
 
 .post-buttons{
 	margin: 10px;
+}
+
+.toast{
+	position: absolute;
+	top: 40%;
+	width: 50%;
+	left: 25%;
+	background: #403F67;
+	color: #CCCCCC;
+	line-height: 3em;
+	border-radius: 9px;
 }

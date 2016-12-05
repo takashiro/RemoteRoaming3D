@@ -14,12 +14,15 @@
 		<ul id="scene-map"></ul>
 		<div class="dialog" id="connect-dialog">
 			<h1>Remote Roaming 3D</h1>
-			<fieldset>
-				<input type="text" placeholder="Type server address here...">
-			</fieldset>
-			<div class="post-buttons">
-				<button type="submit">Connect</button>
-			</div>
+			<form id="connect-form">
+				<fieldset>
+					<input type="text" name="server_url" placeholder="Type server address here...">
+				</fieldset>
+				<div class="post-buttons">
+					<button type="submit">Connect</button>
+				</div>
+				<div class="message"></div>
+			</form>
 		</div>
 	</div>
 </body>

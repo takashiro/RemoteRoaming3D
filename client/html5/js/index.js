@@ -38,7 +38,20 @@ class Server {
 			if(absolute_path.test(url)){
 				this.url = url;
 			}else{
-				this.url = 'ws://' + url;
+				var domain_split = url.indexOf('/');
+				var domain = '';
+				var path = '';
+				if(domain_split == -1){
+					domain = url;
+				}else{
+					domain = url.substr(0, domain_split);
+					path = url.substr(domain_split + 1);
+				}
+				if(domain.indexOf(':') >= 0){
+					this.url = 'ws://' + domain + '/' + path;
+				}else{
+					this.url = 'ws://' + domain + ':52600/' + path;
+				}
 			}
 		}else{
 			this.url = '';
@@ -151,6 +164,29 @@ class Dialog {
 
 }
 
+class Toast {
+
+	constructor(text){
+		this.text = text;
+		this.elapse = 3;
+	}
+
+	exec(){
+		var toast = $('<div></div>');
+		toast.addClass('toast');
+		toast.html(this.text);
+
+		$('#board').append(toast);
+		toast.css({opacity: 0, top : '+=10px'});
+		toast.animate({opacity : 1, top : '-=10px'}, 500);
+
+		setTimeout(function(){
+			toast.remove();
+		}, this.elapse * 1000);
+	}
+
+}
+
 
 var Callback = new Array(Command.NumOfCommands);
 
@@ -165,7 +201,8 @@ Callback[Command.UpdateVideoFrame] = function(arg) {
 };
 
 Callback[Command.ListMap] = function(args) {
-	$('#screen').html('请选择一个场景');
+	var toast = new Toast('请选择一个场景');
+	toast.exec();
 
 	var ul = $('#scene-map');
 	ul.html('');
@@ -185,10 +222,14 @@ var server = new Server();
 server.onmessage = Callback;
 
 server.onOpen(function(){
-	$('#screen').html('连接成功');
-	Server.request(Command.ListMap);
+	$('#connect-dialog').remove();
 
-	var screen = $('#screen');
+	var toast = new Toast('Connection established.');
+	toast.exec();
+
+	server.request(Command.ListMap);
+
+	var screen = $('#board');
 
 	screen.mousedown(function(e){
 		e.preventDefault();
@@ -207,13 +248,13 @@ server.onOpen(function(){
 			var deltaY = e.pageY - Camera.y;
 			Camera.x = e.pageX;
 			Camera.y = e.pageY;
-			Server.request(Command.RotateCamera, [deltaX * 100, deltaY * 100]);
+			server.request(Command.RotateCamera, [deltaX * 100, deltaY * 100]);
 		}
 	});
 
 	screen.mousewheel(function(e){
 		e.preventDefault();
-		Server.request(Command.ScaleCamera, [-e.deltaY * 2000]);
+		server.request(Command.ScaleCamera, [-e.deltaY * 2000]);
 	});
 });
 
@@ -237,6 +278,16 @@ $(function(){
 		return false;
 	};
 
+	$('#connect-form').submit(function(e){
+		e.preventDefault();
+
+		var message_box = $(e.target).find('.message');
+		message_box.html('Connecting...');
+
+		var server_url = e.target.server_url.value;
+		server.connect(server_url);
+	});
+
 	$('#scene-map').on('click', 'button', function(e){
 		var button = $(e.target);
 		var id = button.data('id');
@@ -244,7 +295,7 @@ $(function(){
 		var width = screen.width();
 		var height = screen.height();
 
-		if(server.isConnected()){
+		if(server.isConnected){
 			server.request(Command.CreateDevice, [width, height, id]);
 		}
 	});
