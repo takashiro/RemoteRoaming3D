@@ -131,9 +131,14 @@ class Dialog {
 		this.titleTag = 'h4';
 		this.content = null;
 		this.elapse = 3;
+		this.dialog = null;
 	}
 
-	exec(){
+	exec(elapse){
+		if(typeof elapse == 'number'){
+			this.elapse = elapse;
+		}
+
 		var title = $('<' + this.titleTag + '></' + this.titleTag + '>');
 		title.html(this.title);
 
@@ -144,21 +149,27 @@ class Dialog {
 			dialog.append(this.content);
 		}
 
-		dialog.hide();
 		$('#board').append(dialog);
-
 		dialog.css('top', '+=10px');
 		dialog.animate({
 			'top' : '-=10px',
 			'opacity' : 1
 		}, 500);
 
+		this.dialog = dialog;
 		if(this.elapse > 0){
 			setTimeout(function(){
-				dialog.fadeOut(function(){
-					dialog.remove();
-				});
+				this.close();
 			}, this.elapse * 1000);
+		}
+	}
+
+	close(){
+		if(this.dialog){
+			this.dialog.fadeOut(function(){
+				$(this).remove();
+			});
+			this.dialog = null;
 		}
 	}
 
@@ -169,9 +180,14 @@ class Toast {
 	constructor(text){
 		this.text = text;
 		this.elapse = 3;
+		this.onclose = [];
 	}
 
-	exec(){
+	exec(elapse){
+		if(typeof elapse == 'number'){
+			this.elapse = elapse;
+		}
+
 		var toast = $('<div></div>');
 		toast.addClass('toast');
 		toast.html(this.text);
@@ -180,9 +196,17 @@ class Toast {
 		toast.css({opacity: 0, top : '+=10px'});
 		toast.animate({opacity : 1, top : '-=10px'}, 500);
 
+		var object = this;
 		setTimeout(function(){
 			toast.remove();
+			for(var i = 0; i < object.onclose.length; i++){
+				object.onclose[i]();
+			}
 		}, this.elapse * 1000);
+	}
+
+	onClose(callback){
+		this.onclose.push(callback);
 	}
 
 }
@@ -201,11 +225,11 @@ Callback[Command.UpdateVideoFrame] = function(arg) {
 };
 
 Callback[Command.ListMap] = function(args) {
-	var toast = new Toast('请选择一个场景');
-	toast.exec();
+	var dialog = new Dialog();
+	dialog.title = 'Please select a scene';
 
-	var ul = $('#scene-map');
-	ul.html('');
+	var ul = $('<ul></ul>');
+	ul.addClass('scene-map');
 	for(var i = 0; i < args.length; i++) {
 		var info = args[i];
 		var button = $('<button></button>');
@@ -216,6 +240,23 @@ Callback[Command.ListMap] = function(args) {
 		li.append(button);
 		ul.append(li);
 	}
+
+	ul.on('click', 'button', function(e){
+		var button = $(e.target);
+		var id = button.data('id');
+		var screen = $('#screen');
+		var width = screen.width();
+		var height = screen.height();
+
+		if(server.isConnected){
+			server.request(Command.CreateDevice, [width, height, id]);
+		}
+
+		dialog.close();
+	});
+
+	dialog.content = ul;
+	dialog.exec(0);
 };
 
 var server = new Server();
@@ -225,9 +266,10 @@ server.onOpen(function(){
 	$('#connect-dialog').remove();
 
 	var toast = new Toast('Connection established.');
-	toast.exec();
-
-	server.request(Command.ListMap);
+	toast.onClose(function(){
+		server.request(Command.ListMap);
+	});
+	toast.exec(1);
 
 	var screen = $('#board');
 
@@ -261,13 +303,13 @@ server.onOpen(function(){
 server.onClose(function(e){
 	switch(e.code){
 	case 1000:
-		$('#screen').html('服务器已关闭');
+		$('#screen').html('Server is closed.');
 		break;
 	case 1006:
-		$('#screen').html('无法连接到服务器');
+		$('#screen').html('Failed to establish a connection.');
 		break;
 	default:
-		$('#screen').html('未知错误');
+		$('#screen').html('Unknown error.');
 	}
 });
 
@@ -286,17 +328,5 @@ $(function(){
 
 		var server_url = e.target.server_url.value;
 		server.connect(server_url);
-	});
-
-	$('#scene-map').on('click', 'button', function(e){
-		var button = $(e.target);
-		var id = button.data('id');
-		var screen = $('#screen');
-		var width = screen.width();
-		var height = screen.height();
-
-		if(server.isConnected){
-			server.request(Command.CreateDevice, [width, height, id]);
-		}
 	});
 });

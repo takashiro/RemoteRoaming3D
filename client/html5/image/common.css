@@ -49,25 +49,28 @@ ul{
 	margin: 0;
 }
 
-ul#scene-map{
+ul.scene-map{
 	margin-top: 0;
 }
 
-ul#scene-map > li{
+ul.scene-map > li{
 	display: inline-block;
 	margin: 5px;
 }
 
-ul#scene-map > li > button{
+ul.scene-map > li > button{
 	background: #007ACC;
 	color: white;
 	border: #008ADD 1px solid;
-	padding: 1em;
-	width: 100%;
+	padding: 0.7em 1em;
+	width: 12em;
 	font-size: 12pt;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
-ul#scene-map > li > button:hover{
+ul.scene-map > li > button:hover{
 	box-shadow: #009ADD 0 0 5px;
 }
 
@@ -88,6 +91,13 @@ ul#scene-map > li > button:hover{
 	color: #2A333A;
 	margin: 45px 0;
 	font-size: 20pt;
+}
+
+.dialog h4{
+	margin: 10px 0;
+	text-align: center;
+	font-size: 16pt;
+	font-weight: normal;
 }
 
 fieldset{
@@ -119,8 +129,8 @@ button{
 	top: 40%;
 	width: 50%;
 	left: 25%;
-	background: #403F67;
-	color: #CCCCCC;
+	background: rgba(255, 255, 255, 0.6);
+	color: #403F67;
 	line-height: 3em;
 	border-radius: 9px;
 }
