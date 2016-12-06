@@ -18,9 +18,9 @@ Resource::Resource(const Json::Value &value)
 
 void Resource::parseJson(const Json::Value &value)
 {
-	name = value[0].asString();
-	path = value[1].asString();
-	description = value[2].asString();
+	name = value["name"].asString();
+	path = value["path"].asString();
+	description = value["description"].asString();
 }
 
 Json::Value Resource::toJson() const

@@ -20,18 +20,18 @@ void SceneMap::parseJson(const Json::Value &value)
 {
 	Resource::parseJson(value);
 
-	const Json::Value &pos = value[3];
+	const Json::Value &pos = value["pos"];
 	cameraPosition.X = pos[0].asFloat();
 	cameraPosition.Y = pos[1].asFloat();
 	cameraPosition.Z = pos[2].asFloat();
 
-	const Json::Value &look_at = value[4];
+	const Json::Value &look_at = value["look_at"];
 	cameraTarget.X = look_at[0].asFloat();
 	cameraTarget.Y = look_at[1].asFloat();
 	cameraTarget.Z = look_at[2].asFloat();
 
-	hotspotPath = value[5].asString();
-	meshPath = value[6].asString();
+	hotspotPath = value["hotspotPath"].asString();
+	meshPath = value["meshPath"].asString();
 }
 
 Json::Value SceneMap::toJson() const

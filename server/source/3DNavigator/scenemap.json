@@ -1,6 +1,38 @@
 [
-["敦煌莫高窟158窟","../../media/test/158.zip","",[-42.456,-2.678,60.496],[-41.234,25.374,-7.922],"../../media/test/158.txt","MG158_52.obj"],
-["甘肃灵台唐墓人面镇墓兽人面2009LFYM2-22","../../media/test/1.zip","",[0,0,0],[0,0,0],"","1.obj"],
-["浙江省博物馆越窑青釉褐彩如意云纹镂空熏炉（炉座上下面）","../../media/test/2.zip","",[0,0,0],[0,0,0],"","2.obj"],
-["浙江省博物馆越窑青釉褐彩如意云纹镂空熏炉计算数据（炉身上下面）","../../media/test/3.zip","",[0,0,0],[0,0,0],"","3.obj"]
+	{
+		"name" : "敦煌莫高窟158窟",
+		"path" : "../../media/test/158.zip",
+		"description" : "",
+		"pos" : [-42.456,-2.678,60.496],
+		"look_at" : [-41.234,25.374,-7.922],
+		"hotspotPath" : "../../media/test/158.txt",
+		"meshPath" : "MG158_52.obj"
+	},
+	{
+		"name" : "甘肃灵台唐墓人面镇墓兽人面2009LFYM2-22",
+		"path" : "../../media/test/1.zip",
+		"description" : "",
+		"pos" : [0,0,0],
+		"look_at" : [0,0,0],
+		"hotspotPath" : "",
+		"meshPath" : "1.obj"
+	},
+	{
+		"name" : "浙江省博物馆越窑青釉褐彩如意云纹镂空熏炉（炉座上下面）",
+		"path" : "../../media/test/2.zip",
+		"description" : "",
+		"pos" : [0,0,0],
+		"look_at" : [0,0,0],
+		"hotspotPath" : "",
+		"meshPath" : "2.obj"
+	},
+	{
+		"name" : "浙江省博物馆越窑青釉褐彩如意云纹镂空熏炉计算数据（炉身上下面）",
+		"path" : "../../media/test/3.zip",
+		"description" : "",
+		"pos" : [0,0,0],
+		"look_at" : [0,0,0],
+		"hotspotPath" : "",
+		"meshPath" : "3.obj"
+	}
 ]
