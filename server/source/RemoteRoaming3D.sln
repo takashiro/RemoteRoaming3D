@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Irrlicht", "Irrlicht\Irrlicht11.0.vcxproj", "{E08E042A-6C45-411B-92BE-3CC31331019F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GUIEditor", "..\tools\GUIEditor\GUI Editor_vc11.vcxproj", "{853A396E-C031-4C26-A716-5B4E176BE11D}"
@@ -10,6 +12,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MeshConverter", "..\tools\MeshConverter\MeshConverter_vc11.vcxproj", "{E72B637E-4AA6-46F3-885F-AC67B4B470ED}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3DNavigator", "3DNavigator\3DNavigator.vcxproj", "{D1A464A2-D479-458C-98A2-60965D823CD1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E08E042A-6C45-411B-92BE-3CC31331019F} = {E08E042A-6C45-411B-92BE-3CC31331019F}
+		{6E301496-5BA3-4E28-ADAA-8F8C3008920B} = {6E301496-5BA3-4E28-ADAA-8F8C3008920B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Json", "Json\Json_vc11.vcxproj", "{6E301496-5BA3-4E28-ADAA-8F8C3008920B}"
 EndProject
