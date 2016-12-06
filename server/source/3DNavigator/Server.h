@@ -27,7 +27,7 @@ public:
 
 	inline bool isListening() const { return mIsListening; }
 
-	void disconnect(ServerUser *client);
+	void remove(ServerUser *client);
 
 	inline HANDLE getServerThread() { return mServerThread; }
 

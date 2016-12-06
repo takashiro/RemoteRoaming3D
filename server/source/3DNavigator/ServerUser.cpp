@@ -209,7 +209,7 @@ void ServerUser::startService()
 		}
 
 		//disconnect the client
-		mServer->disconnect(this);
+		mServer->remove(this);
 
 		delete[] buffer;
 	});

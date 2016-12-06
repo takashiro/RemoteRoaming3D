@@ -25,6 +25,7 @@ Server::~Server()
 {
 	if (isListening()) {
 		mServerSocket->close();
+		mServerThread->wait();
 		delete mServerThread;
 	}
 
@@ -61,7 +62,7 @@ void Server::listenTo(unsigned short port)
 		for (;;) {
 			TCPSocket *client_socket = mServerSocket->nextPendingConnection();
 			if (client_socket == nullptr) {
-				continue;
+				break;
 			}
 
 			ServerUser *client = new ServerUser(this, client_socket);
@@ -113,10 +114,9 @@ void Server::broadcastConfig(ushort port)
 	}
 }
 
-void Server::disconnect(ServerUser *client)
+void Server::remove(ServerUser *client)
 {
 	mClients.remove(client);
-	client->disconnect();
 }
 
 void Server::loadSceneMap(const std::string &config_path)
