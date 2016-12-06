@@ -17,7 +17,7 @@ struct Thread::Private
 	}
 };
 
-Thread::Thread(const std::function<void ()> &func)
+Thread::Thread(const std::function<void()> &func)
 	: d(new Private)
 {
 	d->func = func;

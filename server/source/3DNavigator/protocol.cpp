@@ -127,7 +127,7 @@ TCPSocket *TCPServer::nextPendingConnection()
 
 	SOCKET client_socket = accept(mSocket, (sockaddr *)&client_addr, &nAddrLen);
 	if (client_socket == INVALID_SOCKET) {
-		return NULL;
+		return nullptr;
 	}
 
 	return new TCPSocket(client_socket);

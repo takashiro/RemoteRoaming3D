@@ -24,7 +24,7 @@ public:
 	ServerUser(Server *server, TCPSocket *socket);
 	~ServerUser();
 
-	inline bool isValid() const { return mReceiveThread != NULL; }
+	inline bool isValid() const { return mReceiveThread != nullptr; }
 	inline irr::IrrlichtDevice *getDevice() { return mDevice; }
 	inline IP getIp() const { return mSocket->getPeerIp(); };
 	void getIp(std::wstring &str);
