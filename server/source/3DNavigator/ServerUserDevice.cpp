@@ -218,7 +218,7 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		when used with the gravity of (0, -10, 0) in the collision response animator.
 		*/
 		scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, mSceneMap->cameraPosition, mSceneMap->cameraTarget);
-		camera->setFarValue(5000.0f);
+		camera->setAspectRatio(static_cast<irr::f32>(mScreenWidth) / mScreenHeight);
 
 		mClosingDevice = false;
 		while (mDevice->run()) {
