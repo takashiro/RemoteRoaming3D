@@ -263,7 +263,7 @@ var server = new Server();
 server.onmessage = Callback;
 
 server.onOpen(function(){
-	$('#connect-dialog').remove();
+	$('#connect-dialog').hide();
 
 	var toast = new Toast('Connection established.');
 	toast.onClose(function(){
@@ -301,16 +301,23 @@ server.onOpen(function(){
 });
 
 server.onClose(function(e){
+	var toast = new Toast;
 	switch(e.code){
 	case 1000:
-		$('#screen').html('Server is closed.');
+		toast.text = 'Server is closed.';
 		break;
 	case 1006:
-		$('#screen').html('Failed to establish a connection.');
+		toast.text = 'Failed to establish a connection.';
 		break;
 	default:
-		$('#screen').html('Unknown error.');
+		toast.text = 'Unknown error.';
 	}
+
+	toast.onClose(function(){
+		$('#connect-dialog').show();
+	});
+
+	toast.exec();
 });
 
 $(function(){
