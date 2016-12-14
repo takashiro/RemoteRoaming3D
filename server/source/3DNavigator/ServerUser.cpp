@@ -21,7 +21,8 @@ ServerUser::ServerUser(Server *server, TCPSocket *socket)
 	, mDeviceThread(nullptr)
 	, mCurrentFrame(nullptr)
 	, mReceiveThread(nullptr)
-	, mMemoryFile(nullptr)
+	, mScreenshotBuffer(nullptr)
+	, mScreenshotFile(nullptr)
 	, mNeedUpdate(nullptr)
 	, mSceneMap(nullptr)
 	, mHotspotRoot(nullptr)
@@ -34,13 +35,13 @@ ServerUser::~ServerUser()
 {
 	disconnect();
 
-	if (mNeedUpdate) {
-		delete mNeedUpdate;
+	delete mNeedUpdate;
+
+	if (mScreenshotFile) {
+		mScreenshotFile->drop();
 	}
 
-	if (mMemoryFile) {
-		mMemoryFile->drop();
-	}
+	delete[] mScreenshotBuffer;
 }
 
 void ServerUser::readLine(char *buffer, int buffer_capacity, int length)
@@ -278,16 +279,14 @@ void ServerUser::sendScreenshot()
 		return;
 	}
 
-	mMemoryFile->clear();
-	if (!mDevice->getVideoDriver()->writeImageToFile(mCurrentFrame, mMemoryFile, 50)) {
+	mScreenshotFile->seek(0);
+	if (!mDevice->getVideoDriver()->writeImageToFile(mCurrentFrame, mScreenshotFile, 50)) {
 		puts("failed to transfer video frame");
 	}
 
-	int length = static_cast<int>(mMemoryFile->getPos());
-
-	std::string raw(mMemoryFile->getContent(), length);
+	int length = static_cast<int>(mScreenshotFile->getPos());
 	Packet packet(UpdateVideoFrame);
-	packet.args = base64_encode(raw);
+	packet.args = base64_encode(static_cast<const uchar *>(mScreenshotBuffer), length);
 	sendPacket(packet);
 }
 

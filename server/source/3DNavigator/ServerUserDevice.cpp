@@ -74,8 +74,6 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 	mScreenHeight = args[1].asInt();
 	mSceneMap = mServer->getSceneMapAt(args[2].asInt());
 
-	mMemoryFile = new irr::io::MemoryFile("screenshot.jpg", mScreenWidth * mScreenHeight * 4);
-
 	std::function<void()> worker = [this]() {
 		if (mSceneMap == nullptr)
 			return;
@@ -169,7 +167,12 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		we are able to read from the files in that archive as if they are
 		directly stored on the disk.
 		*/
-		mDevice->getFileSystem()->addFileArchive(mSceneMap->path.c_str());
+		irr::io::IFileSystem *fileSystem = mDevice->getFileSystem();
+		fileSystem->addFileArchive(mSceneMap->path.c_str());
+
+		const int screenshotSize = mScreenWidth * mScreenHeight;
+		mScreenshotBuffer = new int[screenshotSize];
+		mScreenshotFile = fileSystem->createMemoryWriteFile(mScreenshotBuffer, screenshotSize * sizeof(int), "screenshot.jpg");
 
 		/*
 		Now we can load the mesh by calling

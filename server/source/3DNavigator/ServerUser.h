@@ -8,7 +8,6 @@
 #include <list>
 
 #include "protocol.h"
-#include "IrrMemoryFile.h"
 
 RD_NAMESPACE_BEGIN
 
@@ -67,7 +66,8 @@ protected:
 	irr::IrrlichtDevice *mDevice;
 	irr::video::IImage *mCurrentFrame;
 	std::list<Hotspot *> mHotspots;
-	irr::io::MemoryFile *mMemoryFile;
+	void *mScreenshotBuffer;
+	irr::io::IWriteFile *mScreenshotFile;
 	SceneMap *mSceneMap;
 	irr::scene::ISceneNode *mHotspotRoot;
 	void (ServerUser::*mPacketHandler)(const char *);

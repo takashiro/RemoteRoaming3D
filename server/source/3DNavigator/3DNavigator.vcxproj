@@ -212,7 +212,6 @@
   <ItemGroup>
     <ClCompile Include="ControlPanel.cpp" />
     <ClCompile Include="Hotspot.cpp" />
-    <ClCompile Include="IrrMemoryFile.cpp" />
     <ClCompile Include="main.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
@@ -246,7 +245,6 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ControlPanel.h" />
     <ClInclude Include="Hotspot.h" />
-    <ClInclude Include="IrrMemoryFile.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="SceneMap.h" />
     <ClInclude Include="Server.h" />
