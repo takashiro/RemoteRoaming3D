@@ -79,10 +79,6 @@ ul.scene-map > li > button:hover{
 	width: 320px;
 	height: 260px;
 	border-radius: 7px;
-	margin: auto;
-	position: relative;
-	top: 40%;
-	margin-top: -127px;
 	text-align: center;
 	padding: 40px;
 }
@@ -98,6 +94,29 @@ ul.scene-map > li > button:hover{
 	text-align: center;
 	font-size: 16pt;
 	font-weight: normal;
+}
+
+.dialog.center{
+	margin: auto;
+	position: relative;
+	top: 40%;
+	margin-top: -127px;
+}
+
+.dialog.search{
+	visibility: hidden;
+	position: absolute;
+	right: 20px;
+	bottom: 20px;
+	margin: 0;
+	height: auto;
+	padding: 20px;
+	background: none;
+	opacity: 0.65;
+}
+
+.dialog.search:hover{
+	opacity: 1;
 }
 
 fieldset{

@@ -16,6 +16,7 @@ class Hotspot;
 class Thread;
 class Semaphore;
 struct SceneMap;
+struct PortalKey;
 
 class ServerUser
 {
@@ -57,6 +58,7 @@ protected:
 	void controlHotspotsCommand(const Json::Value &args);
 	void doubleClickCommand(const Json::Value &args);
 	void listMapCommand(const Json::Value &args);
+	void searchPortalKeyCommand(const Json::Value &args);
 
 	int mScreenWidth;
 	int mScreenHeight;
@@ -72,6 +74,7 @@ protected:
 	irr::scene::ISceneNode *mHotspotRoot;
 	void (ServerUser::*mPacketHandler)(const char *);
 	void (ServerUser::*mReadSocket)(char *buffer, int buffer_capacity, int length);
+	std::map<std::string, PortalKey *> mPortalKeys;
 
 private:
 	Thread *mReceiveThread;

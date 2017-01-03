@@ -42,6 +42,10 @@ ServerUser::~ServerUser()
 	}
 
 	delete[] mScreenshotBuffer;
+
+	for (const std::pair<std::string, PortalKey *> &p : mPortalKeys) {
+		delete p.second;
+	}
 }
 
 void ServerUser::readLine(char *buffer, int buffer_capacity, int length)
@@ -280,7 +284,7 @@ void ServerUser::sendScreenshot()
 	}
 
 	mScreenshotFile->seek(0);
-	if (!mDevice->getVideoDriver()->writeImageToFile(mCurrentFrame, mScreenshotFile, 50)) {
+	if (!mDevice->getVideoDriver()->writeImageToFile(mCurrentFrame, mScreenshotFile, 80)) {
 		puts("failed to transfer video frame");
 	}
 

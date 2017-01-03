@@ -241,6 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h" />
+    <ClInclude Include="PortalKey.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ControlPanel.h" />

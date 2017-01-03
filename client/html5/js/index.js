@@ -12,8 +12,9 @@ var Command = {
 	ControlHotspots : 9,
 	DoubleClick : 10,
 	ListMap : 11,
+	SearchPortalKey : 12,
 
-	NumOfCommands : 12
+	NumOfCommands : 13
 };
 
 var Camera = {
@@ -144,6 +145,7 @@ class Dialog {
 
 		var dialog = $('<div></div>');
 		dialog.addClass('dialog');
+		dialog.addClass('center');
 		dialog.append(title);
 		if(this.content){
 			dialog.append(this.content);
@@ -250,6 +252,8 @@ Callback[Command.ListMap] = function(args) {
 
 		if(server.isConnected){
 			server.request(Command.CreateDevice, [width, height, id]);
+			var search_dialog = $('#search-dialog');
+			search_dialog.css('visibility', 'visible');
 		}
 
 		dialog.close();
@@ -274,6 +278,9 @@ server.onOpen(function(){
 	var screen = $('#board');
 
 	screen.mousedown(function(e){
+		if(!$(e.target).is('#board')){
+			return;
+		}
 		e.preventDefault();
 		Camera.attached = true;
 		Camera.x = e.pageX;
@@ -285,13 +292,15 @@ server.onOpen(function(){
 	});
 
 	screen.mousemove(function(e){
-		if (Camera.attached) {
-			var deltaX = e.pageX - Camera.x;
-			var deltaY = e.pageY - Camera.y;
-			Camera.x = e.pageX;
-			Camera.y = e.pageY;
-			server.request(Command.RotateCamera, [deltaX * 100, deltaY * 100]);
+		if(!Camera.attached){
+			return;
 		}
+
+		var deltaX = e.pageX - Camera.x;
+		var deltaY = e.pageY - Camera.y;
+		Camera.x = e.pageX;
+		Camera.y = e.pageY;
+		server.request(Command.RotateCamera, [deltaX * 100, deltaY * 100]);
 	});
 
 	screen.mousewheel(function(e){
@@ -335,5 +344,15 @@ $(function(){
 
 		var server_url = e.target.server_url.value;
 		server.connect(server_url);
+	});
+
+	$('#search-form').submit(function(e){
+		e.preventDefault();
+		var input = e.target.keyword;
+		var keyword = input.value;
+		keyword.replace(/^[\s\r\n]+/g, '');
+		keyword.replace(/[\s\r\n]+$/g, '');
+		server.request(Command.SearchPortalKey, [keyword]);
+		input.value = '';
 	});
 });

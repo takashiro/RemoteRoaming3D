@@ -2,6 +2,7 @@
 #include "ServerUser.h"
 #include "Thread.h"
 #include "Semaphore.h"
+#include "PortalKey.h"
 
 #include <iostream>
 #include <fstream>
@@ -73,6 +74,33 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 	mScreenWidth = args[0].asInt();
 	mScreenHeight = args[1].asInt();
 	mSceneMap = mServer->getSceneMapAt(args[2].asInt());
+	if (!mSceneMap->portalPath.empty()) {
+		std::ifstream config(mSceneMap->portalPath, std::ios::binary);
+		int bom[3];
+		bom[0] = config.get();
+		bom[1] = config.get();
+		bom[2] = config.get();
+
+		Json::Value value;
+		Json::Reader reader;
+		if (reader.parse(config, value)) {
+			for (const Json::Value &i : value) {
+				PortalKey *key = new PortalKey;
+				key->name = i["name"].asString();
+				const Json::Value &pos = i["pos"];
+				key->pos.X = pos[0].asFloat();
+				key->pos.Y = pos[1].asFloat();
+				key->pos.Z = pos[2].asFloat();
+				const Json::Value &target = i["target"];
+				key->target.X = target[0].asFloat();
+				key->target.Y = target[1].asFloat();
+				key->target.Z = target[2].asFloat();
+				mPortalKeys[key->name] = key;
+			}
+		} else {
+			std::cerr << reader.getFormattedErrorMessages() << std::endl;
+		}
+	}
 
 	std::function<void()> worker = [this]() {
 		if (mSceneMap == nullptr)
@@ -167,61 +195,38 @@ void ServerUser::createDeviceCommand(const Json::Value &args)
 		we are able to read from the files in that archive as if they are
 		directly stored on the disk.
 		*/
-		irr::io::IFileSystem *fileSystem = mDevice->getFileSystem();
+		io::IFileSystem *fileSystem = mDevice->getFileSystem();
 		fileSystem->addFileArchive(mSceneMap->path.c_str());
 
 		const int screenshotSize = mScreenWidth * mScreenHeight;
 		mScreenshotBuffer = new int[screenshotSize];
 		mScreenshotFile = fileSystem->createMemoryWriteFile(mScreenshotBuffer, screenshotSize * sizeof(int), "screenshot.jpg");
 
-		/*
-		Now we can load the mesh by calling
-		irr::scene::ISceneManager::getMesh(). We get a pointer returned to an
-		irr::scene::IAnimatedMesh. As you might know, Quake 3 maps are not
-		really animated, they are only a huge chunk of static geometry with
-		some materials attached. Hence the IAnimatedMesh consists of only one
-		frame, so we get the "first frame" of the "animation", which is our
-		quake level and create an Octree scene node with it, using
-		irr::scene::ISceneManager::addOctreeSceneNode().
-		The Octree optimizes the scene a little bit, trying to draw only geometry
-		which is currently visible. An alternative to the Octree would be a
-		irr::scene::IMeshSceneNode, which would always draw the complete
-		geometry of the mesh, without optimization. Try it: Use
-		irr::scene::ISceneManager::addMeshSceneNode() instead of
-		addOctreeSceneNode() and compare the primitives drawn by the video
-		driver. (There is a irr::video::IVideoDriver::getPrimitiveCountDrawn()
-		method in the irr::video::IVideoDriver class). Note that this
-		optimization with the Octree is only useful when drawing huge meshes
-		consisting of lots of geometry.
-		*/
-		scene::IAnimatedMesh* mesh = smgr->getMesh(mSceneMap->meshPath.c_str());
-		scene::IMeshSceneNode* node = nullptr;
+		io::IFileArchive *archive = fileSystem->getFileArchive(0);
+		const io::IFileList *file_list = archive->getFileList();
+		u32 file_num = file_list->getFileCount();
+		for (u32 i = 0; i < file_num; i++) {
+			io::path file_name = file_list->getFileName(i);
+			if (!file_name.equals_substring_ignore_case(".3ds", file_name.size() - 4)) {
+				continue;
+			}
 
-		if (mesh) {
-			node = smgr->addOctreeSceneNode(mesh->getMesh(0), 0, -1, 1024);
+			scene::IAnimatedMesh* mesh = smgr->getMesh(file_name);
+			scene::IMeshSceneNode* node = nullptr;
 
-			if (node) {
-				node->setMaterialFlag(irr::video::EMF_LIGHTING, true);
-
-				node->setScale(core::vector3df(80, 80, 80));
-				node->setRotation(core::vector3df(-90, 0, 0));
-				node->setPosition(core::vector3df(0, -40, 0));
-
-				node->setMaterialFlag(irr::video::EMF_NORMALIZE_NORMALS, true);
-
-				scene::ILightSceneNode *light = smgr->addLightSceneNode(0, core::vector3df(0, 10, 5), video::SColorf(1.0f, 1.0f, 1.0f), 100);
-				smgr->setAmbientLight(video::SColor(0, 160, 160, 160));
-				light->setPosition(core::vector3df(0, 10, 10));
+			if (mesh) {
+				node = smgr->addOctreeSceneNode(mesh->getMesh(0));
+				node->setMaterialFlag(video::EMF_LIGHTING, true);
+			} else {
+				std::cerr << "Failed to load " << mSceneMap->meshPath << std::endl;
 			}
 		}
 
-		/*
-		Now we only need a camera to look at the Quake 3 map.
-		Set a jump speed of 3 units per second, which gives a fairly realistic jump
-		when used with the gravity of (0, -10, 0) in the collision response animator.
-		*/
 		scene::ICameraSceneNode* camera = smgr->addCameraSceneNode(0, mSceneMap->cameraPosition, mSceneMap->cameraTarget);
 		camera->setAspectRatio(static_cast<irr::f32>(mScreenWidth) / mScreenHeight);
+
+		scene::ILightSceneNode *light = smgr->addLightSceneNode(0, core::vector3df(-183.842f, 792.335f, 1178.185f));
+		smgr->setAmbientLight(video::SColorf(160.0f, 160.0f, 160.0f));
 
 		mClosingDevice = false;
 		while (mDevice->run()) {

@@ -32,6 +32,7 @@ void SceneMap::parseJson(const Json::Value &value)
 
 	hotspotPath = value["hotspotPath"].asString();
 	meshPath = value["meshPath"].asString();
+	portalPath = value["portalPath"].asString();
 }
 
 Json::Value SceneMap::toJson() const

@@ -24,6 +24,7 @@ enum Command
 	ControlHotspots,
 	DoubleClick,
 	ListMap,
+	SearchPortalKey,
 
 	NumOfCommands
 };

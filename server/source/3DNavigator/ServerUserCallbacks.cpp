@@ -2,6 +2,7 @@
 #include "Hotspot.h"
 #include "Server.h"
 #include "Semaphore.h"
+#include "PortalKey.h"
 
 using namespace irr;
 
@@ -17,6 +18,7 @@ ServerUser::CallbackAdder::CallbackAdder()
 		mCallbacks[ControlHotspots] = &ServerUser::controlHotspotsCommand;
 		mCallbacks[DoubleClick] = &ServerUser::doubleClickCommand;
 		mCallbacks[ListMap] = &ServerUser::listMapCommand;
+		mCallbacks[SearchPortalKey] = &ServerUser::searchPortalKeyCommand;
 	}
 }
 ServerUser::CallbackAdder adder;
@@ -178,4 +180,20 @@ void ServerUser::listMapCommand(const Json::Value &)
 	Packet packet(ListMap);
 	packet.args = std::move(results);
 	sendPacket(packet);
+}
+
+void ServerUser::searchPortalKeyCommand(const Json::Value &args)
+{
+	std::string keyword = args[0].asString();
+	auto i = mPortalKeys.find(keyword);
+	if (i == mPortalKeys.end()) {
+		return;
+	}
+	const PortalKey *portal = i->second;
+	if (portal) {
+		scene::ICameraSceneNode *camera = mDevice->getSceneManager()->getActiveCamera();
+		camera->setPosition(portal->pos);
+		camera->setTarget(portal->target);
+		mNeedUpdate->release();
+	}
 }
