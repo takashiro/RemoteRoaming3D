@@ -1,5 +1,14 @@
 [
 	{
+		"name" : "浙江大学紫金港校区",
+		"path" : "../../media/test/Model.zip",
+		"description" : "",
+		"pos" : [0,0,0],
+		"look_at" : [0,0,0],
+		"hotspotPath" : "../../media/test/158.txt",
+		"meshPath" : "../../media/test/Model/sky.3ds"
+	},
+	{
 		"name" : "敦煌莫高窟158窟",
 		"path" : "../../media/test/158.zip",
 		"description" : "",
